@@ -1,4 +1,4 @@
-/* @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
 layer(base);
 
 @import "tailwindcss";
@@ -163,7 +163,7 @@ layer(base);
   --z-index-9999: 9999;
   --z-index-99999: 99999;
   --z-index-999999: 999999;
-} */
+}
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
@@ -173,7 +173,7 @@ layer(base);
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
-/* @layer base {
+@layer base {
   *,
   ::after,
   ::before,
@@ -257,12 +257,12 @@ layer(base);
 }
 @utility no-scrollbar {
   /* Chrome, Safari and Opera */
-  /* &::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     display: none;
   }
   -ms-overflow-style: none; /* IE and Edge */
-  /* scrollbar-width: none; Firefox */
-/* }
+  scrollbar-width: none; /* Firefox */
+}
 @utility custom-scrollbar {
   &::-webkit-scrollbar {
     @apply size-1.5;
@@ -280,9 +280,9 @@ layer(base);
   background-color: #344054;
 }
 
-@layer utilities { */
+@layer utilities {
   /* For Remove Date Icon */
-  /* input[type="date"]::-webkit-inner-spin-button,
+  input[type="date"]::-webkit-inner-spin-button,
   input[type="time"]::-webkit-inner-spin-button,
   input[type="date"]::-webkit-calendar-picker-indicator,
   input[type="time"]::-webkit-calendar-picker-indicator {
@@ -296,10 +296,10 @@ layer(base);
 }
 .tableCheckbox:checked ~ span {
   @apply border-brand-500 bg-brand-500;
-} */
+}
 
 /* third-party libraries CSS */
-/* .apexcharts-legend-text {
+.apexcharts-legend-text {
   @apply !text-gray-700 dark:!text-gray-400;
 }
 
@@ -746,7 +746,7 @@ span.flatpickr-weekday,
 
 .task {
   transition: all 0.2s ease; /* Smooth transition for visual effects */
-/* }
+}
 
 .task {
   border-radius: 0.75rem;
@@ -754,7 +754,7 @@ span.flatpickr-weekday,
     0px 1px 2px 0px rgba(16, 24, 40, 0.06);
   opacity: 0.8;
   cursor: grabbing; /* Changes the cursor to indicate dragging */
-/* }
+}
 
 .custom-calendar .fc-h-event {
   background-color: transparent;
@@ -775,4 +775,4 @@ span.flatpickr-weekday,
 
 .simplebar-scrollbar.simplebar-visible:before {
   @apply opacity-100;
-}  */
+}
