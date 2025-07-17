@@ -6,39 +6,51 @@
 // import DemographicCard from "../../components/ecommerce/DemographicCard";
 // import PageMeta from "../../components/common/PageMeta";
 
-import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
+import { Calendar } from "lucide-react";
+import AdminDashboardCards from "../../components/admindashboard/AdminDashboardCards";
+// import Calendar from "../Calendar";
+import LineChart from "../Charts/LineChart";
+import CourseCard from "../CourseCard";
+
+
 
 export default function Home() {
   return (
-    <>
-      {/* <PageMeta
-        title="React.js Ecommerce Dashboard | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js Ecommerce Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
-      /> */}
-      <div className="grid grid-cols-12 gap-4 md:gap-6">
-        <div className="col-span-12 space-y-6 xl:col-span-7">
-          <EcommerceMetrics />
-          </div>
+<>
+  {/* PageMeta can be uncommented when needed */}
+  {/* 
+  <PageMeta
+    title="React.js Ecommerce Dashboard | TailAdmin"
+    description="React.js Ecommerce Dashboard page for TailAdmin"
+  /> 
+  */}
 
-          {/* <MonthlySalesChart />
-        </div>
-
-        <div className="col-span-12 xl:col-span-5">
-          <MonthlyTarget />
-        </div>
-
-        <div className="col-span-12">
-          <StatisticsChart />
-        </div>
-
-        <div className="col-span-12 xl:col-span-5">
-          <DemographicCard />
-        </div>
-
-        <div className="col-span-12 xl:col-span-7">
-          <RecentOrders />
-        </div> */}
+  <div className="p-2 md:p-2">
+    <div className="grid grid-cols-12 gap-6">
+      {/* Admin Dashboard Cards - Full Width */}
+      <div className="col-span-12">
+        <AdminDashboardCards />
       </div>
-    </>
+
+      {/* Line Chart (2/3) + Course Card (1/3) */}
+      <div className="col-span-12 flex flex-col md:flex-row gap-6">
+        {/* Line Chart */}
+        <div className="w-full md:w-2/3 h-80">
+          <div className="h-auto p-4 rounded-xl border bg-white shadow">
+            <LineChart />
+          </div>
+        </div>
+
+        {/* Course Card */}
+        <div className="w-full md:w-1/3 h-80">
+          <div className="h-auto p-4 rounded-xl border bg-white shadow">
+            <CourseCard />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</>
+
   );
 }
