@@ -273,19 +273,6 @@ const HomePage = () => {
               Explore Courses
             </Link>
 
-            {/* <a
-  href={
-    import.meta.env.VITE_ENV === 'development'
-      ? 'http://localhost:5001/courses'
-      : 'https://www.codedrift.co/courses'
-  }
-  className="bg-white  text-indigo-600 font-semibold px-4 py-2 rounded-md shadow-md hover:bg-gray-200"
-  target="_self"
-  rel="noopener noreferrer"
->
-  Explore Courses
-</a> */}
-
             {/* Conditional Buttons based on authentication & role */}
             {!currentUser && (
               <Link
@@ -410,19 +397,6 @@ const HomePage = () => {
                   >
                     View Course →
                   </Link>
-
-                  {/* <a
-  href={
-    import.meta.env.VITE_ENV === 'development'
-      ? 'http://localhost:5001/courses'
-      : 'https://www.codedrift.co/courses'
-  }
-  className="text-[#E9577C] font-semibold inline-block hover:text-[#c94464] transition"
-  target="_self"
-  rel="noopener noreferrer"
->
-  View Course →
-</a> */}
                 </div>
               </motion.div>
             ))}
@@ -500,21 +474,6 @@ const HomePage = () => {
           >
             {currentUser ? "Browse More Courses" : "Sign Up Today"}
           </Link>
-
-          {/* <a
-          href={
-            currentUser
-              ? import.meta.env.VITE_ENV === "development"
-                ? "http://localhost:5001/courses"
-                : "https://www.codedrift.co/courses"
-              : "/register"
-          }
-          className="button button-cta"
-          target="_self"
-          rel="noopener noreferrer"
-        >
-          {currentUser ? "Browse More Courses" : "Sign Up Today"}
-        </a> */}
         </div>
       </motion.section>
     </div>

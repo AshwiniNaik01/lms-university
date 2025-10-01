@@ -1,9 +1,9 @@
 
-import Cookies from "js-cookie";
+ import Cookies from "js-cookie";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../public/images/codedrift-main-logo.png";
 import { useAuth } from "../../contexts/AuthContext.jsx";
-
+import { STUDENT_PORTAL_URL } from "../../utils/constants.js";
 
 const Navbar = () => {
   const { currentUser, logout, isAdmin, isTrainer } = useAuth();
@@ -13,22 +13,27 @@ const Navbar = () => {
 
   // const handleLogout = () => {
   //   logout();
-  //   navigate("/login");
+
+  //   if (currentUser?.user?.role === "student") {
+  //     const redirectUrl =
+  //       import.meta.env.VITE_ENV === "development"
+  //         ? "http://localhost:5001/"
+  //         : "https://codedrift.co/";
+
+  //     // For external redirect:
+  //     window.location.href = redirectUrl;
+  //   } else {
+  //     // For other roles, just navigate inside app
+  //     navigate("/login");
+  //   }
   // };
 
   const handleLogout = () => {
     logout();
 
     if (currentUser?.user?.role === "student") {
-      const redirectUrl =
-        import.meta.env.VITE_ENV === "development"
-          ? "http://localhost:5001/"
-          : "https://codedrift.co/";
-
-      // For external redirect:
-      window.location.href = redirectUrl;
+      window.location.href = STUDENT_PORTAL_URL; // ← Clean and centralized
     } else {
-      // For other roles, just navigate inside app
       navigate("/login");
     }
   };
@@ -126,10 +131,7 @@ const Navbar = () => {
                 >
                   My Dashboard
                 </Link>
-                 <Link
-                  to={`/my-courses`}
-                  className="hover:underline text-white"
-                >
+                <Link to={`/my-courses`} className="hover:underline text-white">
                   My Courses
                 </Link>
                 {/* <Link to="/my-results" className="hover:underline text-white">

@@ -1,18 +1,14 @@
-
 import { useEffect, useState } from "react";
 // import { fetchMyEnrollments } from "../api/enrollments";
 // import { useAuth } from "../contexts/AuthContext.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 // import EnrolledCourseCard from "../components/student/EnrolledCourseCard.jsx";
 import Cookies from "js-cookie";
-import {
-  FaBook,
-  FaGraduationCap,
-  FaSearch
-} from "react-icons/fa";
+import { FaBook, FaGraduationCap, FaSearch } from "react-icons/fa";
 import EnrolledCourseCard from "../../components/student/EnrolledCourseCard.jsx";
 // import { fetchStudentDetails } from "../api/profile.js";
 import { fetchStudentDetails } from "../../api/profile.js";
+import { STUDENT_PORTAL_URL } from "../../utils/constants.js";
 
 const MyCoursesPage = () => {
   const [enrollments, setEnrollments] = useState([]);
@@ -21,15 +17,15 @@ const MyCoursesPage = () => {
   const [activeFilter, setActiveFilter] = useState("all");
   // const token = import.meta.env.VITE_TEST_JWT;
 
-const token = Cookies.get('token');
+  const token = Cookies.get("token");
 
-  // const token = import.meta.env.VITE_ENV === 'local' 
-  // ? import.meta.env.VITE_TEST_JWT 
+  // const token = import.meta.env.VITE_ENV === 'local'
+  // ? import.meta.env.VITE_TEST_JWT
   // : Cookies.get('token');
 
-console.log("token:", token);
+  console.log("token:", token);
 
-if (!token) throw new Error('Authentication token not found.');
+  if (!token) throw new Error("Authentication token not found.");
 
   const { isAuthenticated, currentUser } = useAuth();
 
@@ -58,75 +54,76 @@ if (!token) throw new Error('Authentication token not found.');
   //   loadEnrollments();
   // }, [isAuthenticated, currentUser, token]);
 
+  // useEffect(() => {
+  //   const loadStudentData = async () => {
+  //     if (isAuthenticated && currentUser?.user?.role === "student") {
+  //       setLoading(true);
+  //       setError("");
+  //       try {
+  //         const studentData = await fetchStudentDetails();
 
-// useEffect(() => {
-//   const loadStudentData = async () => {
-//     if (isAuthenticated && currentUser?.user?.role === "student") {
-//       setLoading(true);
-//       setError("");
-//       try {
-//         const studentData = await fetchStudentDetails();
+  //         if (studentData.success && studentData.data) {
+  //           setEnrollments(studentData.data.enrolledCourses || []);
+  //         } else {
+  //           setEnrollments([]);
+  //           setError("No courses found.");
+  //         }
+  //       } catch (err) {
+  //         setError("Failed to load your courses. Please try again later.");
+  //         console.error("Error loading student data:", err);
+  //         setEnrollments([]);
+  //       }
+  //       setLoading(false);
+  //     } else if (!isAuthenticated) {
+  //       setError("Please log in to see your courses.");
+  //       setLoading(false);
+  //     } else {
+  //       setLoading(false);
+  //     }
+  //   };
 
-//         if (studentData.success && studentData.data) {
-//           setEnrollments(studentData.data.enrolledCourses || []);
-//         } else {
-//           setEnrollments([]);
-//           setError("No courses found.");
-//         }
-//       } catch (err) {
-//         setError("Failed to load your courses. Please try again later.");
-//         console.error("Error loading student data:", err);
-//         setEnrollments([]);
-//       }
-//       setLoading(false);
-//     } else if (!isAuthenticated) {
-//       setError("Please log in to see your courses.");
-//       setLoading(false);
-//     } else {
-//       setLoading(false);
-//     }
-//   };
+  //   loadStudentData();
+  // }, [isAuthenticated, currentUser]);
 
-//   loadStudentData();
-// }, [isAuthenticated, currentUser]);
+  useEffect(() => {
+    const loadStudentData = async () => {
+      if (isAuthenticated && currentUser?.user?.role === "student") {
+        setLoading(true);
+        setError("");
+        try {
+          const studentData = await fetchStudentDetails();
 
-useEffect(() => {
-  const loadStudentData = async () => {
-    if (isAuthenticated && currentUser?.user?.role === "student") {
-      setLoading(true);
-      setError("");
-      try {
-        const studentData = await fetchStudentDetails();
+          console.log("✅ Student data fetched:", studentData); // ✅ DEBUG
 
-        console.log("✅ Student data fetched:", studentData); // ✅ DEBUG
-
-        if (studentData.success && studentData.data) {
-          console.log("📘 Enrolled courses:", studentData.data.enrolledCourses); // ✅ DEBUG
-          setEnrollments(studentData.data.enrolledCourses || []);
-        } else {
-          console.warn("⚠️ No enrolledCourses found in response"); // ✅ DEBUG
+          if (studentData.success && studentData.data) {
+            console.log(
+              "📘 Enrolled courses:",
+              studentData.data.enrolledCourses
+            ); // ✅ DEBUG
+            setEnrollments(studentData.data.enrolledCourses || []);
+          } else {
+            console.warn("⚠️ No enrolledCourses found in response"); // ✅ DEBUG
+            setEnrollments([]);
+            setError("No courses found.");
+          }
+        } catch (err) {
+          console.error("❌ Error loading student data:", err); // ✅ DEBUG
+          setError("Failed to load your courses. Please try again later.");
           setEnrollments([]);
-          setError("No courses found.");
         }
-      } catch (err) {
-        console.error("❌ Error loading student data:", err); // ✅ DEBUG
-        setError("Failed to load your courses. Please try again later.");
-        setEnrollments([]);
+        setLoading(false);
+      } else if (!isAuthenticated) {
+        console.warn("🔒 User not authenticated"); // ✅ DEBUG
+        setError("Please log in to see your courses.");
+        setLoading(false);
+      } else {
+        console.warn("ℹ️ User is not a student"); // ✅ DEBUG
+        setLoading(false);
       }
-      setLoading(false);
-    } else if (!isAuthenticated) {
-      console.warn("🔒 User not authenticated"); // ✅ DEBUG
-      setError("Please log in to see your courses.");
-      setLoading(false);
-    } else {
-      console.warn("ℹ️ User is not a student"); // ✅ DEBUG
-      setLoading(false);
-    }
-  };
+    };
 
-  loadStudentData();
-}, [isAuthenticated, currentUser]);
-
+    loadStudentData();
+  }, [isAuthenticated, currentUser]);
 
   const handleUnenrollSuccess = (unenrolledCourseId) => {
     setEnrollments((prevEnrollments) =>
@@ -135,7 +132,7 @@ useEffect(() => {
   };
 
   // Filter courses based on active filter
-  const filteredEnrollments = enrollments.filter(enrollment => {
+  const filteredEnrollments = enrollments.filter((enrollment) => {
     if (activeFilter === "all") return true;
     if (activeFilter === "in-progress") {
       const progress = calculateProgress(enrollment);
@@ -152,68 +149,74 @@ useEffect(() => {
     return true;
   });
 
-//   const calculateProgress = (enrollment) => {
-//     if (!enrollment || !enrollment.course) return 0;
+  //   const calculateProgress = (enrollment) => {
+  //     if (!enrollment || !enrollment.course) return 0;
 
-//     // const totalContent =
-//     //   (enrollment.course.youtubeVideos?.length || 0) +
-//     //   (enrollment.course.notes?.length || 0);
+  //     // const totalContent =
+  //     //   (enrollment.course.youtubeVideos?.length || 0) +
+  //     //   (enrollment.course.notes?.length || 0);
 
-// const totalContent =
-//   (enrollment.youtubeVideos?.length || 0) +
-//   (enrollment.notes?.length || 0);
+  // const totalContent =
+  //   (enrollment.youtubeVideos?.length || 0) +
+  //   (enrollment.notes?.length || 0);
 
+  //     if (totalContent === 0) return 0;
 
-//     if (totalContent === 0) return 0;
+  //     const completedCount = enrollment.completedContent?.length || 0;
+  //     return Math.round((completedCount / totalContent) * 100);
+  //   };
 
-//     const completedCount = enrollment.completedContent?.length || 0;
-//     return Math.round((completedCount / totalContent) * 100);
-//   };
+  // const calculateProgress = (enrollment) => {
+  //   if (!enrollment) return 0;
 
-// const calculateProgress = (enrollment) => {
-//   if (!enrollment) return 0;
+  //   const totalContent =
+  //     (enrollment.youtubeVideos?.length || 0) +
+  //     (enrollment.notes?.length || 0);
 
-//   const totalContent =
-//     (enrollment.youtubeVideos?.length || 0) +
-//     (enrollment.notes?.length || 0);
+  //   if (totalContent === 0) return 0;
 
-//   if (totalContent === 0) return 0;
+  //   const completedCount = enrollment.completedContent?.length || 0;
+  //   return Math.round((completedCount / totalContent) * 100);
+  // };
 
-//   const completedCount = enrollment.completedContent?.length || 0;
-//   return Math.round((completedCount / totalContent) * 100);
-// };
+  const calculateProgress = (enrollment) => {
+    console.log(
+      "📊 Calculating progress for:",
+      enrollment.title || enrollment._id
+    ); // ✅ DEBUG
 
+    if (!enrollment) {
+      console.warn("❗ No enrollment object found");
+      return 0;
+    }
 
-const calculateProgress = (enrollment) => {
-  console.log("📊 Calculating progress for:", enrollment.title || enrollment._id); // ✅ DEBUG
+    const youtubeCount = enrollment.youtubeVideos?.length || 0;
+    const notesCount = enrollment.notes?.length || 0;
+    const completedCount = enrollment.completedContent?.length || 0;
+    const totalContent = youtubeCount + notesCount;
 
-  if (!enrollment) {
-    console.warn("❗ No enrollment object found");
-    return 0;
-  }
+    console.log(
+      `➡️ Video: ${youtubeCount}, Notes: ${notesCount}, Completed: ${completedCount}, Total: ${totalContent}`
+    ); // ✅ DEBUG
 
-  const youtubeCount = enrollment.youtubeVideos?.length || 0;
-  const notesCount = enrollment.notes?.length || 0;
-  const completedCount = enrollment.completedContent?.length || 0;
-  const totalContent = youtubeCount + notesCount;
+    if (totalContent === 0) return 0;
 
-  console.log(`➡️ Video: ${youtubeCount}, Notes: ${notesCount}, Completed: ${completedCount}, Total: ${totalContent}`); // ✅ DEBUG
+    const progress = Math.round((completedCount / totalContent) * 100);
+    console.log(
+      `✅ Progress for ${enrollment.title || enrollment._id}: ${progress}%`
+    ); // ✅ DEBUG
 
-  if (totalContent === 0) return 0;
-
-  const progress = Math.round((completedCount / totalContent) * 100);
-  console.log(`✅ Progress for ${enrollment.title || enrollment._id}: ${progress}%`); // ✅ DEBUG
-
-  return progress;
-};
-
+    return progress;
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-lg font-medium text-gray-600">Loading your courses...</p>
+          <p className="mt-4 text-lg font-medium text-gray-600">
+            Loading your courses...
+          </p>
         </div>
       </div>
     );
@@ -224,13 +227,26 @@ const calculateProgress = (enrollment) => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center p-6 bg-white rounded-xl shadow-md max-w-md">
           <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Something went wrong</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">
+            Something went wrong
+          </h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
@@ -252,20 +268,15 @@ const calculateProgress = (enrollment) => {
               My Learning
             </h1>
             <p className="text-gray-600 mt-2">
-              {enrollments.length > 0 
-                ? `You're enrolled in ${enrollments.length} course${enrollments.length !== 1 ? 's' : ''}`
-                : 'Your enrolled courses will appear here'}
+              {enrollments.length > 0
+                ? `You're enrolled in ${enrollments.length} course${
+                    enrollments.length !== 1 ? "s" : ""
+                  }`
+                : "Your enrolled courses will appear here"}
             </p>
           </div>
-          
-          {/* <a
-            href="/courses"
-            className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
-          >
-            <FaSearch className="w-4 h-4" />
-            Browse Courses
-          </a> */}
 
+          {/* 
           <a
   href={
     import.meta.env.VITE_ENV === 'development'
@@ -273,13 +284,22 @@ const calculateProgress = (enrollment) => {
       : 'https://www.codedrift.co/courses'
   }
   className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
-  target="_self"
+  target="_blank"
   rel="noopener noreferrer"
 >
   <FaSearch className="w-4 h-4" />
   Browse Courses
-</a>
+</a> */}
 
+          <a
+            href={`${STUDENT_PORTAL_URL}courses`}
+            className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaSearch className="w-4 h-4" />
+            Browse Courses
+          </a>
         </div>
 
         {/* Stats Cards */}
@@ -391,42 +411,38 @@ const calculateProgress = (enrollment) => {
         )} */}
 
         {/* Course Grid or Empty State */}
-         {filteredEnrollments.length === 0 ? (
+        {filteredEnrollments.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-100">
             <div className="w-20 h-20 bg-indigo-100 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-5">
               <FaGraduationCap className="w-10 h-10" />
             </div>
             <h3 className="text-xl font-semibold text-gray-800 mb-3">
-              {enrollments.length === 0 ? "No courses yet" : "No courses match this filter"}
+              {enrollments.length === 0
+                ? "No courses yet"
+                : "No courses match this filter"}
             </h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              {enrollments.length === 0 
+              {enrollments.length === 0
                 ? "You haven't enrolled in any courses yet. Explore our catalog to find courses that interest you."
                 : "There are no courses that match your current filter selection."}
             </p>
-             <a
+            {/* <a
               href="/courses"
               className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
             >
               <FaSearch className="w-4 h-4" />
               Browse Courses
-            </a> 
+            </a>  */}
 
-
-             <a
-  href={
-    import.meta.env.VITE_ENV === 'development'
-      ? 'http://localhost:5001/courses'
-      : 'https://www.codedrift.co/courses'
-  }
-  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
-  target="_self"
-  rel="noopener noreferrer"
->
-  <FaSearch className="w-4 h-4" />
-  Browse Courses
-</a>
-
+            <a
+              href={`${STUDENT_PORTAL_URL}courses`}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaSearch className="w-4 h-4" />
+              Browse Courses
+            </a>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -438,8 +454,7 @@ const calculateProgress = (enrollment) => {
               />
             ))}
           </div>
-        )} 
-
+        )}
       </div>
     </div>
   );
