@@ -2,6 +2,10 @@ import fs from "node:fs/promises";
 import express from "express";
 import { Transform } from "node:stream";
 
+import dotenv from "dotenv";
+
+dotenv.config(); // ✅ Load .env variables first
+
 // Constants
 const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.PORT || 6174;
