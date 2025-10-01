@@ -1,3 +1,4 @@
+
 // src/utils/constants.js
 
 // Get the base API URL from the environment variable, or default to localhost for development
@@ -12,6 +13,21 @@ if (env === "development") {
 } else if (env === "prod") {
   console.log("Running in production");
 }
+
+// 🌐 Student-facing frontend URL (e.g., public site)
+export const STUDENT_PORTAL_URL = (() => {
+  switch (env) {
+    case "development":
+      return "http://localhost:5001/";
+    case "uat":
+      return "https://uat.codedrift.co/";
+    case "prod":
+    case "production":
+      return "https://codedrift.co/";
+    default:
+      return "/";
+  }
+})();
 
 // Export commonly used imaages and notes directory paths for accessing backend file uploads
 export const DIR = {

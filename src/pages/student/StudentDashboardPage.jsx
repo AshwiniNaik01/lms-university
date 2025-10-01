@@ -6,7 +6,7 @@ import {
   FaEnvelope,
   FaPhone,
   FaStar,
-  FaUser
+  FaUser,
 } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
 import { Link, useNavigate } from "react-router-dom";
@@ -14,7 +14,7 @@ import { fetchUserProfile as getUserProfile } from "../../api/profile";
 // import { BASE_URL } from "../utils/constants";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { BASE_URL } from "../../utils/constants";
+import { BASE_URL, STUDENT_PORTAL_URL } from "../../utils/constants";
 
 // Single stat card
 const StatCard = ({ title, value, icon, bgColor, iconBg }) => (
@@ -120,11 +120,12 @@ const StudentDashboardPage = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
 
-  const courseUrl =
-    import.meta.env.VITE_ENV === "development"
-      ? "http://localhost:5001/courses"
-      : "https://www.codedrift.co/courses";
+  // const courseUrl =
+  //   import.meta.env.VITE_ENV === "development"
+  //     ? "http://localhost:5001/courses"
+  //     : "https://www.codedrift.co/courses";
 
+  const courseUrl = `${STUDENT_PORTAL_URL}courses`;
 
   // Fetch profile function
   const fetchUserProfile = useCallback(async () => {
@@ -226,14 +227,14 @@ const StudentDashboardPage = () => {
             Explore Courses <FaArrowRight className="w-4 h-4" />
           </Link> */}
 
-           <a
-      href={courseUrl}
-      className="text-indigo-600 hover:text-indigo-800 text-lg font-semibold flex items-center gap-1"
-      target="_blank" // Open in same tab
-      rel="noopener noreferrer"
-    >
-      Explore Courses <FaArrowRight className="w-4 h-4" />
-    </a>
+          <a
+            href={courseUrl}
+            className="text-indigo-600 hover:text-indigo-800 text-lg font-semibold flex items-center gap-1"
+            target="_blank" // Open in same tab
+            rel="noopener noreferrer"
+          >
+            Explore Courses <FaArrowRight className="w-4 h-4" />
+          </a>
         </div>
 
         {userData.enrolledCourses?.length > 0 ? (
