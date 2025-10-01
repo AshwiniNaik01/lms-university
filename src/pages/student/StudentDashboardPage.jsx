@@ -9,11 +9,12 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { fetchUserProfile as getUserProfile } from "../../api/profile";
 // import { BASE_URL } from "../utils/constants";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import BatchesComingSoon from "../../components/popupModal/BatchesComingSoon";
 import { BASE_URL, STUDENT_PORTAL_URL } from "../../utils/constants";
 
 // Single stat card
@@ -214,49 +215,53 @@ const StudentDashboardPage = () => {
     </div>
   );
 
-  const OverviewTab = () => (
+const OverviewTab = () => {
+  const coursesWithBatch = userData.enrolledCourses?.filter(
+    (course) => course.batch !== null
+  );
+  const coursesWithoutBatch = userData.enrolledCourses?.filter(
+    (course) => course.batch === null
+  );
+
+  return (
     <div className="space-y-10">
-      {/* Courses Section */}
+      {/* Courses with Batches */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">My Courses</h2>
-          {/* <Link
-            to="/courses"
-            className="text-indigo-600 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1"
-          >
-            Explore Courses <FaArrowRight className="w-4 h-4" />
-          </Link> */}
-
-          <a
-            href={courseUrl}
-            className="text-indigo-600 hover:text-indigo-800 text-lg font-semibold flex items-center gap-1"
-            target="_blank" // Open in same tab
-            rel="noopener noreferrer"
-          >
+          <a href={courseUrl} className="text-white bg-indigo-500 hover:bg-blue-600 text-lg font-semibold flex items-center gap-2 border border-blue-600 rounded-md p-3 transition-transform duration-200 hover:scale-105" target="_blank" rel="noopener noreferrer">
             Explore Courses <FaArrowRight className="w-4 h-4" />
           </a>
         </div>
 
-        {userData.enrolledCourses?.length > 0 ? (
+        {coursesWithBatch.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userData.enrolledCourses.map((course) => (
+            {coursesWithBatch.map((course) => (
               <CourseCard key={course._id} course={course} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-10 text-gray-500 space-y-4">
-            <p>No courses yet. Start learning now!</p>
-            <Link
-              to="/courses"
-              className="inline-block px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-            >
-              Browse Courses
-            </Link>
-          </div>
+          <p className="text-center text-gray-500">No active courses yet.</p>
         )}
       </div>
+
+      {/* Courses Without Batches */}
+      {coursesWithoutBatch.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-yellow-700 mb-4">
+            Courses You're Interested In
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {coursesWithoutBatch.map((course) => (
+              <BatchesComingSoon key={course._id} course={course} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
+};
+
 
   const ProfileTab = () => {
     const relativeImageUrl =
@@ -382,7 +387,7 @@ const StudentDashboardPage = () => {
               : "text-gray-600 hover:bg-indigo-100"
           }`}
         >
-          <RiDashboardFill className="inline-block mr-1" /> Overview
+          <RiDashboardFill className="inline-block mr-1" /> My Courses
         </button>
         <button
           onClick={() => setActiveTab("profile")}

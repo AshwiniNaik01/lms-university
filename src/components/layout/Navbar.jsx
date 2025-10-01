@@ -1,5 +1,4 @@
-
- import Cookies from "js-cookie";
+import Cookies from "js-cookie";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../public/images/codedrift-main-logo.png";
 import { useAuth } from "../../contexts/AuthContext.jsx";
@@ -10,6 +9,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const studentId = Cookies.get("studentId");
   const isLocal = import.meta.env.VITE_ENV === "development";
+  const courseUrl = `${STUDENT_PORTAL_URL}courses`;
 
   // const handleLogout = () => {
   //   logout();
@@ -41,36 +41,15 @@ const Navbar = () => {
   return (
     <nav className="relative w-full h-16 shadow-md overflow-hidden font-sans">
       {/* Left Side */}
-      <div className="absolute top-0 left-0 w-[70%] h-full z-10 flex items-center space-x-6 px-6">
+      <div className="absolute top-0 left-0 w-[70%] h-full z-10 flex items-center space-x-6 px-6 py-2">
         <img
           src={logo}
           alt="Code Drift Logo"
-          className="h-26 max-h-full w-auto object-contain "
+          className="h-13 w-auto object-contain"
         />
-        <Link
-          to="/"
-          className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5ec2f4] via-[#485DAC] to-[#E9577C]"
-        >
+        <Link className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5ec2f4] via-[#485DAC] to-[#E9577C]">
           Code Drift's LMS
         </Link>
-        {/* <Link to="/" className="text-gray-800 hover:text-[#485DAC] transition">
-          Home
-        </Link> */}
-        {/* <Link to="/courses" className="text-gray-800 hover:text-[#485DAC] transition">
-          Courses
-        </Link> */}
-        {/* <a
-          href={
-            isLocal
-              ? "http://localhost:5001/courses"
-              : "https://www.codedrift.co/courses"
-          }
-          target="_self" // or "_blank" if needed
-          rel="noopener noreferrer"
-          className="text-gray-800 hover:text-[#485DAC] transition"
-        >
-          Courses
-        </a> */}
       </div>
 
       {/* Right Side */}
@@ -125,15 +104,25 @@ const Navbar = () => {
             {/* Student links */}
             {!isAdmin && !isTrainer && (
               <>
+                <a
+                  href={courseUrl}
+                  className="hover:underline text-white font-bold text-xl animate-bounce"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Explore Courses
+                </a>
                 <Link
                   to="/student/dashboard"
                   className="hover:underline text-white"
                 >
                   My Dashboard
                 </Link>
-                <Link to={`/my-courses`} className="hover:underline text-white">
+
+                {/* <Link to={`/my-courses`} className="hover:underline text-white">
                   My Courses
-                </Link>
+                </Link> */}
+
                 {/* <Link to="/my-results" className="hover:underline text-white">
                   My Results
                 </Link> */}

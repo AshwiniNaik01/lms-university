@@ -1,3 +1,4 @@
+import { VideoIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   FaArrowLeft,
@@ -58,7 +59,7 @@ const VideoPlayerPage = () => {
       <main className="max-w-7xl mx-auto px-4 py-6 grid lg:grid-cols-4 gap-6">
         <section className="lg:col-span-3">
           <VideoPlayer video={selectedVideo} />
-          <VideoInfo video={selectedVideo} chapterTitle={chapterTitle} />
+          <VideoIcon video={selectedVideo} chapterTitle={chapterTitle} />
         </section>
 
         <aside className="lg:col-span-1">
