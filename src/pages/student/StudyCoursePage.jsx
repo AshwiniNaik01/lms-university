@@ -211,7 +211,7 @@ const StudyCoursePage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
-                to="/my-courses"
+                to="/student/dashboard"
                 className="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-2 transition-all duration-300 hover:gap-3"
               >
                 <FaArrowLeft className="w-4 h-4" />
@@ -222,7 +222,7 @@ const StudyCoursePage = () => {
                 <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
                   <FaBook className="w-6 h-6" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-800 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-gray-800 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text">
                   {course.title}
                 </h1>
               </div>
@@ -246,7 +246,7 @@ const StudyCoursePage = () => {
       <div className="max-w-8xl mx-auto px-6 py-8 flex flex-col lg:flex-row gap-8">
         {/* Enhanced Sidebar Navigation */}
         <aside className="lg:w-72 flex-shrink-0">
-          <div className="bg-white rounded-2xl shadow-xl border p-6 sticky top-28 space-y-6 backdrop-blur-sm bg-white/95">
+          <div className="bg-white rounded-2xl shadow-xl border p-6 sticky top-28 space-y-6 backdrop-blur-sm">
             {/* Navigation */}
             <nav className="space-y-3">
               <TabButton
