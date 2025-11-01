@@ -1,23 +1,21 @@
 
-
-import React from "react";
-
 const ScrollableTable = ({ columns = [], data = [], maxHeight = "600px" }) => {
   return (
-    <div className="w-full max-w-7xl mx-auto bg-white rounded-xl shadow-lg border-2 border-indigo-300 overflow-hidden">
-      {/* Scrollable container */}
+    <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+      
+      {/* Scrollable Container */}
       <div
         className="overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-indigo-100"
         style={{ maxHeight }}
       >
-        <table className="w-full border-collapse text-sm text-left min-w-full">
+        <table className="min-w-full border-collapse text-sm text-left">
           {/* Sticky Header */}
-          <thead className="sticky top-0 bg-indigo-50 text-indigo-900 z-10 shadow-sm">
+          <thead className="sticky top-0 bg-indigo-50 z-10 shadow-md">
             <tr>
               {columns.map((col, index) => (
                 <th
                   key={index}
-                  className="px-6 py-4 font-semibold text-sm uppercase tracking-wider"
+                  className="px-6 py-4 font-semibold text-indigo-900 text-sm uppercase tracking-wider border-b border-indigo-200"
                 >
                   {col.header}
                 </th>
@@ -26,19 +24,19 @@ const ScrollableTable = ({ columns = [], data = [], maxHeight = "600px" }) => {
           </thead>
 
           {/* Table Body */}
-          <tbody className="divide-y divide-indigo-100">
+          <tbody>
             {data.length > 0 ? (
               data.map((row, rowIndex) => (
                 <tr
                   key={rowIndex}
-                  className={`${
+                  className={`transition-all duration-300 ${
                     rowIndex % 2 === 0 ? "bg-white" : "bg-indigo-50"
-                  } hover:bg-indigo-100 transition-colors duration-300`}
+                  } hover:bg-indigo-100`}
                 >
                   {columns.map((col, colIndex) => (
                     <td
                       key={colIndex}
-                      className={`px-6 py-4 text-indigo-700 whitespace-nowrap ${
+                      className={`px-6 py-4 whitespace-nowrap ${
                         colIndex === 0
                           ? "font-semibold text-indigo-900"
                           : "font-normal"

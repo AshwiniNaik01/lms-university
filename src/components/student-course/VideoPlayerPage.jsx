@@ -5,6 +5,7 @@ import {
   FaCompress,
   FaDownload,
   FaExpand,
+  FaFileVideo,
   FaHeart,
   FaPause,
   FaPlay,
@@ -13,7 +14,7 @@ import {
   FaStepBackward,
   FaStepForward,
   FaVolumeMute,
-  FaVolumeUp
+  FaVolumeUp,
 } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -63,7 +64,7 @@ const VideoPlayerPage = () => {
         </section>
 
         <aside className="lg:col-span-1">
-          <PlaylistSidebar
+          <FaFileVideo
             videos={allLectures}
             currentVideo={selectedVideo}
             onVideoSelect={(vid) =>

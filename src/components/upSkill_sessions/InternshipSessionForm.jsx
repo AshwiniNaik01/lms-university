@@ -1,24 +1,40 @@
 
+// 📄 src/pages/admin/InternshipSessionForm.jsx
+// ======================================================
+// 🎓 Internship Session Form
+// Used for both creating & editing internship sessions
+// ======================================================
+
 import { useFormik } from "formik";
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import * as Yup from "yup";
-import apiClient from "../../api/axiosConfig";
+
+// 🧩 Form Components
 import DateRangePicker from "../form/DateRangePicker";
 import Dropdown from "../form/Dropdown";
 import DynamicInputFields from "../form/DynamicInputFields";
 import InputField from "../form/InputField";
 import TextAreaField from "../form/TextAreaField";
 import ToggleSwitch from "../form/ToggleSwitch";
+import { createInternshipSession, getInternshipSessionById, updateInternshipSession } from "./upSkillsApi";
 
+// ======================================================
+// 🚀 Component
+// ======================================================
 const InternshipSessionForm = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  // Extract query params (type & id)
+  const queryParams = new URLSearchParams(location.search);
+  const sessionId = queryParams.get("id");
+  const isEditMode = queryParams.get("type") === "edit";
 
-const location = useLocation();
-const queryParams = new URLSearchParams(location.search);
-const sessionId = queryParams.get("id");
-const isEditMode = queryParams.get("type") === "edit";
-
+  // ======================================================
+  // 🧠 Formik Setup
+  // ======================================================
   const formik = useFormik({
     initialValues: {
       title: "",
@@ -28,169 +44,166 @@ const isEditMode = queryParams.get("type") === "edit";
       duration: "",
       mode: "",
       location: "",
-      topics: [""], // ✅ now as array
+      topics: [""],
       capacity: "",
       fees: {
         amount: "",
-        currency: "",
         refundPolicy: "",
       },
       certification: false,
       status: "",
     },
+
     validationSchema: Yup.object({
-      // add validations if needed
+      title: Yup.string().required("Title is required"),
+      duration: Yup.string().required("Duration is required"),
+      mode: Yup.string().required("Mode is required"),
+      location: Yup.string().required("Location is required"),
     }),
- 
-    onSubmit: async (values, { resetForm, setSubmitting, setStatus }) => {
-  try {
-    const payload = {
-      ...values,
-      capacity: Number(values.capacity),
-      fees: {
-        ...values.fees,
-        amount: Number(values.fees.amount),
-      },
-      topics: values.topics.filter((t) => t.trim() !== ""),
-    };
 
-    if (isEditMode && sessionId) {
-      await apiClient.put(`/api/internship-sessions/${sessionId}`, payload);
-      setStatus("✅ Internship session updated successfully!");
-    } else {
-      await apiClient.post("/api/internship-sessions", payload);
-      setStatus("✅ Internship session created successfully!");
-      resetForm();
-    }
-  } catch (err) {
-    console.error("Error submitting internship session:", err);
-    setStatus("❌ Failed to submit internship session.");
-  } finally {
-    setSubmitting(false);
-  }
-}
+    onSubmit: async (values, { resetForm, setSubmitting }) => {
+      try {
+        const payload = {
+          ...values,
+          capacity: Number(values.capacity),
+          fees: {
+            ...values.fees,
+            amount: Number(values.fees.amount),
+          },
+          topics: values.topics.filter((t) => t.trim() !== ""),
+        };
 
+        if (isEditMode && sessionId) {
+          await updateInternshipSession(sessionId, payload);
+          await Swal.fire({
+            icon: "success",
+            title: "Internship session updated successfully!",
+            confirmButtonColor: "#2563eb",
+          });
+        } else {
+          await createInternshipSession(payload);
+          await Swal.fire({
+            icon: "success",
+            title: "Internship session created successfully!",
+            confirmButtonColor: "#2563eb",
+          });
+          resetForm();
+        }
+
+        navigate("/admin/book-session");
+      } catch (error) {
+        console.error("❌ Error submitting internship session:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Submission Failed",
+          text: "Something went wrong while saving the session.",
+          confirmButtonColor: "#dc2626",
+        });
+      } finally {
+        setSubmitting(false);
+      }
+    },
   });
 
+  // ======================================================
+  // 📦 Fetch existing session data (edit mode)
+  // ======================================================
   useEffect(() => {
-  const fetchInternshipSession = async () => {
-    if (!isEditMode || !sessionId) return;
-
-    try {
-      const response = await apiClient.get(`/api/internship-sessions/${sessionId}`);
-      const data = response.data?.data;
-
-      if (data && data._id) {
-        formik.setValues({
-          title: data.title || "",
-          description: data.description || "",
-          startDate: data.startDate?.split("T")[0] || "",
-          endDate: data.endDate?.split("T")[0] || "",
-          duration: data.duration || "",
-          mode: data.mode || "",
-          location: data.location || "",
-          topics: Array.isArray(data.topics) ? data.topics : [""],
-          capacity: data.capacity?.toString() || "",
-          fees: {
-            amount: data.fees?.amount?.toString() || "",
-            currency: data.fees?.currency || "",
-            refundPolicy: data.fees?.refundPolicy || "",
-          },
-          certification: data.certification ?? false,
-          status: data.status || "",
+    const fetchSession = async () => {
+      if (!isEditMode || !sessionId) return;
+      try {
+        const data = await getInternshipSessionById(sessionId);
+        if (data) {
+          formik.setValues({
+            title: data.title || "",
+            description: data.description || "",
+            startDate: data.startDate?.split("T")[0] || "",
+            endDate: data.endDate?.split("T")[0] || "",
+            duration: data.duration || "",
+            mode: data.mode || "",
+            location: data.location || "",
+            topics: Array.isArray(data.topics) ? data.topics : [""],
+            capacity: data.capacity?.toString() || "",
+            fees: {
+              amount: data.fees?.amount?.toString() || "",
+              refundPolicy: data.fees?.refundPolicy || "",
+            },
+            certification: data.certification ?? false,
+            status: data.status || "",
+          });
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch internship session:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Fetch Error",
+          text: "Unable to load session details.",
         });
-      } else {
-        console.warn("Session not found");
-        formik.setStatus("❌ Internship session not found.");
       }
-    } catch (error) {
-      console.error("Failed to fetch internship session:", error);
-      formik.setStatus("❌ Failed to fetch session data.");
-    }
-  };
+    };
 
-  fetchInternshipSession();
-}, [isEditMode, sessionId]);
+    fetchSession();
+  }, [isEditMode, sessionId]);
 
+  // ======================================================
+  // 🎨 UI Rendering
+  // ======================================================
+return (
+  <form
+    onSubmit={formik.handleSubmit}
+    className="space-y-10 p-8 max-w-6xl mx-auto bg-white shadow-xl rounded-xl border-3 border-blue-700 border-opacity-80"
+  >
+    {/* 🏷️ Header */}
+    <h2 className="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-4 mb-4 text-start">
+      {isEditMode ? "Edit Internship Session" : "Create Internship Session"}
+    </h2>
 
-  return (
-    <form
-      onSubmit={formik.handleSubmit}
-      className="space-y-10 p-8 max-w-5xl mx-auto bg-white shadow-xl rounded-xl border border-gray-300"
-    >
-      <h2 className="text-3xl font-bold text-gray-900 border-b border-gray-200 pb-4 mb-8">
-        Create Internship Session
-      </h2>
+    {/* 🧾 Basic Information */}
+    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Basic Information
+      </h3>
 
-      {/* Section 1: Basic Information */}
-      <section className="space-y-6">
-        <h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
-          Basic Information
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <InputField
-            label="Title"
-            name="title"
-            formik={formik}
-            className="focus:ring-2 focus:ring-blue-400 transition"
-          />
-          <InputField
-            label="Duration (in months)"
-            name="duration"
-            formik={formik}
-            className="focus:ring-2 focus:ring-blue-400 transition"
-          />
-          <InputField
-            label="Location"
-            name="location"
-            formik={formik}
-            className="focus:ring-2 focus:ring-blue-400 transition"
-          />
-          <InputField
-            label="Capacity"
-            name="capacity"
-            type="number"
-            formik={formik}
-            className="focus:ring-2 focus:ring-blue-400 transition"
-          />
-        </div>
-      </section>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputField label="Title" name="title" formik={formik} />
+        <InputField label="Duration (in months)" name="duration" type="number" formik={formik} />
+        <InputField label="Location" name="location" formik={formik} />
+        <InputField
+          label="Capacity"
+          name="capacity"
+          type="number"
+          formik={formik}
+        />
+      </div>
+    </section>
 
-      {/* Section 2: Fees & Payment */}
-      <section className="space-y-6">
-        <h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
-          Fees & Payment
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <InputField
-            label="Amount"
-            name="fees.amount"
-            type="number"
-            formik={formik}
-            className="focus:ring-2 focus:ring-blue-400 transition"
-          />
-          <InputField
-            label="Currency"
-            name="fees.currency"
-            formik={formik}
-            className="focus:ring-2 focus:ring-blue-400 transition"
-          />
-          <InputField
-            label="Refund Policy"
-            name="fees.refundPolicy"
-            formik={formik}
-            className="focus:ring-2 focus:ring-blue-400 transition"
-          />
-        </div>
-      </section>
+    {/* 💰 Fees & Payment */}
+    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Fees & Payment
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputField
+          label="Amount (₹)"
+          name="fees.amount"
+          type="number"
+          formik={formik}
+        />
+        <InputField
+          label="Refund Policy"
+          name="fees.refundPolicy"
+          formik={formik}
+        />
+      </div>
+    </section>
 
-      {/* Section 3: Session Details */}
-      <section className="space-y-6">
-        <h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
-          Session Details
-        </h3>
+    {/* 📅 Session Details */}
+    <section className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Session Details
+      </h3>
 
-<div className="w-132">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Dropdown
           label="Mode"
           name="mode"
@@ -200,34 +213,30 @@ const isEditMode = queryParams.get("type") === "edit";
             { _id: "Offline", title: "Offline" },
             { _id: "Hybrid", title: "Hybrid" },
           ]}
-          className="focus:ring-2 focus:ring-blue-400 transition"
         />
-        </div>
-
-        <TextAreaField
-          label="Description"
-          name="description"
-          formik={formik}
-          className="focus:ring-2 focus:ring-blue-400 transition"
-        />
-
         <DateRangePicker formik={formik} />
+      </div>
 
-        <DynamicInputFields
-          formik={formik}
-          name="topics"
-          label="Topics"
-          className=""
-        />
-      </section>
+      <TextAreaField
+        label="Description"
+        name="description"
+        formik={formik}
+      />
 
-      {/* Section 4: Additional Settings */}
-      <section className="space-y-6">
-        <h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
-          Additional Settings
-        </h3>
+      <DynamicInputFields
+        label="Topics"
+        name="topics"
+        formik={formik}
+      />
+    </section>
 
-<div className="w-132">
+    {/* ⚙️ Additional Settings */}
+    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Additional Settings
+      </h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Dropdown
           label="Status"
           name="status"
@@ -237,35 +246,41 @@ const isEditMode = queryParams.get("type") === "edit";
             { _id: "Ongoing", title: "Ongoing" },
             { _id: "Past", title: "Past" },
           ]}
-          className="focus:ring-2 focus:ring-blue-400 transition"
         />
-        </div>
 
         <ToggleSwitch
           label="Certification Available"
           name="certification"
           checked={formik.values.certification}
           onChange={() =>
-            formik.setFieldValue("certification", !formik.values.certification)
+            formik.setFieldValue(
+              "certification",
+              !formik.values.certification
+            )
           }
-          className=""
         />
-      </section>
+      </div>
+    </section>
 
-      {/* Submit */}
+    {/* 🚀 Submit Button */}
+    <div className="flex justify-end pt-4 border-t border-gray-200">
       <button
         type="submit"
         disabled={formik.isSubmitting}
-        className="w-full md:w-auto mt-8 px-8 py-4 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition text-white rounded-xl font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-lg transition duration-300 disabled:opacity-50"
       >
-        {formik.isSubmitting ? "Submitting..." : "Create Session"}
+        {formik.isSubmitting
+          ? isEditMode
+            ? "Updating..."
+            : "Creating..."
+          : isEditMode
+          ? "Update Internship Session"
+          : "Create Internship Session"}
       </button>
+    </div>
+  </form>
+);
 
-      {formik.status && (
-        <p className="text-sm mt-4 text-gray-600 italic">{formik.status}</p>
-      )}
-    </form>
-  );
 };
 
 export default InternshipSessionForm;

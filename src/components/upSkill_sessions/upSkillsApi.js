@@ -37,7 +37,13 @@ export const deleteSessionCategory = async (id) => {
 // ============================================================================================================================
                                         // EventApi
 
+           
                                         
+export const getAllEvents = async () => {
+  const response = await apiClient.get('/api/event');
+  return response.data?.data || [];
+};
+
 export const getEventById = (id) =>
   apiClient.get(`/api/event/${id}`);
 
@@ -51,10 +57,21 @@ export const updateEvent = (id, formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+  export const deleteEvent = async (id) => {
+  const response = await apiClient.delete(`/api/event/${id}`);
+  return response.data;
+};
+
 
   
 // ============================================================================================================================
                                         // WebinarApi
+
+
+export const getAllWebinars = async () => {
+  const response = await apiClient.get('/api/webinars');
+  return response.data?.data || [];
+};
 
 // Fetch a webinar by ID
 export const getWebinarById = (webinarId) => {
@@ -75,11 +92,22 @@ export const createWebinar = (formData) => {
   });
 };
 
+export const deleteWebinar = async (webinarId) => {
+  const response = await apiClient.delete(`/api/webinars/${webinarId}`);
+  return response.data;
+};
+
 
 // ============================================================================================================================
                                         // WorkshopApi
 
 const WORKSHOP_BASE_URL = '/api/workshops';
+
+
+export const getAllWorkshops = async () => {
+  const response = await apiClient.get(WORKSHOP_BASE_URL);
+  return response.data?.data || [];
+};
 
 export const fetchWorkshopById = async (id) => {
   const response = await apiClient.get(`${WORKSHOP_BASE_URL}/${id}`);
@@ -96,3 +124,42 @@ export const updateWorkshop = async (id, payload) => {
   return response.data;
 };
 
+export const deleteWorkshop = async (id) => {
+  const response = await apiClient.delete(`${WORKSHOP_BASE_URL}/${id}`);
+  return response.data;
+};
+
+// ============================================================================================================================
+// InternshipSessionApi
+
+const INTERNSHIP_BASE_URL = "/api/internship-sessions";
+
+// Fetch all internship sessions
+export const getAllInternshipSessions = async () => {
+  const response = await apiClient.get(INTERNSHIP_BASE_URL);
+  return response.data?.data || [];
+};
+
+// Fetch a single internship session by ID
+export const getInternshipSessionById = async (id) => {
+  const response = await apiClient.get(`${INTERNSHIP_BASE_URL}/${id}`);
+  return response.data?.data || null;
+};
+
+// Create a new internship session
+export const createInternshipSession = async (payload) => {
+  const response = await apiClient.post(INTERNSHIP_BASE_URL, payload);
+  return response.data;
+};
+
+// Update an existing internship session
+export const updateInternshipSession = async (id, payload) => {
+  const response = await apiClient.put(`${INTERNSHIP_BASE_URL}/${id}`, payload);
+  return response.data;
+};
+
+// Delete an internship session
+export const deleteInternshipSession = async (id) => {
+  const response = await apiClient.delete(`${INTERNSHIP_BASE_URL}/${id}`);
+  return response.data;
+};

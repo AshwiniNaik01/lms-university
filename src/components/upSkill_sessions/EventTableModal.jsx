@@ -1,30 +1,93 @@
-
-/**
- * 📦 EventTableModal.jsx
- *
- * This modal displays all sessions under a given session category (e.g., event, webinar, workshop, internship-session).
- * It page is triggered when the user clicks the "Manage" button from the `SessionCategoryForm` component.
- */
-
+// EventTableModal.jsx
+import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import ReactModal from "react-modal";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../../api/axiosConfig";
+import Swal from "sweetalert2"; // SweetAlert2 import
+import Modal from "../popupModal/Modal";
 import ScrollableTable from "../table/ScrollableTable";
 
-import { Pencil } from "lucide-react";
-import { Tooltip } from "react-tooltip";
+// Import all APIs from a centralized file
+import {
+  deleteEvent,
+  deleteInternshipSession,
+  deleteSessionCategory,
+  deleteWebinar,
+  deleteWorkshop,
+  getAllEvents,
+  getAllInternshipSessions,
+  getAllWebinars,
+  getAllWorkshops,
+  getSessionCategories,
+} from "./upSkillsApi";
 
-// Helps screen readers focus on the modal
-ReactModal.setAppElement("#root");
-
+/**
+ * EventTableModal
+ * 
+ * Displays a modal with a scrollable table of sessions/events/categories.
+ * Supports dynamic fetching, editing, and deletion based on categorySlug.
+ */
 const EventTableModal = ({ isOpen, onClose, categoryId, categorySlug }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [activeType, setActiveType] = useState("session-category");
 
-  //  Fetch sessions based on the selected category slug (type)
+  /**
+   * handleDelete
+   * Deletes a session/item dynamically using SweetAlert2 for confirmation.
+   */
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: `Are you sure?`,
+      text: `Do you want to delete this ${categorySlug}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      switch (categorySlug) {
+        case "event":
+          await deleteEvent(id);
+          toast.success("Event deleted successfully!");
+          break;
+        case "webinar":
+          await deleteWebinar(id);
+          toast.success("Webinar deleted successfully!");
+          break;
+        case "workshop":
+          await deleteWorkshop(id);
+          toast.success("Workshop deleted successfully!");
+          break;
+        case "session-category":
+          await deleteSessionCategory(id);
+          toast.success("Session category deleted successfully!");
+          break;
+        case "internship-session":
+          await deleteInternshipSession(id);
+          toast.success("Internship session deleted successfully!");
+          break;
+        default:
+          throw new Error("Unknown delete type");
+      }
+
+      // Remove deleted item from state
+      setData((prev) => prev.filter((item) => item._id !== id));
+    } catch (err) {
+      console.error("❌ Delete failed:", err);
+      toast.error(`Failed to delete ${categorySlug}.`);
+    }
+  };
+
+  /**
+   * useEffect - Fetch sessions dynamically
+   */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -33,26 +96,29 @@ const EventTableModal = ({ isOpen, onClose, categoryId, categorySlug }) => {
       setError("");
 
       try {
-        let response;
+        let responseData = [];
 
         switch (categorySlug) {
           case "event":
-            response = await apiClient.get("/api/event");
+            responseData = await getAllEvents();
             break;
           case "webinar":
-            response = await apiClient.get("/api/webinars");
+            responseData = await getAllWebinars();
             break;
           case "workshop":
-            response = await apiClient.get("/api/workshops");
+            responseData = await getAllWorkshops();
+            break;
+          case "session-category":
+            responseData = await getSessionCategories();
             break;
           case "internship-session":
-            response = await apiClient.get("/api/internship-sessions");
+            responseData = await getAllInternshipSessions();
             break;
           default:
             throw new Error("Unknown session type");
         }
 
-        setData(response.data?.data || []);
+        setData(responseData);
       } catch (err) {
         console.error("❌ Failed to fetch sessions:", err);
         setError("Failed to load sessions.");
@@ -64,47 +130,56 @@ const EventTableModal = ({ isOpen, onClose, categoryId, categorySlug }) => {
     fetchSessions();
   }, [isOpen, categorySlug]);
 
-  //  Table column definitions
+  /**
+   * Table columns configuration
+   */
   const columns = [
     { header: "Title", accessor: "title" },
-    {
-      header: "Start Date",
-      accessor: (row) =>
-        row.startDate
-          ? new Date(row.startDate).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })
-          : "—",
-    },
-    {
-      header: "End Date",
-      accessor: (row) =>
-        row.endDate
-          ? new Date(row.endDate).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })
-          : "—",
-    },
+    // Uncomment if you want date columns
+    // {
+    //   header: "Start Date",
+    //   accessor: (row) =>
+    //     row.startDate
+    //       ? new Date(row.startDate).toLocaleDateString("en-US", {
+    //           year: "numeric",
+    //           month: "short",
+    //           day: "numeric",
+    //         })
+    //       : "—",
+    // },
+    // {
+    //   header: "End Date",
+    //   accessor: (row) =>
+    //     row.endDate
+    //       ? new Date(row.endDate).toLocaleDateString("en-US", {
+    //           year: "numeric",
+    //           month: "short",
+    //           day: "numeric",
+    //         })
+    //       : "—",
+    // },
     {
       header: "Actions",
       accessor: (row) => (
         <div className="flex items-center space-x-2">
-          {/* ✏️ Edit Button with Tooltip */}
+          {/* Edit Button */}
           <button
-            data-tooltip-id="tooltip"
-            data-tooltip-content="Edit Session"
             onClick={() =>
               navigate(
-                `/admin/session-category/${categoryId}/manage?type=edit&id=${row._id}`
+                `/admin/${activeType}/${categoryId}/manage?type=edit&id=${row._id}`
               )
             }
             className="text-blue-600 hover:bg-blue-100 p-2 rounded transition"
           >
             <Pencil size={18} />
+          </button>
+
+          {/* Delete Button */}
+          <button
+            onClick={() => handleDelete(row._id)}
+            className="text-red-600 hover:bg-red-100 p-2 rounded transition"
+          >
+            <Trash2 size={18} />
           </button>
         </div>
       ),
@@ -112,40 +187,20 @@ const EventTableModal = ({ isOpen, onClose, categoryId, categorySlug }) => {
   ];
 
   return (
-    <ReactModal
+    <Modal
       isOpen={isOpen}
-      onRequestClose={onClose}
-      contentLabel="All Sessions Modal"
-      className="p-6 bg-white rounded-lg shadow-lg max-w-3xl mx-auto mt-20 outline-none"
-      overlayClassName="fixed inset-0 bg-black/70 flex items-start justify-center z-50"
+      onClose={onClose}
+      header={`All ${categorySlug} Sessions`}
+      showCancel={true}
     >
-      <div>
-        {/* Modal Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold capitalize">
-            All {categorySlug} Sessions
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-600 hover:text-black text-xl"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Content */}
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : (
-          <ScrollableTable columns={columns} data={data} maxHeight="400px" />
-        )}
-      </div>
-
-      {/* Tooltip provider for icons */}
-      <Tooltip id="tooltip" place="top" />
-    </ReactModal>
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : (
+        <ScrollableTable columns={columns} data={data} maxHeight="400px" />
+      )}
+    </Modal>
   );
 };
 

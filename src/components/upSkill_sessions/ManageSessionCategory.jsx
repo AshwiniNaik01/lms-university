@@ -1,30 +1,18 @@
-// src/pages/admin/ManageSessionCategory.jsx
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-// import apiClient from '../../api/axiosConfig';
-import apiClient from "../../api/axiosConfig";
 import EventForm from "./EventForm";
 import InternshipSessionForm from "./InternshipSessionForm";
 import WebinarForm from "./WebinarForm";
 import WorkshopForm from "./WorkshopForm";
-// import WorkshopForm from './forms/WorkshopForm';
+import { getSessionCategories } from "./upSkillsApi";
 
-// const formMap = {
-//   workshop: WorkshopForm,
-// //   "internship-sessions": InternshipSessionForm,
-// //  hackathon: HackathonForm,
-// //   webinar: WebinarForm,
-// //   event: EventForm,
-//   // add more form mappings for other session types
-// };
-
+// Map session slugs to their respective forms
 const formMap = {
   workshop: WorkshopForm,
   "internship-session": InternshipSessionForm,
-  // hackathon: HackathonForm,
   webinar: WebinarForm,
   event: EventForm,
+  // Add more session types here as needed
 };
 
 const ManageSessionCategory = () => {
@@ -32,75 +20,85 @@ const ManageSessionCategory = () => {
   const [category, setCategory] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ----------------------
+  // Fetch category by ID
+  // ----------------------
   useEffect(() => {
-    (async function fetchCategory() {
+    const fetchCategory = async () => {
       try {
         setLoading(true);
-        const res = await apiClient.get("/api/session-category");
-        const categories = res.data?.data || [];
 
-        console.log(
-          "✅ Available Categories:",
-          categories.map((cat) => cat._id)
-        );
+        // Fetch all categories
+        const categories = await getSessionCategories();
+        console.log("✅ Available Categories:", categories.map((cat) => cat._id));
         console.log("🔍 Searching for ID:", id);
 
-        const found = categories.find(
+        // Find the category with the matching ID
+        const foundCategory = categories.find(
           (item) => String(item._id) === String(id)
         );
 
-        if (found) {
-          console.log("✅ Found Category:", found);
+        if (foundCategory) {
+          console.log("✅ Found Category:", foundCategory);
         } else {
           console.warn("❌ No category found for the provided ID.");
         }
 
-        setCategory(found || null);
-      } catch (err) {
-        console.error("❌ Error fetching session categories:", err);
+        setCategory(foundCategory || null);
+      } catch (error) {
+        console.error("❌ Error fetching session categories:", error);
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    fetchCategory();
   }, [id]);
 
+  // ----------------------
+  // Handle loading and errors
+  // ----------------------
   if (loading) return <p>Loading...</p>;
-  if (!category) return <p className="text-red-500">Category not found.</p>;
+  if (!category)
+    return (
+      <p className="text-red-500 text-center mt-8 font-medium">
+        Category not found.
+      </p>
+    );
 
-  //   const FormComponent = formMap[category.slug.toLowerCase()];
+  // Determine which form component to render based on category slug
   const FormComponent = formMap[category.slug.toLowerCase()];
   console.log("Category slug:", category.slug);
 
-  // return (
-  //   <div className="p-6">
-  //     <h2 className="text-4xl font-semibold mb-4 text-white flex justify-center">{`Manage: ${category.name}`}</h2>
-  //     {FormComponent ? <FormComponent category={category} /> : <p>No form available for this type.</p>}
-  //   </div>
-  // );
-
+  // ----------------------
+  // Render page
+  // ----------------------
   return (
-    <div
-      className="relative p-6 min-h-screen flex flex-col items-center justify-start"
-      style={{
-        backgroundImage:
-          "url('https://static.vecteezy.com/system/resources/previews/023/123/229/non_2x/a-stack-of-antique-leather-books-in-a-vintage-library-generative-ai-photo.jpg')",
-        backgroundSize: "cover",
-        // backgroundPosition: "center",
-        // filter: "grayscale(100%)",
-      }}
-    >
-      {/* Blur overlay */}
-      <div className="absolute inset-0 bg-black/20 bg-opacity-40 backdrop-blur-sm"></div>
+    <div className="relative min-h-screen flex flex-col items-center justify-start ">
 
-      {/* Content */}
-      <div className="relative z-10 max-w-6xl w-full">
-        <h2 className="text-4xl italic font-semibold mb-4 text-white text-center">{`Manage: ${category.name}`}</h2>
+      {/* Content Container */}
+      <div className="relative z-10 w-full max-w-6xl p-2 md:p-4">
+
+        {/* Header */}
+      {/* <h2 className="text-xl md:text-2xl font-bold text-center text-blue-700 mb-6 tracking-wide animate-fade-in">
+  {category?.name ? `📘 Manage ${category.name}` : "Loading..."}
+</h2> */}
+
+
+        {/* Form Component */}
         {FormComponent ? (
-          <FormComponent category={category} />
+          <div className="w-full">
+            <FormComponent category={category} />
+          </div>
         ) : (
-          <p className="text-white">No form available for this type.</p>
+          <p className="text-center text-red-500 font-medium text-lg">
+            No form available for this type.
+          </p>
         )}
       </div>
+
+      {/* Footer Decoration */}
+      <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-blue-200 to-transparent -z-10"></div>
     </div>
   );
 };
