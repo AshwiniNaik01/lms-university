@@ -1,6 +1,8 @@
+// SessionCategoryForm.jsx
 import { useFormik } from "formik";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import * as Yup from "yup";
 
 import {
@@ -18,7 +20,9 @@ import EventTableModal from "./EventTableModal";
 import { Pencil, Plus, Settings, Trash2 } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 
-//  Yup Validation Schema
+// ----------------------
+// Validation Schema
+// ----------------------
 const validationSchema = Yup.object({
   name: Yup.string().required("Name is required"),
   slug: Yup.string().required("Slug is required"),
@@ -27,30 +31,37 @@ const validationSchema = Yup.object({
   isActive: Yup.boolean(),
 });
 
+// ----------------------
+// Main Component
+// ----------------------
 const SessionCategoryForm = () => {
   const [sessionCategories, setSessionCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const [isTableOpen, setIsTableOpen] = useState(false);
   const navigate = useNavigate();
 
-  //  Fetch all session categories
+  // ----------------------
+  // Fetch all session categories
+  // ----------------------
   const fetchCategories = async () => {
     try {
       const data = await getSessionCategories();
       setSessionCategories(data || []);
     } catch (error) {
       console.error("Error fetching session categories:", error);
+      Swal.fire("Error!", "Failed to fetch session categories.", "error");
     }
   };
 
-  //  Initial fetch
+  // Initial fetch
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  //  Formik Setup
+  // ----------------------
+  // Formik setup
+  // ----------------------
   const formik = useFormik({
     initialValues: {
       name: "",
@@ -62,17 +73,16 @@ const SessionCategoryForm = () => {
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
       setLoading(true);
-      setMessage("");
 
       try {
         if (selectedCategory) {
-          //  Update category
+          // Update existing category
           await updateSessionCategory(selectedCategory._id, values);
-          setMessage("✅ Session category updated successfully!");
+          Swal.fire("Success!", "Session category updated successfully!", "success");
         } else {
-          //  Create new category
+          // Create new category
           await createSessionCategory(values);
-          setMessage("✅ Session category created successfully!");
+          Swal.fire("Success!", "Session category created successfully!", "success");
         }
 
         resetForm();
@@ -80,14 +90,16 @@ const SessionCategoryForm = () => {
         fetchCategories();
       } catch (error) {
         console.error("❌ Error saving session category:", error);
-        setMessage("❌ Error saving session category.");
+        Swal.fire("Error!", "Failed to save session category.", "error");
       } finally {
         setLoading(false);
       }
     },
   });
 
-  //  Populate form for editing (prefilled)
+  // ----------------------
+  // Edit category
+  // ----------------------
   const handleEdit = (category) => {
     setSelectedCategory(category);
     formik.setValues({
@@ -99,29 +111,43 @@ const SessionCategoryForm = () => {
     });
   };
 
-  //  Handle delete
+  // ----------------------
+  // Delete category using SweetAlert
+  // ----------------------
   const handleDelete = async (id) => {
-    // if (window.confirm("Are you sure you want to delete this category?")) {
-      
-    if (typeof window !== 'undefined' && window.confirm("Are you sure you want to delete this category?")) {
- 
-    try {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
         await deleteSessionCategory(id);
+        Swal.fire("Deleted!", "Category has been deleted.", "success");
         fetchCategories();
       } catch (error) {
         console.error("❌ Delete failed:", error);
+        Swal.fire("Error!", "Failed to delete category.", "error");
       }
     }
   };
 
-  //  Navigate to manage route
+  // ----------------------
+  // Open manage modal
+  // ----------------------
   const handleManage = (category) => {
-    navigate(`/admin/session-category/${category._id}/manage`, {
-      state: { category },
-    });
+    setSelectedCategory(category);
+    setIsTableOpen(true);
   };
 
-  //  Table columns
+  // ----------------------
+  // Table columns
+  // ----------------------
   const columns = [
     { header: "Name", accessor: "name" },
     { header: "Type", accessor: "type" },
@@ -143,7 +169,7 @@ const SessionCategoryForm = () => {
       header: "Actions",
       accessor: (row) => (
         <div className="flex space-x-4">
-          {/* ✏️ Edit */}
+          {/* Edit */}
           <button
             data-tooltip-id="tooltip"
             data-tooltip-content="Edit"
@@ -153,7 +179,7 @@ const SessionCategoryForm = () => {
             <Pencil size={18} />
           </button>
 
-          {/* 🗑️ Delete */}
+          {/* Delete */}
           <button
             data-tooltip-id="tooltip"
             data-tooltip-content="Delete"
@@ -163,20 +189,17 @@ const SessionCategoryForm = () => {
             <Trash2 size={18} />
           </button>
 
-          {/* ⚙️ Manage */}
+          {/* Manage */}
           <button
             data-tooltip-id="tooltip"
             data-tooltip-content="Manage"
             className="p-2 rounded-lg hover:bg-indigo-50 text-indigo-600 transition"
-            onClick={() => {
-              setSelectedCategory(row);
-              setIsTableOpen(true);
-            }}
+            onClick={() => handleManage(row)}
           >
             <Settings size={18} />
           </button>
 
-          {/* ➕ Create Content */}
+          {/* Create content */}
           <button
             data-tooltip-id="tooltip"
             data-tooltip-content={`Manage ${row.slug}`}
@@ -192,102 +215,102 @@ const SessionCategoryForm = () => {
     },
   ];
 
+  // ----------------------
+  // Render
+  // ----------------------
   return (
-    <div className="relative min-h-screen w-full overflow-hidden flex items-start justify-center p-6">
-      {/* Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://static.vecteezy.com/system/resources/previews/023/123/229/non_2x/a-stack-of-antique-leather-books-in-a-vintage-library-generative-ai-photo.jpg')",
-          zIndex: 0,
-        }}
-      />
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-md z-0" />
+    <div className="relative h-[550px] w-full flex items-center justify-center p-2">
+      <div className="relative z-10 w-full max-w-7xl flex flex-col lg:flex-row gap-6 h-[75vh]">
+        {/* ========== FORM SECTION ========== */}
+        <div className="w-full lg:w-1/2 backdrop-blur-lg bg-white/60 border-3 border-blue-700 border-opacity-80 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-white/30">
+            <h2 className="text-2xl font-extrabold text-indigo-600 tracking-tight">
+              {selectedCategory
+                ? "✏️ Edit Session Category"
+                : "➕ Create Session Category"}
+            </h2>
+          </div>
 
-      <div className="relative z-10 w-full max-w-7xl flex flex-col lg:flex-row gap-6">
-        {/*  Form */}
-        <div className="w-full lg:w-1/2 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-          <h2 className="text-2xl font-bold mb-6 text-blue-700">
-            {selectedCategory
-              ? "Edit Session Category"
-              : "Create Session Category"}
-          </h2>
+          {/* Scrollable Form */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
+            <form onSubmit={formik.handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <InputField label="Name" name="name" formik={formik} />
+                <InputField label="Slug" name="slug" formik={formik} />
+                <InputField label="Type" name="type" formik={formik} />
 
-          {message && (
-            <p
-              className={`mb-4 text-sm font-medium ${
-                message.startsWith("✅") ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {message}
-            </p>
-          )}
+                {/* Active Toggle */}
+                <div className="flex items-center gap-4 mt-4">
+                  <span className="text-sm font-medium text-gray-700">Active</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      checked={formik.values.isActive}
+                      onChange={formik.handleChange}
+                      className="sr-only peer"
+                    />
+                    <div className="w-12 h-7 bg-gray-300 peer-checked:bg-blue-600 rounded-full transition-colors duration-300"></div>
+                    <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+                  </label>
+                </div>
+              </div>
 
-          <form onSubmit={formik.handleSubmit} className="space-y-4">
-            <InputField label="Name" name="name" formik={formik} />
-            <InputField label="Slug" name="slug" formik={formik} />
-            <TextAreaField label="Description" name="desc" formik={formik} />
-            <InputField label="Type" name="type" formik={formik} />
+              <TextAreaField label="Description" name="desc" formik={formik} />
 
-            {/* isActive toggle */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-800">Active</span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={formik.values.isActive}
-                  onChange={formik.handleChange}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300" />
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition-transform duration-300 shadow-md" />
-              </label>
-            </div>
+              {/* Buttons */}
+              <div className="pt-4 space-y-1 flex flex-col lg:flex-row gap-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-70"
+                >
+                  {loading
+                    ? "⏳ Submitting..."
+                    : selectedCategory
+                    ? "💾 Update Category"
+                    : "🚀 Create Category"}
+                </button>
 
-            {/*  Submit & Cancel */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition"
-            >
-              {loading
-                ? "Submitting..."
-                : selectedCategory
-                ? "Update Category"
-                : "Create Category"}
-            </button>
-
-            {selectedCategory && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory(null);
-                  formik.resetForm();
-                }}
-                className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition"
-              >
-                Cancel Edit
-              </button>
-            )}
-          </form>
+                {selectedCategory && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      formik.resetForm();
+                    }}
+                    className="w-full bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all"
+                  >
+                    ❌ Cancel Edit
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
         </div>
 
-        {/*  Table */}
-        <div className="w-full lg:w-1/2 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-          <h2 className="text-2xl font-bold mb-6 text-blue-700">
-            Session Categories
-          </h2>
+        {/* ========== TABLE SECTION ========== */}
+        <div className="w-full lg:w-1/2 backdrop-blur-lg bg-white/60 border-3 border-blue-700 border-opacity-80 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-white/30 flex items-center justify-between">
+            <h2 className="text-2xl font-extrabold text-indigo-600 tracking-tight">
+              📚 Session Categories
+            </h2>
+          </div>
 
-          {/* Render the Scrollable Table */}
-          <ScrollableTable
-            columns={columns}
-            data={sessionCategories}
-            maxHeight="400px"
-          />
+          {/* Scrollable Table */}
+          <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+              <ScrollableTable
+                columns={columns}
+                data={sessionCategories}
+                maxHeight="100%"
+              />
+            </div>
+          </div>
 
-          {/* Render the Manage Modal */}
+          {/* Modal */}
           <EventTableModal
             isOpen={isTableOpen}
             onClose={() => setIsTableOpen(false)}
@@ -295,7 +318,7 @@ const SessionCategoryForm = () => {
             categorySlug={selectedCategory?.slug}
           />
 
-          {/* Tooltip provider */}
+          {/* Tooltip */}
           <Tooltip id="tooltip" place="top" />
         </div>
       </div>

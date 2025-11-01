@@ -71,7 +71,7 @@ const Navbar = () => {
                 >
                   Admin Dashboard
                 </Link>
-                <Link to="/profile" className="hover:underline text-white">
+                <Link to="/admin/profile" className="hover:underline text-white">
                   Admin Profile
                 </Link>
               </>

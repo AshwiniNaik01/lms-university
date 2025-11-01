@@ -6,7 +6,8 @@ const AdminCourseManagementPage = () => {
     return (
         <div>
             <h2>Course Management (Admin)</h2>
-            <CourseManagement /> {/* Use the actual component here */}
+            {/* <CourseTable/> */}
+            <CourseManagement /> Use the actual component here
         </div>
     );
 };

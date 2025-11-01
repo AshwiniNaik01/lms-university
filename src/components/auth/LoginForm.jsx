@@ -133,7 +133,7 @@ export default function LoginForm() {
                 <option value="">Choose a role</option>
                 <option value="admin">Admin</option>
                 <option value="trainer">Trainer</option>
-                <option value="student">Student</option>
+                {/* <option value="student">Student</option> */}
               </select>
             </div>
 
