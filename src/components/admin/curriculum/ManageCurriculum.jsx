@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../../api/axiosConfig";
@@ -78,7 +79,7 @@ const Modal = ({ title, values, onSave, onClose, type = "edit" }) => {
             {formData.weekNumber !== undefined && (
               <div className="mb-6">
                 <label className="text-gray-700 text-sm font-semibold mb-2 block">
-                  Week Number
+                  Sub-topic's Number
                 </label>
                 <input
                   type="number"
@@ -212,34 +213,34 @@ const ManageCurriculum = () => {
   };
 
   // Fetch Courses
- useEffect(() => {
-  const fetchCourses = async () => {
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const coursesData = await getAllCourses();
+        setCourses(coursesData || []);
+      } catch (error) {
+        showToast("❌ Failed to load courses", "error");
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  // Fetch Phases for selected course
+  const fetchPhases = async (courseId) => {
+    if (!courseId) return;
+
+    setLoading(true);
     try {
-      const coursesData = await getAllCourses();
-      setCourses(coursesData || []);
+      const course = await fetchCourseById(courseId);
+      setPhases(course?.phases || []);
     } catch (error) {
-      showToast("❌ Failed to load courses", "error");
+      showToast("❌ Failed to load curriculum", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  fetchCourses();
-}, []);
-
-
-// Fetch Phases for selected course
-const fetchPhases = async (courseId) => {
-  if (!courseId) return;
-
-  setLoading(true);
-  try {
-    const course = await fetchCourseById(courseId);
-    setPhases(course?.phases || []);
-  } catch (error) {
-    showToast("❌ Failed to load curriculum", "error");
-  } finally {
-    setLoading(false);
-  }
-};
   const handleCourseChange = (e) => {
     const id = e.target.value;
     setSelectedCourse(id);
@@ -295,7 +296,7 @@ const fetchPhases = async (courseId) => {
         updateEntity(
           `/api/phases/${phase._id}`,
           data,
-          "Phase updated successfully!"
+          "Topic updated successfully!"
         );
       },
     });
@@ -303,11 +304,11 @@ const fetchPhases = async (courseId) => {
 
   const handleDeletePhase = (phase) => {
     setModal({
-      title: "Delete Phase",
+      title: "Delete Topic",
       values: {},
       onSave: () => {
         setModal(null);
-        deleteEntity(`/api/phases/${phase._id}`, "Phase deleted successfully!");
+        deleteEntity(`/api/phases/${phase._id}`, "Topic deleted successfully!");
       },
       type: "delete",
     });
@@ -316,7 +317,7 @@ const fetchPhases = async (courseId) => {
   // Week Operations
   const handleEditWeek = (week) => {
     setModal({
-      title: "Edit Week",
+      title: "Edit Sub-Topic",
       values: {
         title: week.title,
         weekNumber: week.weekNumber,
@@ -327,7 +328,7 @@ const fetchPhases = async (courseId) => {
         updateEntity(
           `/api/weeks/${week._id}`,
           data,
-          "Week updated successfully!"
+          "Sub-Topic updated successfully!"
         );
       },
     });
@@ -335,11 +336,11 @@ const fetchPhases = async (courseId) => {
 
   const handleDeleteWeek = (week) => {
     setModal({
-      title: "Delete Week",
+      title: "Delete Sub-Topic",
       values: {},
       onSave: () => {
         setModal(null);
-        deleteEntity(`/api/weeks/${week._id}`, "Week deleted successfully!");
+        deleteEntity(`/api/weeks/${week._id}`, "Sub-Topic deleted successfully!");
       },
       type: "delete",
     });
@@ -382,15 +383,13 @@ const fetchPhases = async (courseId) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+        <div className="text-start mb-8">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             📚 Manage Curriculum
           </h1>
-          <p className="text-gray-600 text-lg">
-            View, edit, and manage your course curriculum structure
-          </p>
+         <hr />
         </div>
 
         {/* Course Selector */}
@@ -424,133 +423,107 @@ const fetchPhases = async (courseId) => {
         {!loading && phases.length > 0 && (
           <div className="space-y-6">
             {phases.map((phase, index) => (
-  <div
-    key={phase._id}
-    className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100 hover:border-blue-200 transition-all duration-300"
-  >
-    {/* Phase Header */}
-    <div
-      onClick={() => setOpenPhase(openPhase === phase._id ? null : phase._id)}
-      className="flex justify-between items-center p-6 cursor-pointer bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all"
-    >
-      <div className="flex items-center gap-4">
-        {/* Render phase number only if this phase is open */}
-        {/* {openPhase === phase._id && ( */}
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center text-white text-xl">
-            {index + 1}
-          </div>
-        {/* )} */}
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">{phase.title}</h3>
-          <p className="text-gray-600">{phase.description}</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEditPhase(phase);
-          }}
-          className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-all"
-        >
-          ✏️
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeletePhase(phase);
-          }}
-          className="w-10 h-10 bg-red-500 text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition-all"
-        >
-          🗑️
-        </button>
-        {selectedCourse && (
-          <div className="flex justify-end">
-            <button
-              onClick={() =>
-                navigate(`/admin/add-curriculum?courseId=${selectedCourse}`)
-              }
-              className="bg-green-500 text-white px-2 py-2 rounded-lg font-semibold hover:bg-green-600 transition-all"
-            >
-              ➕
-            </button>
-          </div>
-        )}
-        <span className="text-2xl text-blue-600">
-          {openPhase === phase._id ? "🔽" : "▶️"}
-        </span>
-      </div>
-    </div>
-
-    {/* Weeks Section */}
-    {openPhase === phase._id && phase.weeks && phase.weeks.length > 0 && (
-      <div className="p-6 bg-gray-50 space-y-4">
-        {phase.weeks.map((week) => (
-          <div
-            key={week._id}
-            className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden"
-          >
-            {/* Week Header */}
-            <div
-              onClick={() =>
-                setOpenWeek(openWeek === week._id ? null : week._id)
-              }
-              className="flex justify-between items-center p-4 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 hover:from-gray-100 hover:to-blue-100 transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
-                  📅
+              <div
+                key={phase._id}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100 hover:border-blue-200 transition-all duration-300"
+              >
+                {/* Phase Header */}
+                <div
+                  onClick={() => setOpenPhase(openPhase === phase._id ? null : phase._id)}
+                  className="flex justify-between items-center p-6 cursor-pointer bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center text-white text-xl">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">{phase.title}</h3>
+                      <p className="text-gray-600">{phase.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditPhase(phase);
+                      }}
+                      className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-all"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePhase(phase);
+                      }}
+                      className="w-10 h-10 bg-red-500 text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition-all"
+                    >
+                      🗑️
+                    </button>
+                    <span className="text-2xl text-blue-600">
+                      {openPhase === phase._id ? "🔽" : "▶️"}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800">
-                    Week {week.weekNumber}: {week.title}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    {week.chapters?.length || 0} chapters
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEditWeek(week);
-                  }}
-                  className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-all text-sm"
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteWeek(week);
-                  }}
-                  className="w-8 h-8 bg-red-500 text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition-all text-sm"
-                >
-                  🗑️
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/admin/add-curriculum?weekId=${week._id}`);
-                  }}
-                  className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center hover:bg-green-600 transition-all text-sm"
-                  title="Add Chapter"
-                >
-                  ➕
-                </button>
-                <span className="text-2xl text-blue-600">
-          {openWeek === week._id ? "🔽" : "▶️"}
-        </span>
-              </div>
-            </div>
 
+                {/* Weeks Section */}
+                {openPhase === phase._id && phase.weeks && phase.weeks.length > 0 && (
+                  <div className="p-6 bg-gray-50 space-y-4">
+                    {phase.weeks.map((week) => (
+                      <div
+                        key={week._id}
+                        className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden"
+                      >
+                        {/* Week Header */}
+                        <div
+                          onClick={() =>
+                            setOpenWeek(openWeek === week._id ? null : week._id)
+                          }
+                          className="flex justify-between items-center p-4 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 hover:from-gray-100 hover:to-blue-100 transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
+                              📅
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-800">
+                                Week {week.weekNumber}: {week.title}
+                              </h4>
+                              <p className="text-sm text-gray-600">
+                                {week.chapters?.length || 0} chapters
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditWeek(week);
+                              }}
+                              className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-all text-sm"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteWeek(week);
+                              }}
+                              className="w-8 h-8 bg-red-500 text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition-all text-sm"
+                            >
+                              🗑️
+                            </button>
+                            <span className="text-2xl text-blue-600">
+                              {openWeek === week._id ? "🔽" : "▶️"}
+                            </span>
+                          </div>
+                        </div>
 
-                          {/* Chapters Section */}
-                          {openWeek === week._id &&
-                            week.chapters &&
-                            week.chapters.length > 0 && (
-                              <div className="p-4 bg-white space-y-3">
+                        {/* Chapters Section */}
+                        {openWeek === week._id && (
+                          <div className="p-4 bg-white space-y-3">
+                            {week.chapters && week.chapters.length > 0 ? (
+                              <>
                                 {week.chapters.map((chapter, index) => (
                                   <div
                                     key={chapter._id}
@@ -609,30 +582,72 @@ const fetchPhases = async (courseId) => {
                                         >
                                           🗑️
                                         </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigate(
-                                              `/admin/add-curriculum?weekId=${week._id}`
-                                            );
-                                          }}
-                                          className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center hover:bg-green-600 transition-all text-sm"
-                                          title="Add Chapter"
-                                        >
-                                          ➕
-                                        </button>
                                       </div>
                                     </div>
                                   </div>
                                 ))}
+                                
+                                {/* Add Chapter Button - At the bottom of chapters section */}
+                                <div className="flex justify-center pt-4">
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/admin/add-curriculum?weekId=${week._id}`)
+                                    }
+                                    className="bg-amber-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-amber-600 transition-all flex items-center gap-2"
+                                  >
+                                    📚 Add Chapter to this Sub-topics
+                                  </button>
+                                </div>
+                              </>
+                            ) : (
+                              /* Empty chapters state with add button */
+                              <div className="text-center py-8">
+                                <div className="text-4xl mb-3">📚</div>
+                                <p className="text-gray-500 mb-4">
+                                  No chapters yet in this Sub-topic.
+                                </p>
+                                <button
+                                  onClick={() =>
+                                    navigate(`/admin/add-curriculum?weekId=${week._id}`)
+                                  }
+                                  className="bg-amber-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-amber-600 transition-all flex items-center gap-2 mx-auto"
+                                >
+                                  📚 Add First Chapter
+                                </button>
                               </div>
                             )}
-                        </div>
-                      ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {/* Add Week Button - Only once at the bottom of weeks section */}
+                    <div className="flex justify-center pt-4">
+                      <button
+                        onClick={() =>
+                          navigate(`/admin/add-curriculum?phaseId=${phase._id}`)
+                        }
+                        className="bg-green-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-600 transition-all flex items-center gap-2"
+                      >
+                        ➕ Add Sub-Topic to this Topic
+                      </button>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             ))}
+            
+            {/* Add Phase Button - Only once at the bottom of all phases */}
+            <div className="flex justify-center pt-6">
+              <button
+                onClick={() =>
+                  navigate(`/admin/add-curriculum?courseId=${selectedCourse}`)
+                }
+                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl transition-all flex items-center gap-2 text-lg"
+              >
+                🏗️ Add New Topic
+              </button>
+            </div>
           </div>
         )}
 
@@ -647,7 +662,7 @@ const fetchPhases = async (courseId) => {
               This course doesn't have any curriculum yet.
             </p>
             <button
-              onClick={() => (window.location.href = "/admin/add-curriculum")}
+              onClick={() => navigate(`/admin/add-curriculum?courseId=${selectedCourse}`)}
               className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl transition-all"
             >
               🚀 Create Curriculum

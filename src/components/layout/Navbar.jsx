@@ -148,7 +148,7 @@ const Navbar = () => {
           </>
         ) : (
           <>
-            <Link
+            {/* <Link
               to="/login"
               className="px-3 py-1 border border-white rounded hover:bg-white hover:text-[#53B8EC] transition"
             >
@@ -159,7 +159,7 @@ const Navbar = () => {
               className="px-3 py-1 bg-white text-[#485DAC] rounded hover:bg-gray-100 transition"
             >
               Register
-            </Link>
+            </Link> */}
           </>
         )}
       </div>
