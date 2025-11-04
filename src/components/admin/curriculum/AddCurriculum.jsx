@@ -1,9 +1,12 @@
 import { FieldArray, FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
-import { createPhase, fetchPhases, fetchWeeks } from "../../../api/curriculum";
+import { setSelectedCourseId } from "../../../features/curriculumSlice";
+import InputField from "../../form/InputField";
+import TextAreaField from "../../form/TextAreaField";
 
 export default function AddCurriculum() {
   const [searchParams] = useSearchParams();
@@ -11,9 +14,16 @@ export default function AddCurriculum() {
   const phaseId = searchParams.get("phaseId");
   const weekId = searchParams.get("weekId");
   const [step, setStep] = useState(1);
+  const selectedCourseId = useSelector(
+    (state) => state.curriculum.selectedCourseId
+  );
   const [availableCourses, setAvailableCourses] = useState([]);
+  const [selectedPhase, setSelectedPhase] = useState(""); // stores dropdown selection
+
   const [availablePhases, setAvailablePhases] = useState([]);
   const [availableWeeks, setAvailableWeeks] = useState([]);
+  // Inside AddCurriculum component
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [successPopup, setSuccessPopup] = useState({
@@ -21,6 +31,14 @@ export default function AddCurriculum() {
     type: "",
     data: null,
   });
+
+  const getBackendErrorMessage = (err) => {
+    if (!err.response || !err.response.data)
+      return err.message || "Please Try Again!";
+
+    const data = err.response.data;
+    return data.success || data.message || data.error || "Please Try Again!";
+  };
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -43,175 +61,206 @@ export default function AddCurriculum() {
     else if (weekId) setStep(3);
   }, [courseId, phaseId, weekId]);
 
-  // Fetch all data
+  // Fetch courses for dropdown
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCourses = async () => {
+      try {
+        const res = await apiClient.get("/api/courses/all");
+        setAvailableCourses(res.data?.data || []);
+      } catch (err) {
+        showToast("❌ " + getBackendErrorMessage(err), "error");
+      }
+    };
+    fetchCourses();
+  }, []);
+
+
+  // Fetch phases and weeks based on selected course from Redux
+  useEffect(() => {
+    if (!selectedCourseId) return;
+
+    const fetchPhasesAndWeeks = async () => {
       setLoading(true);
       try {
-        const [coursesResp, phasesResp, weeksResp] = await Promise.all([
-          apiClient.get("/api/courses/all"),
-          apiClient.get("/api/phases"),
-          apiClient.get("/api/weeks"),
-        ]);
-        setAvailableCourses(coursesResp.data?.data || []);
+        // Phases API: /api/phases/{courseId}
+        const phasesResp = await apiClient.get(
+          `/api/phases/${selectedCourseId}`
+        );
         setAvailablePhases(phasesResp.data?.data || []);
+
+        // Weeks API: /api/weeks/course/{courseId}
+        const weeksResp = await apiClient.get(
+          `/api/weeks/course/${selectedCourseId}`
+        );
         setAvailableWeeks(weeksResp.data?.data || []);
       } catch (err) {
-        showToast("Error fetching data", "error");
+        showToast("❌ " + getBackendErrorMessage(err), "error");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
 
-  // Refresh data after successful operations
-  const refreshData = async () => {
-    try {
-      const [phases, weeks] = await Promise.all([fetchPhases(), fetchWeeks()]);
-      setAvailablePhases(phases);
-      setAvailableWeeks(weeks);
-    } catch (err) {
-      console.error("Error refreshing data:", err);
+    fetchPhasesAndWeeks();
+  }, [selectedCourseId]);
+
+
+useEffect(() => {
+  if (phaseId && availablePhases.length > 0) {
+    const matchedPhase = availablePhases.find((p) => p._id === phaseId);
+    if (matchedPhase) {
+      setSelectedPhase(matchedPhase._id);
+      weeksFormik.setFieldValue("phase", matchedPhase._id);
     }
-  };
+  }
+}, [phaseId, availablePhases]);
+
+useEffect(() => {
+  weeksFormik.setFieldValue("phase", selectedPhase || "");
+}, [selectedPhase]);
+
 
   // Phase Form
-  const phaseFormik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      course: courseId || "",
-      title: "",
-      description: "",
-    },
-    validationSchema: Yup.object({
-      course: Yup.string().required("Course is required"),
-      title: Yup.string().required("Title is required"),
-    }),
-    onSubmit: async (values, { resetForm }) => {
-      setLoading(true);
-      try {
-        const response = await createPhase(values);
-        const newPhase = response.data || response;
+const phaseFormik = useFormik({
+  enableReinitialize: true,
+  initialValues: {
+    course: courseId || selectedCourseId || "",
+    title: "",
+    description: "",
+  },
+  validationSchema: Yup.object({
+    course: Yup.string().required("Course is required"),
+    title: Yup.string().required("Title is required"),
+  }),
+  onSubmit: async (values, { resetForm }) => {
+    if (!values.course) {
+      showToast("Please select a course first", "error");
+      return;
+    }
 
-        showToast("🎉 Topic created successfully!", "success");
-        resetForm();
-        await refreshData();
+    setLoading(true);
+    try {
+      const response = await apiClient.post("/api/phases", [values]);
+      const newPhase = response.data?.data[0];
 
-        // Show success popup with the created phase data
-        setSuccessPopup({
-          show: true,
-          type: "phase",
-          data: newPhase,
-        });
-      } catch (err) {
-        showToast(
-          "❌ Error creating topic: " +
-            (err.response?.data?.message || err.message),
-          "error"
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-  });
+      showToast("🎉 Topic created successfully!", "success");
+      resetForm();
 
-  // Weeks Form
+      dispatch(setSelectedCourseId(newPhase.course));
+
+      const phasesResp = await apiClient.get(`/api/phases/${newPhase.course}`);
+      setAvailablePhases(phasesResp.data?.data || []);
+
+      setSuccessPopup({
+        show: true,
+        type: "phase",
+        data: newPhase,
+      });
+    } catch (err) {
+      showToast("❌ " + getBackendErrorMessage(err), "error");
+    } finally {
+      setLoading(false);
+    }
+  },
+});
+
+
+   
   const weeksFormik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      phaseId: phaseId || "",
-      weeks: [{ weekNumber: 1, title: "" }],
-    },
-    validationSchema: Yup.object({
-      phaseId: Yup.string().required("Topic is required"),
-      weeks: Yup.array()
-        .of(
-          Yup.object({
-            weekNumber: Yup.number()
-              .min(1)
-              .required("Sub-topic number is required"),
-          })
-        )
-        .min(1, "At least one sub-topic is required"),
-    }),
-    onSubmit: async (values, { resetForm }) => {
-      setLoading(true);
-      try {
-        const weekPromises = values.weeks.map((week) =>
-          apiClient.post("/api/weeks", [{ ...week, phase: values.phaseId }])
-        );
-        const responses = await Promise.all(weekPromises);
-        const newWeeks = responses.map((res) => res.data || res);
+  enableReinitialize: true,
+ initialValues: {
+  course: courseId || selectedCourseId || "",
+  phase: phaseId || selectedPhase || "",
+  weeks: [{ weekNumber: 1, title: "" }],
+},
+  validationSchema: Yup.object({
+    course: Yup.string().required("Course is required"),
+    phase: Yup.string().required("Phase is required"),
+  }),
+  onSubmit: async (values, { resetForm }) => {
+    if (!values.course || !values.phase) {
+      showToast("Please select a course and phase first", "error");
+      return;
+    }
 
-        showToast("🎉 Sub-Topic created successfully!", "success");
-        resetForm();
-        await refreshData();
+    setLoading(true);
+    try {
+      const weekPayloads = values.weeks.map((week) => ({
+        ...week,
+        course: values.course,
+        phase: values.phase,
+      }));
 
-        // Show success popup with the created weeks data
-        setSuccessPopup({
-          show: true,
-          type: "weeks",
-          data: newWeeks,
-        });
-      } catch (err) {
-        showToast(
-          "❌ Error creating sub-topic: " +
-            (err.response?.data?.message || err.message),
-          "warning"
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-  });
+      const responses = await Promise.all(
+        weekPayloads.map((week) => apiClient.post("/api/weeks", [week]))
+      );
 
-  // Chapter Form
+      const newWeeks = responses.map((res) => res.data?.data[0] || res.data || res);
+
+      showToast("🎉 Sub-Topic created successfully!", "success");
+      resetForm();
+
+      const weeksResp = await apiClient.get(`/api/weeks/course/${values.course}`);
+      setAvailableWeeks(weeksResp.data?.data || []);
+
+      setSuccessPopup({
+        show: true,
+        type: "weeks",
+        data: newWeeks,
+      });
+    } catch (err) {
+      showToast("❌ " + getBackendErrorMessage(err), "error");
+    } finally {
+      setLoading(false);
+    }
+  },
+});
+
+
   const chapterFormik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      week: weekId || "",
-      title: "",
-      points: [{ title: "", description: "" }],
-    },
-    validationSchema: Yup.object({
-      week: Yup.string().required("Sub-topic is required"),
-      title: Yup.string().required("Title is required"),
-      points: Yup.array()
-        .of(
-          Yup.object({
-            title: Yup.string().required("Point title is required"),
-          })
-        )
-        .min(1, "At least one learning point is required"),
-    }),
-    onSubmit: async (values, { resetForm }) => {
-      setLoading(true);
-      try {
-        const response = await apiClient.post("/api/chapters", [values]);
-        const newChapter = response.data || response;
+  enableReinitialize: true,
+  initialValues: {
+  course: courseId || selectedCourseId || "",
+  week: weekId || "",
+  title: "",
+  points: [{ title: "", description: "" }],
+},
+  validationSchema: Yup.object({
+    course: Yup.string().required("Course is required"),
+    week: Yup.string().required("Week is required"),
+  }),
+  onSubmit: async (values, { resetForm }) => {
+    if (!values.course || !values.week) {
+      showToast("Please select a course and week first", "error");
+      return;
+    }
 
-        showToast("🎉 Chapter created successfully!", "success");
-        resetForm();
-        await refreshData();
+    setLoading(true);
+    try {
+      const payload = { ...values, course: values.course, week: values.week };
+      const response = await apiClient.post("/api/chapters", [payload]);
+      const newChapter = response.data?.data[0] || response.data || response;
 
-        // Show success popup with the created chapter data
-        setSuccessPopup({
-          show: true,
-          type: "chapter",
-          data: newChapter,
-        });
-      } catch (err) {
-        showToast(
-          "❌ Error creating chapter: " +
-            (err.response?.data?.message || err.message),
-          "error"
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-  });
+      showToast("🎉 Chapter created successfully!", "success");
+      resetForm();
+
+      dispatch(setSelectedCourseId(values.course));
+
+      const weeksResp = await apiClient.get(`/api/weeks/course/${values.course}`);
+      setAvailableWeeks(weeksResp.data?.data || []);
+
+      setSuccessPopup({
+        show: true,
+        type: "chapter",
+        data: newChapter,
+      });
+    } catch (err) {
+      showToast("❌ " + getBackendErrorMessage(err), "error");
+    } finally {
+      setLoading(false);
+    }
+  },
+});
+
 
   // Handle success popup actions
   const handleSuccessAction = (action) => {
@@ -415,386 +464,314 @@ export default function AddCurriculum() {
         )}
 
         {/* Phase Form */}
-        {step === 1 && (
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-              <span className="text-3xl">🏗️</span>
-              Create New Topic
-            </h2>
-            <form onSubmit={phaseFormik.handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Select Course
-                </label>
-                <select
-                  name="course"
-                  value={phaseFormik.values.course}
-                  onChange={phaseFormik.handleChange}
-                  onBlur={phaseFormik.handleBlur}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                >
-                  <option value="">Choose a Course</option>
-                  {availableCourses.map((course) => (
-                    <option key={course._id} value={course._id}>
-                      {course.title}
-                    </option>
-                  ))}
-                </select>
-                {phaseFormik.touched.course && phaseFormik.errors.course && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {phaseFormik.errors.course}
-                  </p>
-                )}
-              </div>
+    {step === 1 && (
+  <div className="bg-white rounded-2xl shadow-lg p-8">
+    <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+      <span className="text-3xl">🏗️</span>
+      Create New Topic
+    </h2>
+    <form onSubmit={phaseFormik.handleSubmit} className="space-y-6">
+      {/* Course Select */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Select Course
+        </label>
+        <select
+          name="course"
+          value={phaseFormik.values.course}
+          onChange={(e) => {
+            const courseId = e.target.value;
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Topic Name
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={phaseFormik.values.title}
-                  onChange={phaseFormik.handleChange}
-                  onBlur={phaseFormik.handleBlur}
-                  placeholder="e.g., Foundations, Advanced Concepts, etc."
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                />
-                {phaseFormik.touched.title && phaseFormik.errors.title && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {phaseFormik.errors.title}
-                  </p>
-                )}
-              </div>
+            // Update Formik
+            phaseFormik.setFieldValue("course", courseId);
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  rows="4"
-                  value={phaseFormik.values.description}
-                  onChange={phaseFormik.handleChange}
-                  onBlur={phaseFormik.handleBlur}
-                  placeholder="Describe what students will learn in this topic..."
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
-                />
-                {phaseFormik.touched.description &&
-                  phaseFormik.errors.description && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {phaseFormik.errors.description}
-                    </p>
-                  )}
-              </div>
+            // Update Redux
+            dispatch(setSelectedCourseId(courseId));
+          }}
+          onBlur={phaseFormik.handleBlur}
+          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+        >
+          <option value="">Choose a Course</option>
+          {availableCourses.map((course) => (
+            <option key={course._id} value={course._id}>
+              {course.title}
+            </option>
+          ))}
+        </select>
 
-              <div className="flex gap-4 pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-                >
-                  {loading ? "Adding..." : "🚀 Add Topic"}
-                </button>
-                {/* <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
-                >
-                  Next: Add Sub-Topics →
-                </button> */}
-              </div>
-            </form>
-          </div>
+        {phaseFormik.touched.course && phaseFormik.errors.course && (
+          <p className="text-red-500 text-sm mt-1">{phaseFormik.errors.course}</p>
         )}
+      </div>
+
+      {/* Topic Name using InputField */}
+      <InputField
+        label="Topic Name"
+        name="title"
+        formik={phaseFormik}
+      />
+
+      {/* Description using a TextAreaField */}
+      <TextAreaField
+        label="Description"
+        name="description"
+        formik={phaseFormik}
+        rows={4}
+      />
+
+      <div className="flex gap-4 pt-4 w-50 justify-end">
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+        >
+          {loading ? "Adding..." : "🚀 Add Topic"}
+        </button>
+      </div>
+    </form>
+  </div>
+)}
 
         {/* Weeks Form */}
-        {step === 2 && (
-          <FormikProvider value={weeksFormik}>
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                <span className="text-3xl">📅</span>
-                Add Sub-Topic for Topics
-              </h2>
-              <form onSubmit={weeksFormik.handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Select Topic
-                  </label>
-                  <select
-                    name="phaseId"
-                    value={weeksFormik.values.phaseId}
-                    onChange={weeksFormik.handleChange}
-                    onBlur={weeksFormik.handleBlur}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                  >
-                    <option value="">Choose a Topic</option>
-                    {availablePhases.map((phase) => (
-                      <option key={phase._id} value={phase._id}>
-                        {phase.title}
-                      </option>
-                    ))}
-                  </select>
-                  {weeksFormik.touched.phaseId &&
-                    weeksFormik.errors.phaseId && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {weeksFormik.errors.phaseId}
-                      </p>
-                    )}
-                </div>
+      {/* Weeks Form */}
+{step === 2 && (
+  <FormikProvider value={weeksFormik}>
+    <div className="bg-white rounded-2xl shadow-lg p-8">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+        <span className="text-3xl">📅</span>
+        Add Sub-Topic for Topics
+      </h2>
+      <form onSubmit={weeksFormik.handleSubmit} className="space-y-6">
+        {/* Topic/Phase Dropdown */}
+ <div>
+  <label className="block text-sm font-semibold text-gray-700 mb-2">
+    Select Topic
+  </label>
+ <select
+  name="phase"
+  value={weeksFormik.values.phase}
+  onChange={weeksFormik.handleChange}
+  onBlur={weeksFormik.handleBlur}
+  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+>
+  <option value="">Select Phase</option>
+  {availablePhases.map((phase) => (
+    <option key={phase._id} value={phase._id}>
+      {phase.title}
+    </option>
+  ))}
+</select>
 
-                <FieldArray name="weeks">
-                  {({ push, remove }) => (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Sub-topic Details
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            push({
-                              weekNumber: weeksFormik.values.weeks.length + 1,
-                              title: "",
-                            })
-                          }
-                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
-                        >
-                          ➕ Add Sub-Topics
-                        </button>
-                      </div>
 
-                      {weeksFormik.values.weeks.map((week, index) => (
-                        <div
-                          key={index}
-                          className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50"
-                        >
-                          <div className="flex gap-4 items-start">
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Sub-Topic Number
-                              </label>
-                              <input
-                                type="number"
-                                name={`weeks.${index}.weekNumber`}
-                                value={week.weekNumber}
-                                onChange={weeksFormik.handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                min="1"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Week Title
-                              </label>
-                              <input
-                                type="text"
-                                name={`weeks.${index}.title`}
-                                value={week.title}
-                                onChange={weeksFormik.handleChange}
-                                placeholder="e.g., JavaScript Fundamentals"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => remove(index)}
-                              disabled={weeksFormik.values.weeks.length === 1}
-                              className="text-red-500 hover:text-red-700 disabled:text-gray-400 mt-6"
-                            >
-                              🗑️
-                            </button>
-                          </div>
-                          {weeksFormik.errors.weeks?.[index] && (
-                            <p className="text-red-500 text-sm mt-2">
-                              {Object.values(
-                                weeksFormik.errors.weeks[index]
-                              ).join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      ))}
+  {weeksFormik.touched.phase && weeksFormik.errors.phase && (
+    <p className="text-red-500 text-sm mt-1">
+      {weeksFormik.errors.phase}
+    </p>
+  )}
+</div>
+
+
+
+        {/* FieldArray for Weeks/Sub-Topics */}
+        <FieldArray name="weeks">
+          {({ push, remove }) => (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Sub-topic Details
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    push({
+                      weekNumber: weeksFormik.values.weeks.length + 1,
+                      title: "",
+                    })
+                  }
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
+                >
+                  ➕ Add Sub-Topics
+                </button>
+              </div>
+
+              {weeksFormik.values.weeks.map((week, index) => (
+                <div
+                  key={index}
+                  className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50"
+                >
+                  <div className="flex gap-4 items-start">
+                    <div className="flex-1">
+                      <InputField
+                        label="Sub-Topic Number"
+                        name={`weeks.${index}.weekNumber`}
+                        type="number"
+                        formik={weeksFormik}
+                      />
                     </div>
-                  )}
-                </FieldArray>
+                    <div className="flex-1">
+                      <InputField
+                        label="Week Title"
+                        name={`weeks.${index}.title`}
+                        formik={weeksFormik}
+                        placeholder="e.g., JavaScript Fundamentals"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      disabled={weeksFormik.values.weeks.length === 1}
+                      className="text-red-500 hover:text-red-700 disabled:text-gray-400 mt-6"
+                    >
+                      🗑️
+                    </button>
+                  </div>
 
-                <div className="flex gap-4 pt-4">
-                  {/* <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
-                  >
-                    ← Back to Topic
-                  </button> */}
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-                  >
-                    {loading ? "Adding..." : "🚀 Add Sub-Topics"}
-                  </button>
-                  {/* <button
-                    type="button"
-                    onClick={() => setStep(3)}
-                    className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
-                  >
-                    Next: Add Chapters →
-                  </button> */}
-                </div>
-              </form>
-            </div>
-          </FormikProvider>
-        )}
-
-        {/* Chapter Form */}
-        {step === 3 && (
-          <FormikProvider value={chapterFormik}>
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                <span className="text-3xl">📚</span>
-                Build Chapter Content
-              </h2>
-              <form onSubmit={chapterFormik.handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Select Sub-topic
-                  </label>
-                  <select
-                    name="week"
-                    value={chapterFormik.values.week}
-                    onChange={chapterFormik.handleChange}
-                    onBlur={chapterFormik.handleBlur}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                  >
-                    <option value="">Choose a Sub-topic</option>
-                    {availableWeeks.map((week) => (
-                      <option key={week._id} value={week._id}>
-                        Week {week.weekNumber}: {week.title}
-                      </option>
-                    ))}
-                  </select>
-                  {chapterFormik.touched.week && chapterFormik.errors.week && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {chapterFormik.errors.week}
+                  {weeksFormik.errors.weeks?.[index] && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {Object.values(weeksFormik.errors.weeks[index]).join(", ")}
                     </p>
                   )}
                 </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Chapter Title
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={chapterFormik.values.title}
-                    onChange={chapterFormik.handleChange}
-                    onBlur={chapterFormik.handleBlur}
-                    placeholder="e.g., Introduction to React Components"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                  />
-                  {chapterFormik.touched.title &&
-                    chapterFormik.errors.title && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {chapterFormik.errors.title}
-                      </p>
-                    )}
-                </div>
-
-                <FieldArray name="points">
-                  {({ push, remove }) => (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Learning Points
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => push({ title: "", description: "" })}
-                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
-                        >
-                          ➕ Add Point
-                        </button>
-                      </div>
-
-                      {chapterFormik.values.points.map((point, index) => (
-                        <div
-                          key={index}
-                          className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50"
-                        >
-                          <div className="flex gap-4">
-                            <div className="flex-1 space-y-3">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Point Title
-                                </label>
-                                <input
-                                  type="text"
-                                  name={`points.${index}.title`}
-                                  value={point.title}
-                                  onChange={chapterFormik.handleChange}
-                                  placeholder="e.g., Understanding JSX"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Description
-                                </label>
-                                <textarea
-                                  name={`points.${index}.description`}
-                                  value={point.description}
-                                  onChange={chapterFormik.handleChange}
-                                  placeholder="Detailed explanation..."
-                                  rows="3"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"
-                                />
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => remove(index)}
-                              disabled={
-                                chapterFormik.values.points.length === 1
-                              }
-                              className="text-red-500 hover:text-red-700 disabled:text-gray-400"
-                            >
-                              🗑️
-                            </button>
-                          </div>
-                          {chapterFormik.errors.points?.[index] && (
-                            <p className="text-red-500 text-sm mt-2">
-                              {Object.values(
-                                chapterFormik.errors.points[index]
-                              ).join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </FieldArray>
-
-                <div className="flex gap-4 pt-4">
-                  {/* <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
-                  >
-                    ← Back to Sub-topic
-                  </button> */}
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-                  >
-                    {loading ? "Creating..." : "🚀 Create Chapter"}
-                  </button>
-                </div>
-              </form>
+              ))}
             </div>
-          </FormikProvider>
-        )}
+          )}
+        </FieldArray>
+
+        <div className="flex gap-4 pt-4">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+          >
+            {loading ? "Adding..." : "🚀 Add Sub-Topics"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </FormikProvider>
+)}
+
+
+        {/* Chapter Form */}
+ {step === 3 && (
+  <FormikProvider value={chapterFormik}>
+    <div className="bg-white rounded-2xl shadow-lg p-8">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+        <span className="text-3xl">📚</span>
+        Build Chapter Content
+      </h2>
+      <form onSubmit={chapterFormik.handleSubmit} className="space-y-6">
+        {/* Select Sub-topic */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Select Sub-topic
+          </label>
+          <select
+            name="week"
+            value={chapterFormik.values.week}
+            onChange={chapterFormik.handleChange}
+            onBlur={chapterFormik.handleBlur}
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+          >
+            <option value="">Choose a Sub-topic</option>
+            {availableWeeks.map((week) => (
+              <option key={week._id} value={week._id}>
+                Week {week.weekNumber}: {week.title}
+              </option>
+            ))}
+          </select>
+          {chapterFormik.touched.week && chapterFormik.errors.week && (
+            <p className="text-red-500 text-sm mt-1">
+              {chapterFormik.errors.week}
+            </p>
+          )}
+        </div>
+
+        {/* Chapter Title */}
+        <InputField
+          label="Chapter Title"
+          name="title"
+          formik={chapterFormik}
+          placeholder="e.g., Introduction to React Components"
+        />
+
+        {/* FieldArray for Learning Points */}
+        <FieldArray name="points">
+          {({ push, remove }) => (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Learning Points
+                </label>
+                <button
+                  type="button"
+                  onClick={() => push({ title: "", description: "" })}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
+                >
+                  ➕ Add Point
+                </button>
+              </div>
+
+              {chapterFormik.values.points.map((point, index) => (
+                <div
+                  key={index}
+                  className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50"
+                >
+                  <div className="flex gap-4">
+                    <div className="flex-1 space-y-3">
+                      {/* Point Title */}
+                      <InputField
+                        label="Point Title"
+                        name={`points.${index}.title`}
+                        formik={chapterFormik}
+                        placeholder="e.g., Understanding JSX"
+                      />
+
+                      {/* Point Description */}
+                      <InputField
+                        label="Description"
+                        name={`points.${index}.description`}
+                        formik={chapterFormik}
+                        type="textarea"
+                        placeholder="Detailed explanation..."
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      disabled={chapterFormik.values.points.length === 1}
+                      className="text-red-500 hover:text-red-700 disabled:text-gray-400"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+
+                  {chapterFormik.errors.points?.[index] && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {Object.values(chapterFormik.errors.points[index]).join(", ")}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </FieldArray>
+
+        <div className="flex gap-4 pt-4">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+          >
+            {loading ? "Creating..." : "🚀 Create Chapter"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </FormikProvider>
+)}
+
 
         {/* Success Popup */}
         <SuccessPopup />
@@ -811,3 +788,4 @@ export default function AddCurriculum() {
     </div>
   );
 }
+

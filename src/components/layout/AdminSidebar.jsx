@@ -100,11 +100,11 @@ const menuItems = [
         ],
       },
       {
-        label: "Notes",
+        label: "Study Material",
         icon: <FaStickyNote />, 
         children: [
-          { label: "Add Notes", icon: <FaRegFileAlt />, path: "/admin/add-notes" },
-          { label: "Manage Notes", icon: <FaLayerGroup />, path: "/admin/manage-notes" },
+          { label: "Add Study Material", icon: <FaRegFileAlt />, path: "/admin/add-notes" },
+          { label: "Manage Study Material", icon: <FaLayerGroup />, path: "/admin/manage-notes" },
         ],
       },
     ],
