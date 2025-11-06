@@ -81,3 +81,4 @@ const AdminEnrollmentManagementPage = () => {
 };
 
 export default AdminEnrollmentManagementPage;
+

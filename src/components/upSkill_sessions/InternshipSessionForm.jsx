@@ -167,7 +167,7 @@ return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField label="Title" name="title" formik={formik} />
         <InputField label="Duration (in months)" name="duration" type="number" formik={formik} />
-        <InputField label="Location" name="location" formik={formik} />
+        <InputField label="City" name="location" formik={formik} />
         <InputField
           label="Capacity"
           name="capacity"
@@ -189,11 +189,19 @@ return (
           type="number"
           formik={formik}
         />
-        <InputField
-          label="Refund Policy"
-          name="fees.refundPolicy"
-          formik={formik}
-        />
+
+   <Dropdown
+  label="Refund Policy"
+  name="fees.refundPolicy"
+  formik={formik}
+  options={[
+    { _id: "no_refund", title: "No Refund" },
+    { _id: "7_days", title: "7 Days" },
+    { _id: "15_days", title: "15 Days" },
+    { _id: "1_month", title: "1 Month" },
+  ]}
+/>
+
       </div>
     </section>
 

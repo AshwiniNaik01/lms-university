@@ -29,7 +29,7 @@ const EventForm = () => {
   const [loading, setLoading] = useState(false);
   const [initialValues, setInitialValues] = useState({
     title: "",
-    slug: "",
+    // slug: "",
     description: "",
     category: id || "",
     startDate: "",
@@ -128,7 +128,7 @@ const EventForm = () => {
 
   const validationSchema = Yup.object({
     title: Yup.string().required("Title is required"),
-    slug: Yup.string().required("Slug is required"),
+    // slug: Yup.string().required("Slug is required"),
   });
 
   const formik = useFormik({
@@ -222,9 +222,9 @@ const EventForm = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Title" name="title" formik={formik} />
-          <InputField label="Slug" name="slug" formik={formik} />
+          {/* <InputField label="Slug" name="slug" formik={formik} /> */}
 
-          <InputField label="Location" name="location" formik={formik} />
+          <InputField label="City" name="location" formik={formik} />
           <Dropdown
             label="Project Mode"
             name="mode"

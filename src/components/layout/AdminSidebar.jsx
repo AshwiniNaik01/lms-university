@@ -60,11 +60,11 @@ const menuItems = [
         ],
       },
       {
-        label: "Lectures",
+        label: "Recordings",
         icon: <FaVideo />,
         children: [
-          { label: "Add Lectures", icon: <FaRegFileAlt />, path: "/admin/add-course-videos" },
-          { label: "Manage Lectures", icon: <FaLayerGroup />, path: "/admin/manage-course-videos" },
+          { label: "Add Recording", icon: <FaRegFileAlt />, path: "/admin/add-course-videos" },
+          { label: "Manage Recording", icon: <FaLayerGroup />, path: "/admin/manage-course-videos" },
         ],
       },
       {
@@ -105,6 +105,14 @@ const menuItems = [
         children: [
           { label: "Add Study Material", icon: <FaRegFileAlt />, path: "/admin/add-notes" },
           { label: "Manage Study Material", icon: <FaLayerGroup />, path: "/admin/manage-notes" },
+        ],
+      },
+        {
+        label: "Meeting Management",
+        icon: <FaVideo />,
+        children: [
+          { label: "Add Meeting", icon: <FaRegFileAlt />, path: "/admin/add-meeting" },
+          { label: "Meeting", icon: <FaLayerGroup />, path: "/admin/manage-meeting" },
         ],
       },
     ],

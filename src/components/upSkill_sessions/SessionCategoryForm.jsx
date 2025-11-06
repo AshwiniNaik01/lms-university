@@ -20,6 +20,7 @@ import EventTableModal from "./EventTableModal";
 import { ListCheckIcon, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 import Modal from "../popupModal/Modal";
+import Dropdown from "../form/Dropdown";
 
 // ----------------------
 // Validation Schema
@@ -42,6 +43,14 @@ const SessionCategoryForm = () => {
   const [isTableOpen, setIsTableOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const navigate = useNavigate();
+
+const upSkillOptions = [
+  { value: "internship-session", label: "Internship Session" },
+  { value: "workshop", label: "Workshop" },
+  { value: "webinar", label: "Webinar" },
+  { value: "event", label: "Event" },
+];
+
 
   // ----------------------
   // Fetch all session categories
@@ -161,10 +170,17 @@ const SessionCategoryForm = () => {
   // ----------------------
   // Open manage modal
   // ----------------------
-  const handleManage = (category) => {
-    setSelectedCategory(category);
-    setIsTableOpen(true);
-  };
+  // const handleManage = (category) => {
+  //   setSelectedCategory(category);
+  //   setIsTableOpen(true);
+  //     // navigate(`/admin/session-category/${category._id}/list`);
+  // };
+
+// New:
+const handleManage = (category) => {
+  navigate(`/admin/session-category/${category.slug}/${category._id}/list`);
+};
+
 
   // ----------------------
   // Open form for creating new category
@@ -220,14 +236,14 @@ const SessionCategoryForm = () => {
           </button>
 
           {/* Delete */}
-          <button
+          {/* <button
             data-tooltip-id="tooltip"
             data-tooltip-content="Delete UpSkill"
             className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition"
             onClick={() => handleDelete(row._id)}
           >
             <Trash2 size={18} />
-          </button>
+          </button> */}
 
           {/* Manage */}
           <button
@@ -245,7 +261,7 @@ const SessionCategoryForm = () => {
             data-tooltip-content={`Add ${row.slug}`}
             className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition"
             onClick={() =>
-              navigate(`/admin/session-category/${row._id}/manage`)
+              navigate(`/admin/session-category/${row.slug}/${row._id}/manage`)
             }
           >
             <Plus size={18} />
@@ -259,27 +275,27 @@ const SessionCategoryForm = () => {
   // Render
   // ----------------------
   return (
-    <div className="relative w-full min-h-screen p-4 bg-gray-50">
+    <div className="relative w-full max-h-fit p-4 bg-white">
       {/* ========== HEADER ========== */}
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800">UpSkill Categories</h1>
-        <button
+        {/* <button
           onClick={handleNewCategory}
           className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center gap-2"
         >
           <Plus size={20} />
           <span>Add New Category</span>
-        </button>
+        </button> */}
       </div>
 
       {/* ========== TABLE SECTION (Full Page) ========== */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden h-[calc(100vh-150px)]">
+      <div className="bg-white flex flex-col overflow-hidden h-[calc(100vh-150px)]">
         {/* Table Header */}
-        <div className="p-6 border-b border-gray-200">
+        {/* <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
             📚 All UpSkill Categories
           </h2>
-        </div>
+        </div> */}
 
         {/* Scrollable Table */}
         <div className="flex-1 overflow-hidden">
@@ -298,14 +314,14 @@ const SessionCategoryForm = () => {
   header={
     selectedCategory
       ? "✏️ Edit UpSkill Category"
-      : "➕ Create UpSkill Category"
+      : "➕ Add UpSkill Category"
   }
   primaryAction={{
     label: loading
       ? "⏳ Submitting..."
       : selectedCategory
       ? "💾 Update Category"
-      : "🚀 Create Category",
+      : "🚀 Add Category",
     onClick: formik.handleSubmit,
   }}
 >
@@ -313,7 +329,14 @@ const SessionCategoryForm = () => {
   <form onSubmit={formik.handleSubmit} className="space-y-6">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <InputField label="UpSkill Title" name="name" formik={formik} />
-      <InputField label="UpSkill Slug" name="slug" formik={formik} />
+      {/* <InputField label="UpSkill Slug" name="slug" formik={formik} /> */}
+      <Dropdown
+  label="UpSkill Type"
+  name="slug"
+  formik={formik}
+  options={upSkillOptions.map(opt => ({ _id: opt.value, title: opt.label }))}
+/>
+
 
       {/* Active Toggle */}
       <div className="flex items-center gap-4">
@@ -349,12 +372,12 @@ const SessionCategoryForm = () => {
 
 
       {/* ========== MODAL ========== */}
-      <EventTableModal
+      {/* <EventTableModal
         isOpen={isTableOpen}
         onClose={() => setIsTableOpen(false)}
         categoryId={selectedCategory?._id}
         categorySlug={selectedCategory?.slug}
-      />
+      /> */}
 
       {/* ========== TOOLTIP ========== */}
       <Tooltip id="tooltip" place="top" />

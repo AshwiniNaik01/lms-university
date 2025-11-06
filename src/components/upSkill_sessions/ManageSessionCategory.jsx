@@ -16,7 +16,9 @@ const formMap = {
 };
 
 const ManageSessionCategory = () => {
-  const { id } = useParams();
+  // const { id } = useParams();
+  const { slug, id } = useParams(); // slug and category ID
+
   const [category, setCategory] = useState(null);
   const [loading, setLoading] = useState(true);
 

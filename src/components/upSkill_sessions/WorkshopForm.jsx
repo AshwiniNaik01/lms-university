@@ -192,7 +192,7 @@ const WorkshopForm = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Title" name="title" formik={formik} />
           <InputField label="Duration (in min)" name="duration" type="number" formik={formik} />
-          <InputField label="Location" name="location" formik={formik} />
+          <InputField label="City" name="location" formik={formik} />
           <InputField
             label="Registration Link"
             name="registrationLink"

@@ -588,7 +588,7 @@ const ManageCurriculum = () => {
                                 ))}
                                 
                                 {/* Add Chapter Button - At the bottom of chapters section */}
-                                <div className="flex justify-center pt-4">
+                                {/* <div className="flex justify-center pt-4">
                                   <button
                                     onClick={() =>
                                       navigate(`/admin/add-curriculum?weekId=${week._id}`)
@@ -597,7 +597,23 @@ const ManageCurriculum = () => {
                                   >
                                     📚 Add Chapter to this Sub-topics
                                   </button>
-                                </div>
+                                </div> */}
+
+                                {/* Add Chapter Button */}
+<div className="flex justify-center pt-4">
+  <button
+    onClick={() =>
+      navigate(
+        `/admin/add-curriculum?type=chapter&weekId=${week._id}&courseId=${selectedCourse}`
+      )
+    }
+    className="bg-amber-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-amber-600 transition-all flex items-center gap-2"
+  >
+    📚 Add Chapter to this Sub-topic
+  </button>
+</div>
+
+
                               </>
                             ) : (
                               /* Empty chapters state with add button */
@@ -622,7 +638,7 @@ const ManageCurriculum = () => {
                     ))}
                     
                     {/* Add Week Button - Only once at the bottom of weeks section */}
-                    <div className="flex justify-center pt-4">
+                    {/* <div className="flex justify-center pt-4">
                       <button
                         onClick={() =>
                           navigate(`/admin/add-curriculum?phaseId=${phase._id}`)
@@ -631,14 +647,30 @@ const ManageCurriculum = () => {
                       >
                         ➕ Add Sub-Topic to this Topic
                       </button>
-                    </div>
+                    </div> */}
+
+                    {/* Add Week Button */}
+<div className="flex justify-center pt-4">
+  <button
+    onClick={() =>
+      navigate(
+        `/admin/add-curriculum?type=week&phaseId=${phase._id}&courseId=${selectedCourse}`
+      )
+    }
+    className="bg-green-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-600 transition-all flex items-center gap-2"
+  >
+    ➕ Add Sub-Topic to this Topic
+  </button>
+</div>
+
+
                   </div>
                 )}
               </div>
             ))}
             
             {/* Add Phase Button - Only once at the bottom of all phases */}
-            <div className="flex justify-center pt-6">
+            {/* <div className="flex justify-center pt-6">
               <button
                 onClick={() =>
                   navigate(`/admin/add-curriculum?courseId=${selectedCourse}`)
@@ -647,7 +679,19 @@ const ManageCurriculum = () => {
               >
                 🏗️ Add New Topic
               </button>
-            </div>
+            </div> */}
+
+            <div className="flex justify-center pt-6">
+  <button
+    onClick={() =>
+      navigate(`/admin/add-curriculum?type=phase&courseId=${selectedCourse}`)
+    }
+    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl transition-all flex items-center gap-2 text-lg"
+  >
+    🏗️ Add New Topic
+  </button>
+</div>
+
           </div>
         )}
 

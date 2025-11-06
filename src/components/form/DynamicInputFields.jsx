@@ -43,19 +43,26 @@ const DynamicInputFields = ({ formik, name, label }) => {
             key={index}
             className={`flex items-center gap-2 ${index === 0 ? "" : "pl-6"}`}
           >
-            <input
-              type="text"
-              name={`${name}[${index}]`}
-              value={val}
-              onChange={(e) => handleInputChange(index, e.target.value)}
-              onBlur={formik.handleBlur}
-              placeholder={`Enter ${label.toLowerCase()} ${index + 1}`}
-              className={`flex-1 px-4 py-2 rounded-lg border transition duration-300 outline-none bg-white
-                ${error ? "border-red-500 focus:border-red-500" : "border-blue-400 focus:border-blue-500"}
-                focus:ring-2 focus:ring-opacity-50
-                ${error ? "focus:ring-red-300" : "focus:ring-blue-300"}
-              `}
-            />
+           <input
+  type="text"
+  name={`${name}[${index}]`}
+  value={val}
+  onChange={(e) => handleInputChange(index, e.target.value)}
+  onBlur={formik.handleBlur}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // prevent form submit
+      addInput(); // optionally add a new field
+    }
+  }}
+  placeholder={`Enter ${label.toLowerCase()} ${index + 1}`}
+  className={`flex-1 px-4 py-2 rounded-lg border transition duration-300 outline-none bg-white
+    ${error ? "border-red-500 focus:border-red-500" : "border-blue-400 focus:border-blue-500"}
+    focus:ring-2 focus:ring-opacity-50
+    ${error ? "focus:ring-red-300" : "focus:ring-blue-300"}
+  `}
+/>
+
 
             {index === 0 && (
               <button

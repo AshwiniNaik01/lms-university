@@ -1,16 +1,18 @@
-
-import React, { useState, useEffect } from "react";
-import { useFormik, FormikProvider } from "formik";
-import * as Yup from "yup";
+import { FormikProvider, useFormik } from "formik";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
 // import apiClient from "../apiClient"; // adjust path as needed
 // import Dropdown from "../components/Dropdown"; // adjust path as needed
-import Dropdown from "../../form/Dropdown";
 import { getAllCourses } from "../../../api/courses";
 import { fetchAllTrainers } from "../../../pages/admin/trainer-management/trainerApi";
+import Dropdown from "../../form/Dropdown";
+import InputField from "../../form/InputField";
+import MultiSelectDropdown from "../../form/MultiSelectDropdown";
+import TextAreaField from "../../form/TextAreaField";
+import VideoUploadField from "../../form/VideoUploadField";
 // import { getAllCourses } from "../helpers/courseHelpers"; // adjust path as needed
-
 
 export default function AddLectures() {
   const { lectureId } = useParams();
@@ -32,7 +34,7 @@ export default function AddLectures() {
       contentUrl: null,
       duration: "",
       type: "",
-      trainer: "",
+      trainer: [],
       batches: [],
       status: "pending",
     },
@@ -41,11 +43,14 @@ export default function AddLectures() {
       chapter: Yup.string().required("Chapter is required"),
       title: Yup.string().required("Title is required"),
       description: Yup.string().required("Description is required"),
-      duration: Yup.number().required("Duration is required"),
+      // duration: Yup.number().required("Duration is required"),
       type: Yup.string(),
-      trainer: Yup.string().required("Trainer is required"),
+  //    trainer: Yup.array()
+  // .of(Yup.string().required())
+  // .min(1, "At least one trainer is required"),
+
       batches: Yup.array(),
-      status: Yup.string().oneOf(["pending", "in-progress", "completed"]),
+      // status: Yup.string().oneOf(["pending", "in-progress", "completed"]),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -56,7 +61,9 @@ export default function AddLectures() {
         formData.append("description", values.description);
         formData.append("duration", values.duration);
         formData.append("type", values.type);
-        formData.append("trainer", values.trainer);
+        // formData.append("trainer", values.trainer);
+        values.trainer.forEach((trainerId) => formData.append("trainer[]", trainerId));
+
         formData.append("status", values.status);
         values.batches.forEach((batch) => formData.append("batches[]", batch));
         if (values.contentUrl) formData.append("contentUrl", values.contentUrl);
@@ -86,29 +93,28 @@ export default function AddLectures() {
   });
 
   // ✅ Fetch all dropdown data
- useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const coursesRes = await getAllCourses();
-      setAvailableCourses(coursesRes || []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const coursesRes = await getAllCourses();
+        setAvailableCourses(coursesRes || []);
 
-      const [chaptersRes, trainersRes, batchesRes] = await Promise.all([
-        apiClient.get("/api/chapters"),
-        fetchAllTrainers(), // ✅ Use your fetchAllTrainers function
-        apiClient.get("/api/batches"),
-      ]);
+        const [chaptersRes, trainersRes, batchesRes] = await Promise.all([
+          apiClient.get("/api/chapters"),
+          fetchAllTrainers(), // ✅ Use your fetchAllTrainers function
+          apiClient.get("/api/batches"),
+        ]);
 
-      setAvailableChapters(chaptersRes.data?.data || []);
-      setAvailableTrainers(trainersRes || []); // trainersRes is already an array of trainer objects
-      setAvailableBatches(batchesRes.data?.data || []);
-    } catch (err) {
-      console.error("Error fetching dropdown data:", err);
-    }
-  };
+        setAvailableChapters(chaptersRes.data?.data || []);
+        setAvailableTrainers(trainersRes || []); // trainersRes is already an array of trainer objects
+        setAvailableBatches(batchesRes.data?.data || []);
+      } catch (err) {
+        console.error("Error fetching dropdown data:", err);
+      }
+    };
 
-  fetchData();
-}, []);
-
+    fetchData();
+  }, []);
 
   // ✅ Fetch chapters whenever the selected course changes
   useEffect(() => {
@@ -148,9 +154,10 @@ export default function AddLectures() {
             chapter: lecture.chapter?._id || "",
             title: lecture.title || "",
             description: lecture.description || "",
-            duration: lecture.duration || "",
+            // duration: lecture.duration || "",
             type: lecture.type || "",
-            trainer: lecture.trainer?._id || "",
+            // trainer: lecture.trainer?._id || "",
+            // trainer: lecture.trainer?.map((t) => t._id) || [],
             batches: lecture.batches?.map((b) => b._id) || [],
             status: lecture.status || "pending",
             contentUrl: null,
@@ -173,17 +180,219 @@ export default function AddLectures() {
 
   if (loading) return <p className="text-center mt-10">Loading lecture...</p>;
 
+  //   return (
+  //     <FormikProvider value={formik}>
+  //       <form
+  //         onSubmit={formik.handleSubmit}
+  //         className="space-y-6 p-6 bg-white rounded-xl shadow-md max-w-7xl mx-auto"
+  //       >
+  //         <h2 className="text-2xl font-bold mb-4 text-blue-700">
+  //           {lectureId ? "Edit Lecture" : "Add Lecture"}
+  //         </h2>
+
+  //         <div className="grid grid-cols-2 gap-6">
+  //           {/* Course Dropdown */}
+  //           <Dropdown
+  //             label="Course"
+  //             name="course"
+  //             options={availableCourses}
+  //             formik={formik}
+  //             onChange={(value) => {
+  //               formik.setFieldValue("course", value);
+  //               formik.setFieldValue("chapter", ""); // reset chapter
+  //             }}
+  //           />
+
+  //           {/* Chapter Dropdown */}
+  //           <Dropdown
+  //   label="Chapter"
+  //   name="chapter"
+  //   options={availableChapters} // already in { value, label } format
+  //   formik={formik}
+  // />
+
+  //           {/* Title */}
+  //           <div>
+  //             <label className="block font-medium mb-1">Title</label>
+  //             <input
+  //               type="text"
+  //               name="title"
+  //               value={formik.values.title}
+  //               onChange={formik.handleChange}
+  //               onBlur={formik.handleBlur}
+  //               className="w-full border rounded-lg px-4 py-2"
+  //             />
+  //             {formik.touched.title && formik.errors.title && (
+  //               <p className="text-red-500 text-sm">{formik.errors.title}</p>
+  //             )}
+  //           </div>
+
+  //           {/* Description */}
+  //           <div>
+  //             <label className="block font-medium mb-1">Description</label>
+  //             <textarea
+  //               name="description"
+  //               value={formik.values.description}
+  //               onChange={formik.handleChange}
+  //               onBlur={formik.handleBlur}
+  //               rows={4}
+  //               className="w-full border rounded-lg px-4 py-2"
+  //             />
+  //             {formik.touched.description && formik.errors.description && (
+  //               <p className="text-red-500 text-sm">{formik.errors.description}</p>
+  //             )}
+  //           </div>
+
+  //           {/* Duration */}
+  //           <div>
+  //             <label className="block font-medium mb-1">Duration (minutes)</label>
+  //             <input
+  //               type="number"
+  //               name="duration"
+  //               value={formik.values.duration}
+  //               onChange={formik.handleChange}
+  //               onBlur={formik.handleBlur}
+  //               className="w-full border rounded-lg px-4 py-2"
+  //             />
+  //             {formik.touched.duration && formik.errors.duration && (
+  //               <p className="text-red-500 text-sm">{formik.errors.duration}</p>
+  //             )}
+  //           </div>
+
+  //           {/* Type */}
+  //           <div>
+  //             <label className="block font-medium mb-1">Type</label>
+  //             <select
+  //               name="type"
+  //               value={formik.values.type}
+  //               onChange={(e) => {
+  //                 formik.setFieldValue("type", e.target.value);
+  //                 formik.setFieldValue("contentUrl", null);
+  //               }}
+  //               className="w-full border rounded-lg px-4 py-2"
+  //             >
+  //               <option value="">Select Type</option>
+  //               <option value="mp4">MP4</option>
+  //               <option value="youtube">YouTube URL</option>
+  //             </select>
+  //           </div>
+
+  //           {/* Conditional content input */}
+  //           {formik.values.type === "mp4" && (
+  //             <div>
+  //               <label className="block font-medium mb-1">Lecture Video (.mp4)</label>
+  //               <input
+  //                 type="file"
+  //                 accept="video/mp4"
+  //                 onChange={(e) =>
+  //                   formik.setFieldValue("contentUrl", e.currentTarget.files[0])
+  //                 }
+  //                 className="w-full"
+  //               />
+  //             </div>
+  //           )}
+
+  //           {formik.values.type === "youtube" && (
+  //             <div>
+  //               <label className="block font-medium mb-1">YouTube URL</label>
+  //               <input
+  //                 type="url"
+  //                 name="contentUrl"
+  //                 value={formik.values.contentUrl || ""}
+  //                 onChange={formik.handleChange}
+  //                 onBlur={formik.handleBlur}
+  //                 placeholder="https://youtube.com/..."
+  //                 className="w-full border rounded-lg px-4 py-2"
+  //               />
+  //               {formik.touched.contentUrl && formik.errors.contentUrl && (
+  //                 <p className="text-red-500 text-sm">{formik.errors.contentUrl}</p>
+  //               )}
+  //             </div>
+  //           )}
+
+  //           {/* Trainer Dropdown */}
+  //         <div>
+  //   <label className="block font-medium mb-1">Trainer</label>
+  //   <select
+  //     name="trainer"
+  //     value={formik.values.trainer}
+  //     onChange={formik.handleChange}
+  //     onBlur={formik.handleBlur}
+  //     className="w-full border rounded-lg px-4 py-2"
+  //   >
+  //     <option value="">Select Trainer</option>
+  //     {availableTrainers.map((trainer) => (
+  //       <option key={trainer._id} value={trainer._id}>
+  //         {trainer.fullName} {/* ✅ fullName from API */}
+  //       </option>
+  //     ))}
+  //   </select>
+  //   {formik.touched.trainer && formik.errors.trainer && (
+  //     <p className="text-red-500 text-sm">{formik.errors.trainer}</p>
+  //   )}
+  // </div>
+
+  //        {/* Batch Dropdown (Single Select) */}
+  // <div>
+  //   <label className="block font-medium mb-1">Batch</label>
+  //   <select
+  //     name="batches"
+  //     value={formik.values.batches[0] || ""} // single select stored as first element
+  //     onChange={(e) => formik.setFieldValue("batches", [e.target.value])} // wrap in array to keep API format
+  //     className="w-full border rounded-lg px-4 py-2"
+  //   >
+  //     <option value="">Select Batch</option>
+  //     {availableBatches.map((b) => (
+  //       <option key={b._id} value={b._id}>
+  //         {b.batchName} | {b.time.start} - {b.time.end} | {b.days.join(", ")} | {b.mode}
+  //       </option>
+  //     ))}
+  //   </select>
+  //   {formik.touched.batches && formik.errors.batches && (
+  //     <p className="text-red-500 text-sm">{formik.errors.batches}</p>
+  //   )}
+  // </div>
+
+  //           {/* Status */}
+  //           <div>
+  //             <label className="block font-medium mb-1">Status</label>
+  //             <select
+  //               name="status"
+  //               value={formik.values.status}
+  //               onChange={formik.handleChange}
+  //               className="w-full border rounded-lg px-4 py-2"
+  //             >
+  //               <option value="pending">Pending</option>
+  //               <option value="in-progress">In Progress</option>
+  //               <option value="completed">Completed</option>
+  //             </select>
+  //           </div>
+  //         </div>
+
+  //         {/* Submit Button */}
+  //         <button
+  //           type="submit"
+  //           className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+  //         >
+  //           {lectureId ? "Update Lecture" : "Submit Lecture"}
+  //         </button>
+  //       </form>
+  //     </FormikProvider>
+  //   );
+
   return (
     <FormikProvider value={formik}>
       <form
         onSubmit={formik.handleSubmit}
-        className="space-y-6 p-6 bg-white rounded-xl shadow-md max-w-7xl mx-auto"
+        className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-8 border-4 border-[rgba(14,85,200,0.83)]"
       >
-        <h2 className="text-2xl font-bold mb-4 text-blue-700">
-          {lectureId ? "Edit Lecture" : "Add Lecture"}
+        {/* Heading */}
+        <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center">
+          {lectureId ? "Edit Recording" : "Add New Recording"}
         </h2>
 
-        <div className="grid grid-cols-2 gap-6">
+        {/* Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Course Dropdown */}
           <Dropdown
             label="Course"
@@ -192,70 +401,30 @@ export default function AddLectures() {
             formik={formik}
             onChange={(value) => {
               formik.setFieldValue("course", value);
-              formik.setFieldValue("chapter", ""); // reset chapter
+              formik.setFieldValue("chapter", "");
             }}
           />
 
           {/* Chapter Dropdown */}
           <Dropdown
-  label="Chapter"
-  name="chapter"
-  options={availableChapters} // already in { value, label } format
-  formik={formik}
-/>
+            label="Chapter"
+            name="chapter"
+            options={availableChapters}
+            formik={formik}
+          />
 
+          <InputField label="Title" name="title" type="text" formik={formik} />
 
-          {/* Title */}
-          <div>
-            <label className="block font-medium mb-1">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={formik.values.title}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className="w-full border rounded-lg px-4 py-2"
-            />
-            {formik.touched.title && formik.errors.title && (
-              <p className="text-red-500 text-sm">{formik.errors.title}</p>
-            )}
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block font-medium mb-1">Description</label>
-            <textarea
-              name="description"
-              value={formik.values.description}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              rows={4}
-              className="w-full border rounded-lg px-4 py-2"
-            />
-            {formik.touched.description && formik.errors.description && (
-              <p className="text-red-500 text-sm">{formik.errors.description}</p>
-            )}
-          </div>
-
-          {/* Duration */}
-          <div>
-            <label className="block font-medium mb-1">Duration (minutes)</label>
-            <input
-              type="number"
-              name="duration"
-              value={formik.values.duration}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className="w-full border rounded-lg px-4 py-2"
-            />
-            {formik.touched.duration && formik.errors.duration && (
-              <p className="text-red-500 text-sm">{formik.errors.duration}</p>
-            )}
-          </div>
+          {/* <InputField
+            label="Duration (minutes)"
+            name="duration"
+            type="number"
+            formik={formik}
+          /> */}
 
           {/* Type */}
-          <div>
-            <label className="block font-medium mb-1">Type</label>
+          {/* <div>
+            <label className="block font-medium mb-1 text-gray-700">Type</label>
             <select
               name="type"
               value={formik.values.type}
@@ -263,7 +432,7 @@ export default function AddLectures() {
                 formik.setFieldValue("type", e.target.value);
                 formik.setFieldValue("contentUrl", null);
               }}
-              className="w-full border rounded-lg px-4 py-2"
+              className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">Select Type</option>
               <option value="mp4">MP4</option>
@@ -271,24 +440,28 @@ export default function AddLectures() {
             </select>
           </div>
 
-          {/* Conditional content input */}
-          {formik.values.type === "mp4" && (
+          {/* Conditional Upload or YouTube Field */}
+          {/* {formik.values.type === "mp4" && (
             <div>
-              <label className="block font-medium mb-1">Lecture Video (.mp4)</label>
+              <label className="block font-medium mb-1 text-gray-700">
+                Lecture Video (.mp4)
+              </label>
               <input
                 type="file"
                 accept="video/mp4"
                 onChange={(e) =>
                   formik.setFieldValue("contentUrl", e.currentTarget.files[0])
                 }
-                className="w-full"
+                className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
-          )}
+          )} */}
 
-          {formik.values.type === "youtube" && (
+          {/* {formik.values.type === "youtube" && (
             <div>
-              <label className="block font-medium mb-1">YouTube URL</label>
+              <label className="block font-medium mb-1 text-gray-700">
+                YouTube URL
+              </label>
               <input
                 type="url"
                 name="contentUrl"
@@ -296,82 +469,98 @@ export default function AddLectures() {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 placeholder="https://youtube.com/..."
-                className="w-full border rounded-lg px-4 py-2"
+                className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               {formik.touched.contentUrl && formik.errors.contentUrl && (
-                <p className="text-red-500 text-sm">{formik.errors.contentUrl}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formik.errors.contentUrl}
+                </p>
               )}
             </div>
+          )} */}
+
+          {/* Trainer */}
+          {/* <MultiSelectDropdown
+            label="Trainer"
+            name="trainer"
+            formik={formik}
+            options={availableTrainers}
+            getOptionValue={(option) => option._id}
+            getOptionLabel={(option) => option.fullName}
+          /> */}
+
+          {/* Batch Dropdown */}
+          <MultiSelectDropdown
+            label="Batch"
+            name="batches"
+            formik={formik}
+            options={availableBatches}
+            getOptionValue={(option) => option._id}
+            getOptionLabel={(option) =>
+              `${option.batchName} | ${option.time.start} - ${
+                option.time.end
+              } | ${option.days.join(", ")} | ${option.mode}`
+            }
+          />
+
+          {/* Type Selector */}
+          <Dropdown
+            label="Type"
+            name="type"
+            options={[
+              { _id: "mp4", name: "MP4" },
+              { _id: "youtube", name: "YouTube URL" },
+            ]}
+            formik={formik}
+          />
+
+          {/* Conditional Fields */}
+          {formik.values.type === "mp4" && (
+            <VideoUploadField
+              label="Lecture Video (.mp4)"
+              name="contentUrl"
+              formik={formik}
+            />
           )}
 
-          {/* Trainer Dropdown */}
-        <div>
-  <label className="block font-medium mb-1">Trainer</label>
-  <select
-    name="trainer"
-    value={formik.values.trainer}
-    onChange={formik.handleChange}
-    onBlur={formik.handleBlur}
-    className="w-full border rounded-lg px-4 py-2"
-  >
-    <option value="">Select Trainer</option>
-    {availableTrainers.map((trainer) => (
-      <option key={trainer._id} value={trainer._id}>
-        {trainer.fullName} {/* ✅ fullName from API */}
-      </option>
-    ))}
-  </select>
-  {formik.touched.trainer && formik.errors.trainer && (
-    <p className="text-red-500 text-sm">{formik.errors.trainer}</p>
-  )}
-</div>
-
-
-       {/* Batch Dropdown (Single Select) */}
-<div>
-  <label className="block font-medium mb-1">Batch</label>
-  <select
-    name="batches"
-    value={formik.values.batches[0] || ""} // single select stored as first element
-    onChange={(e) => formik.setFieldValue("batches", [e.target.value])} // wrap in array to keep API format
-    className="w-full border rounded-lg px-4 py-2"
-  >
-    <option value="">Select Batch</option>
-    {availableBatches.map((b) => (
-      <option key={b._id} value={b._id}>
-        {b.batchName} | {b.time.start} - {b.time.end} | {b.days.join(", ")} | {b.mode}
-      </option>
-    ))}
-  </select>
-  {formik.touched.batches && formik.errors.batches && (
-    <p className="text-red-500 text-sm">{formik.errors.batches}</p>
-  )}
-</div>
-
+          {formik.values.type === "youtube" && (
+            <InputField
+              label="YouTube URL"
+              name="contentUrl"
+              type="url"
+              formik={formik}
+            />
+          )}
 
           {/* Status */}
-          <div>
-            <label className="block font-medium mb-1">Status</label>
-            <select
-              name="status"
-              value={formik.values.status}
-              onChange={formik.handleChange}
-              className="w-full border rounded-lg px-4 py-2"
-            >
-              <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
+          <Dropdown
+            label="Status"
+            name="status"
+            formik={formik}
+            options={[
+              { _id: "visible", title: "Visible" },
+              { _id: "not_visible", title: "Not Visible" },
+              // { _id: "completed", title: "Completed" },
+            ]}
+          />
         </div>
 
+        <TextAreaField
+          label="Description"
+          name="description"
+          rows={4}
+          formik={formik}
+        />
+
         {/* Submit Button */}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          {lectureId ? "Update Lecture" : "Submit Lecture"}
-        </button>
+        <div className="text-center pt-4">
+          <button
+            type="submit"
+            className="bg-[rgba(14,85,200,0.83)] text-white font-semibold px-10 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300"
+          >
+            {lectureId ? "Update Recording" : "Add Recording"}
+          </button>
+        </div>
       </form>
     </FormikProvider>
   );
