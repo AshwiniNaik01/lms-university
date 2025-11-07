@@ -300,7 +300,14 @@ return (
     </section>
 
     {/* 🚀 Submit Button */}
-    <div className="flex justify-end pt-4">
+    <div className="flex justify-end pt-4 gap-4">
+          <button
+    type="button"
+    onClick={() => navigate(-1)} // Go back to previous page
+    className="px-8 py-4 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-xl shadow-lg transition duration-300"
+  >
+    Cancel
+  </button>
       <button
         type="submit"
         disabled={formik.isSubmitting || loading}

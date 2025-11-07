@@ -156,7 +156,7 @@ export default function AddNotes() {
         className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-6 overflow-hidden border-4 border-[rgba(14,85,200,0.83)]"
       >
         <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center">
-          {noteId ? "Edit Note" : "Add New Note"}
+          {noteId ? "Edit Note" : "Add Study Material"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -222,7 +222,7 @@ export default function AddNotes() {
             type="submit"
             className="bg-blue-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300"
           >
-            {noteId ? "Update Note" : "Submit Note"}
+            {noteId ? "Update Note" : "Add Study Material"}
           </button>
         </div>
       </form>

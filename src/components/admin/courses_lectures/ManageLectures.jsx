@@ -1,57 +1,114 @@
-import React, { useEffect, useState } from "react";
-import apiClient from "../../../api/axiosConfig"; // your axios instance
+
+
+import { useEffect, useState } from "react";
+// import ScrollableTable from "./ScrollableTable";
+// import Modal from "./Modal";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+// import apiClient from "../utils/apiClient"; // your axios instance
+import apiClient from "../../../api/axiosConfig";
+import Modal from "../../popupModal/Modal";
+import ScrollableTable from "../../table/ScrollableTable";
 
 const ManageLectures = () => {
+  const navigate = useNavigate();
   const [lectures, setLectures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
-  // Fetch lectures from API
-  const fetchLectures = async () => {
-    setLoading(true);
-    try {
-      const res = await apiClient.get("/api/lectures");
-      if (res.data.success) {
-        setLectures(res.data.data || []);
-      } else {
-        setError(res.data.message || "Failed to fetch lectures");
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [selectedLecture, setSelectedLecture] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
+    const fetchLectures = async () => {
+      try {
+        setLoading(true);
+        const { data } = await apiClient.get("/api/lectures");
+        if (data.success) {
+          setLectures(data.data);
+        } else {
+          setError("Failed to fetch lectures");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch lectures");
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchLectures();
   }, []);
 
-  const handleEdit = (id) => {
-    navigate(`/admin/edit-lecture/${id}`);
+  const handleView = (lecture) => {
+    setSelectedLecture(lecture);
+    setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this lecture?")) return;
+  const handleEdit = (lectureId) => {
+    navigate(`/admin/edit-lecture/${lectureId}`);
+  };
 
-    try {
-      await apiClient.delete(`/api/lectures/${id}`);
-      alert("Lecture deleted successfully!");
-      fetchLectures(); // refresh list
-    } catch (err) {
-      console.error(err);
-      alert("Failed to delete lecture");
+  const handleDelete = async (lectureId) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This lecture will be deleted permanently!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await apiClient.delete(`/api/lectures/${lectureId}`);
+        Swal.fire("Deleted!", "Lecture has been deleted.", "success");
+        setLectures(lectures.filter((lec) => lec._id !== lectureId));
+      } catch (err) {
+        console.error(err);
+        Swal.fire("Error!", "Failed to delete lecture.", "error");
+      }
     }
   };
 
   if (loading) return <p className="text-center mt-10">Loading lectures...</p>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
 
+  const columns = [
+    { header: "Title", accessor: (row) => row.title },
+    { header: "Chapter", accessor: (row) => row.chapter?.title || "-" },
+    // { header: "Duration (min)", accessor: (row) => row.duration },
+    { header: "Status", accessor: (row) => row.status },
+    {
+      header: "Actions",
+      accessor: (row) => (
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleView(row)}
+            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
+          >
+            View
+          </button>
+          <button
+            onClick={() => handleEdit(row._id)}
+            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(row._id)}
+            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-8 min-h-screen bg-gray-100 font-sans">
-      <div className="max-w-6xl mx-auto">
+    <div className="p-8 min-h-screen bg-blue-50 font-sans">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-700">Manage Lectures</h2>
           <button
@@ -62,50 +119,59 @@ const ManageLectures = () => {
           </button>
         </div>
 
-        {lectures.length === 0 ? (
-          <p className="text-gray-500">No lectures available.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white rounded-lg shadow-md">
-              <thead>
-                <tr className="bg-gray-200 text-gray-700">
-                  <th className="py-3 px-5 text-left">Title</th>
-                  <th className="py-3 px-5 text-left">Chapter</th>
-                  <th className="py-3 px-5 text-left">Duration (min)</th>
-                  <th className="py-3 px-5 text-left">Status</th>
-                  <th className="py-3 px-5 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lectures.map((lecture) => (
-                  <tr key={lecture._id} className="border-b hover:bg-gray-50 transition">
-                    <td className="py-3 px-5">{lecture.title}</td>
-                    <td className="py-3 px-5">{lecture.chapter?.title || "-"}</td>
-                    <td className="py-3 px-5">{lecture.duration}</td>
-                    <td className="py-3 px-5 capitalize">{lecture.status}</td>
-                    <td className="py-3 px-5 flex gap-2">
-                      <button
-                        onClick={() => handleEdit(lecture._id)}
-                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(lecture._id)}
-                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <ScrollableTable columns={columns} data={lectures} maxHeight="600px" />
+      </div>
+
+      {/* Modal for View */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        header="Lecture Details"
+      >
+        {selectedLecture && (
+          <div className="space-y-3">
+            <p>
+              <strong>Title:</strong> {selectedLecture.title}
+            </p>
+            <p>
+              <strong>Description:</strong> {selectedLecture.description || "-"}
+            </p>
+            <p>
+              <strong>Duration:</strong> {selectedLecture.duration} min
+            </p>
+            <p>
+              <strong>Status:</strong> {selectedLecture.status}
+            </p>
+            {/* <p>
+              <strong>Content URL:</strong>{" "}
+              <a
+                href={selectedLecture.contentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                View Content
+              </a>
+            </p> */}
+            {selectedLecture.batches?.length > 0 && (
+              <div>
+                <strong>Batches:</strong>
+                <ul className="list-disc ml-5 mt-1">
+                  {selectedLecture.batches.map((batch) => (
+                    <li key={batch._id}>
+                      {batch.batchName} - {batch.mode} - {batch.status} -{" "}
+                      {batch.studentCount} students
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </Modal>
     </div>
   );
 };
 
 export default ManageLectures;
+

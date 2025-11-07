@@ -42,28 +42,56 @@ const WorkshopForm = () => {
       try {
         const data = await fetchWorkshopById(id);
         if (data) {
-          const safeData = {
-            ...data,
-            prerequisites: data.prerequisites?.length
-              ? data.prerequisites
-              : [""],
-            topics: data.topics?.length ? data.topics : [""],
-            instructors:
-              data.instructors?.length > 0
-                ? data.instructors.map((ins) => ({
-                    name: ins.name ?? "",
-                    designation: ins.designation ?? "",
-                  }))
-                : [{ name: "", designation: "" }],
-            contact: {
-              email: data.contact?.email ?? "",
-              phone: data.contact?.phone ?? "",
-            },
-            startDate: formatDateForInput(data.startDate),
-            endDate: formatDateForInput(data.endDate),
-            certification: data.certification ?? false,
-            status: data.status ?? "Past",
-          };
+          // const safeData = {
+          //   ...data,
+          //   prerequisites: data.prerequisites?.length
+          //     ? data.prerequisites
+          //     : [""],
+          //   topics: data.topics?.length ? data.topics : [""],
+          //   instructors:
+          //     data.instructors?.length > 0
+          //       ? data.instructors.map((ins) => ({
+          //           name: ins.name ?? "",
+          //           designation: ins.designation ?? "",
+          //         }))
+          //       : [{ name: "", designation: "" }],
+          //   contact: {
+          //     email: data.contact?.email ?? "",
+          //     phone: data.contact?.phone ?? "",
+          //   },
+          //   startDate: formatDateForInput(data.startDate),
+          //   endDate: formatDateForInput(data.endDate),
+          //   certification: data.certification ?? false,
+          //   status: data.status ?? "Past",
+          // };
+
+         const safeData = {
+  ...data,
+  prerequisites: data.prerequisites?.length ? data.prerequisites : [""],
+  topics: data.topics?.length ? data.topics : [""],
+  // Convert instructors to array of strings (only names)
+  // instructors:
+  //   data.instructors?.length > 0
+  //     ? data.instructors.map((ins) => ins.name ?? "")
+  //     : [""],
+
+ instructors:
+    data.instructors?.length > 0
+      ? data.instructors.map((name) => name) // keep as array of strings
+      : [""],
+
+
+  contact: {
+    email: data.contact?.email ?? "",
+    phone: data.contact?.phone ?? "",
+  },
+  startDate: formatDateForInput(data.startDate),
+  endDate: formatDateForInput(data.endDate),
+  certification: data.certification ?? false,
+  status: data.status ?? "Past",
+};
+
+
           setInitialData(safeData);
         }
       } catch (error) {
@@ -81,15 +109,13 @@ const WorkshopForm = () => {
   const validationSchema = Yup.object({
     title: Yup.string().required("Title is required"),
     description: Yup.string().required("Description is required"),
-    fees: Yup.number()
-      .min(0, "Fees must be positive")
-      .required("Fees is required"),
-    instructors: Yup.array().of(
-      Yup.object({
-        name: Yup.string().required("Instructor name is required"),
-        designation: Yup.string().required("Designation is required"),
-      })
-    ),
+    // fees: Yup.number()
+    //   .min(0, "Fees must be positive")
+    //   .required("Fees is required"),
+//   instructors: Yup.array().of(
+//   Yup.string().required("Instructor name is required")
+// ),
+
   });
 
   /* 🧾 Initialize Formik */
@@ -104,24 +130,34 @@ const WorkshopForm = () => {
       location: "",
       prerequisites: [""],
       topics: [""],
-      instructors: [{ name: "", designation: "" }],
+      instructors: [""], // array of strings now
       registrationLink: "",
       fees: "",
       certification: false,
       contact: { email: "", phone: "" },
       status: "Past",
+       isFree: false, // ✅ New field
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
+        // const payload = {
+        //   ...values,
+        //   fees: Number(values.fees),
+        //   prerequisites: values.prerequisites.filter((p) => p.trim() !== ""),
+        //   topics: values.topics.filter((t) => t.trim() !== ""),
+        //   instructors: values.instructors.filter(
+        //     (ins) => ins.name.trim() !== "" || ins.designation.trim() !== ""
+        //   ),
+        // };
+
         const payload = {
           ...values,
           fees: Number(values.fees),
           prerequisites: values.prerequisites.filter((p) => p.trim() !== ""),
           topics: values.topics.filter((t) => t.trim() !== ""),
-          instructors: values.instructors.filter(
-            (ins) => ins.name.trim() !== "" || ins.designation.trim() !== ""
-          ),
+          instructors: values.instructors.filter((ins) => ins.trim() !== ""), // strings
+          // instructors: values.instructors.filter((ins) => ins.trim() !== ""), // array of names
         };
 
         if (id) {
@@ -144,7 +180,14 @@ const WorkshopForm = () => {
         navigate("/admin/book-session"); // ✅ Navigate after OK click
       } catch (error) {
         console.error("Error during submission:", error);
-        Swal.fire("Error", "Failed to submit workshop.", "error");
+         // Show backend error in the form
+     // Extract backend message
+    const backendMessage =
+      error.response?.data?.message || "Failed to submit workshop.";
+
+    // Show backend message in Swal
+    await Swal.fire("Error", backendMessage, "error");
+        // Swal.fire("Error", "Failed to submit workshop.", "error");
       } finally {
         setSubmitting(false);
       }
@@ -152,18 +195,19 @@ const WorkshopForm = () => {
   });
 
   /* ➕ Instructor Handlers */
-  const addInstructor = () => {
-    formik.setFieldValue("instructors", [
-      ...formik.values.instructors,
-      { name: "", designation: "" },
-    ]);
-  };
+const addInstructor = () => {
+  formik.setFieldValue("instructors", [
+    ...formik.values.instructors,
+    "", // add empty string
+  ]);
+};
 
-  const removeInstructor = (index) => {
-    const updated = [...formik.values.instructors];
-    updated.splice(index, 1);
-    formik.setFieldValue("instructors", updated);
-  };
+const removeInstructor = (index) => {
+  const updated = [...formik.values.instructors];
+  updated.splice(index, 1);
+  formik.setFieldValue("instructors", updated);
+};
+
 
   if (loading) {
     return (
@@ -191,14 +235,50 @@ const WorkshopForm = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Title" name="title" formik={formik} />
-          <InputField label="Duration (in min)" name="duration" type="number" formik={formik} />
+          <InputField
+            label="Duration (in min)"
+            name="duration"
+            type="number"
+            formik={formik}
+          />
           <InputField label="City" name="location" formik={formik} />
           <InputField
             label="Registration Link"
             name="registrationLink"
             formik={formik}
           />
-          <InputField label="Fees" name="fees" type="number" formik={formik} />
+{/* 💰 Is Free */}
+<section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+  <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+    Pricing
+  </h3>
+
+  <ToggleSwitch
+    label="Is this workshop free?"
+    name="isFree"
+    checked={formik.values.isFree}
+    onChange={() => {
+      const newValue = !formik.values.isFree;
+      formik.setFieldValue("isFree", newValue);
+
+      // Optionally clear fees if free
+      if (newValue) formik.setFieldValue("fees", 0);
+    }}
+  />
+
+  {/* Show Fees input only if isFree is false */}
+  {!formik.values.isFree && (
+    <InputField
+      label="Fees"
+      name="fees"
+      type="number"
+      formik={formik}
+    />
+  )}
+</section>
+
+
+          {/* <InputField label="Fees" name="fees" type="number" formik={formik} /> */}
         </div>
         <TextAreaField label="Description" name="description" formik={formik} />
       </section>
@@ -225,7 +305,7 @@ const WorkshopForm = () => {
       </section>
 
       {/* 👩‍🏫 Instructors */}
-      <section className="space-y-4">
+      {/* <section className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
           Instructors
         </h3>
@@ -267,18 +347,42 @@ const WorkshopForm = () => {
         >
           + Add Instructor
         </button>
-      </section>
+      </section> */}
+
+      {/* 👩‍🏫 Instructors */}
+     <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+  <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+    Instructors
+  </h3>
+
+  <DynamicInputFields
+    label="Instructor Name"
+    name="instructors"
+    formik={formik}
+  />
+</section>
+
 
       {/* 🎓 Certification */}
       <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
         <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
           Certification
         </h3>
-        <ToggleSwitch
+        {/* <ToggleSwitch
           label="Does this workshop offer a certification?"
           name="certification"
           formik={formik}
-        />
+        /> */}
+
+        <ToggleSwitch
+  label="Does this workshop offer a certification?"
+  name="certification"
+  checked={formik.values.certification}
+  onChange={() =>
+    formik.setFieldValue("certification", !formik.values.certification)
+  }
+/>
+
       </section>
 
       {/* 📞 Contact Information */}
@@ -318,7 +422,14 @@ const WorkshopForm = () => {
       </section>
 
       {/* 🚀 Submit Button */}
-      <div className="flex justify-end pt-4 border-t border-gray-200">
+      <div className="flex justify-end pt-4 border-t border-gray-200 gap-4">
+        <button
+          type="button"
+          onClick={() => navigate(-1)} // Go back to previous page
+          className="px-8 py-4 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-xl shadow-lg transition duration-300"
+        >
+          Cancel
+        </button>
         <button
           type="submit"
           disabled={formik.isSubmitting}

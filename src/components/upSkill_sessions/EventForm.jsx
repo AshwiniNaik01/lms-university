@@ -300,7 +300,7 @@ const EventForm = () => {
         <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
           Agenda
         </h3>
-        {formik.values.agenda.map((item, idx) => (
+        {/* {formik.values.agenda.map((item, idx) => (
           <div
             key={idx}
             className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-2"
@@ -359,7 +359,82 @@ const EventForm = () => {
               )}
             </div>
           </div>
-        ))}
+        ))} */}
+
+
+        {formik.values.agenda.map((item, idx) => (
+  <div
+    key={idx}
+    className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-2"
+  >
+    <input
+      type="time"
+      value={item.time}
+      onChange={(e) => {
+        const arr = [...formik.values.agenda];
+        arr[idx].time = e.target.value;
+        formik.setFieldValue("agenda", arr);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault(); // Prevent form submit
+          const newAgenda = [...formik.values.agenda, { time: "", activity: "" }];
+          formik.setFieldValue("agenda", newAgenda);
+        }
+      }}
+      className="border border-blue-500 p-2 rounded-lg w-full bg-white"
+      required
+    />
+    <input
+      type="text"
+      value={item.activity}
+      onChange={(e) => {
+        const arr = [...formik.values.agenda];
+        arr[idx].activity = e.target.value;
+        formik.setFieldValue("agenda", arr);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault(); // Prevent form submit
+          const newAgenda = [...formik.values.agenda, { time: "", activity: "" }];
+          formik.setFieldValue("agenda", newAgenda);
+        }
+      }}
+      placeholder={`Activity ${idx + 1}`}
+      className="border border-blue-500 p-2 rounded-lg w-full bg-white"
+      required
+    />
+    <div className="flex gap-2">
+      {formik.values.agenda.length > 1 && (
+        <button
+          type="button"
+          onClick={() => {
+            const filtered = formik.values.agenda.filter((_, i) => i !== idx);
+            formik.setFieldValue("agenda", filtered);
+          }}
+          className="bg-red-500 text-white px-2 rounded"
+        >
+          ✕
+        </button>
+      )}
+      {idx === formik.values.agenda.length - 1 && (
+        <button
+          type="button"
+          onClick={() =>
+            formik.setFieldValue("agenda", [
+              ...formik.values.agenda,
+              { time: "", activity: "" },
+            ])
+          }
+          className="bg-blue-500 text-white px-4 rounded"
+        >
+          +
+        </button>
+      )}
+    </div>
+  </div>
+))}
+
       </section>
 
       {/* Additional Info */}
@@ -433,7 +508,14 @@ const EventForm = () => {
       </section>
 
       {/* Submit Button */}
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end pt-4 gap-4">
+            <button
+    type="button"
+    onClick={() => navigate(-1)} // Go back to previous page
+    className="px-8 py-4 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-xl shadow-lg transition duration-300"
+  >
+    Cancel
+  </button>
         <button
           type="submit"
           disabled={formik.isSubmitting || loading}

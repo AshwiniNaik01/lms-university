@@ -1,11 +1,13 @@
 
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
 import Dropdown from "../../form/Dropdown";
-import ScrollableTable from "../../table/ScrollableTable";
 import Modal from "../../popupModal/Modal";
+import ScrollableTable from "../../table/ScrollableTable";
+
 // import Dropdown from "./Dropdown";
 // import ScrollableTable from "./ScrollableTable";
 // import Modal from "./Modal";
@@ -21,7 +23,7 @@ const ManageMeeting = () => {
   // Fetch batches for dropdown
   useEffect(() => {
     apiClient
-      .get("/api/batches")
+      .get("/api/batches/all")
       .then((res) => {
         console.log("Batches API response:", res.data);
         const batchesArray = Array.isArray(res.data.data) ? res.data.data : [];
@@ -58,11 +60,27 @@ const ManageMeeting = () => {
   };
 
   // Handle "Attendance" navigation
-  const handleAttendance = (meeting) => {
+  // const handleAttendance = (meeting) => {
+  //   navigate(`/admin/attendance/${meeting._id}`, {
+  //     state: { meeting },
+  //   });
+  // };
+
+const handleAttendance = (meeting) => {
+  if (meeting.attendanceStatus === "Attendance already marked") {
+    Swal.fire({
+      icon: "info",
+      title: "Attendance Already Done",
+      text: "You have already marked attendance for this meeting.",
+      confirmButtonText: "OK",
+    });
+  } else {
     navigate(`/admin/attendance/${meeting._id}`, {
       state: { meeting },
     });
-  };
+  }
+};
+
 
   const columns = [
     { header: "Title", accessor: "title" },
@@ -106,7 +124,7 @@ const ManageMeeting = () => {
 
       {/* Batch Dropdown */}
       <Dropdown
-        label="Select Batch"
+        label="Batch"
         name="batch"
         options={batches}
         formik={{

@@ -28,15 +28,31 @@ const Navbar = () => {
   //   }
   // };
 
-  const handleLogout = () => {
-    logout();
 
-    if (currentUser?.user?.role === "student") {
-      window.location.href = STUDENT_PORTAL_URL; // ← Clean and centralized
-    } else {
-      navigate("/login");
-    }
-  };
+  const handleLogout = () => {
+  // 1️⃣ Clear cookies & reset auth state
+  logout(); // clears cookies and sets currentUser to null
+
+  // 2️⃣ Redirect based on previous role
+  // Note: currentUser is still available in closure here
+  if (currentUser?.user?.role === "student") {
+    // Student → redirect to external portal
+    window.location.href = STUDENT_PORTAL_URL;
+  } else {
+    // Admin/Trainer → navigate inside app
+    navigate("/login");
+  }
+};
+
+  // const handleLogout = () => {
+  //   logout();
+
+  //   if (currentUser?.user?.role === "student") {
+  //     window.location.href = STUDENT_PORTAL_URL; // ← Clean and centralized
+  //   } else {
+  //     navigate("/login");
+  //   }
+  // };
 
   return (
     <nav className="relative w-full h-16 shadow-md overflow-hidden font-sans">
