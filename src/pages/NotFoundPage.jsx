@@ -29,12 +29,12 @@ const NotFoundPage = () => {
       </p>
 
       {/* Navigation link to home */}
-      <Link
+      {/* <Link
         to="/"
         className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition-colors duration-300"
       >
         Go to Homepage
-      </Link>
+      </Link> */}
     </div>
   );
 };

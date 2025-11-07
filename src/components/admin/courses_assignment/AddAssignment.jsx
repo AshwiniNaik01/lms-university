@@ -1,76 +1,127 @@
-import { FormikProvider, useFormik } from 'formik';
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import * as Yup from 'yup';
-import apiClient from '../../../api/axiosConfig';
+
+import { FormikProvider, useFormik } from "formik";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
+import * as Yup from "yup";
+import apiClient from "../../../api/axiosConfig";
+import { getAllCourses } from "../../../api/courses";
+import { DIR } from "../../../utils/constants";
+
+// const ASSIGNMENT_FILES = process.env.BASE_URL + '/uploads/assignments/';
 
 export default function AddAssignment() {
-  const { assignmentId } = useParams(); // For edit
+  const { assignmentId } = useParams();
   const navigate = useNavigate();
+
+  const [availableCourses, setAvailableCourses] = useState([]);
   const [availableChapters, setAvailableChapters] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [existingFile, setExistingFile] = useState("");
 
-  // Fetch chapters for dropdown
+  // Fetch all courses on mount
   useEffect(() => {
-    const fetchChapters = async () => {
+    const fetchCourses = async () => {
       try {
-        const res = await apiClient.get('/api/chapters');
-        setAvailableChapters(res.data?.data || []);
+        const res = await getAllCourses();
+        setAvailableCourses(res);
       } catch (err) {
-        console.error('Error fetching chapters:', err);
+        console.error("Error fetching courses:", err);
       }
     };
-    fetchChapters();
+    fetchCourses();
   }, []);
 
   // Formik setup
   const formik = useFormik({
     initialValues: {
-      chapter: '',
-      title: '',
-      description: '',
-      deadline: '',
+      course: "",
+      chapter: "",
+      title: "",
+      description: "",
+      deadline: "",
       fileUrl: null,
     },
     validationSchema: Yup.object({
-      chapter: Yup.string().required('Chapter is required'),
-      title: Yup.string().required('Title is required'),
-      description: Yup.string().required('Description is required'),
-      deadline: Yup.string().required('Deadline is required'),
+      course: Yup.string().required("Course is required"),
+      chapter: Yup.string().required("Chapter is required"),
+      title: Yup.string().required("Title is required"),
+      description: Yup.string().required("Description is required"),
+      deadline: Yup.string().required("Deadline is required"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
         const formData = new FormData();
-        formData.append('chapter', values.chapter);
-        formData.append('title', values.title);
-        formData.append('description', values.description);
-        formData.append('deadline', values.deadline);
-        if (values.fileUrl) formData.append('fileUrl', values.fileUrl);
+        Object.entries(values).forEach(([key, value]) => {
+          if (value) formData.append(key, value);
+        });
 
         if (assignmentId) {
-          // Update
+          // Update assignment
           await apiClient.put(`/api/assignments/${assignmentId}`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
+            headers: { "Content-Type": "multipart/form-data" },
           });
-          alert('Assignment updated successfully!');
+          // alert('✅ Assignment updated successfully!');
+
+          Swal.fire({
+            icon: "success",
+            title: "Assignment updated!",
+            text: "✅ Assignment updated successfully!",
+            timer: 2000,
+            showConfirmButton: false,
+          });
         } else {
-          // Add
-          await apiClient.post('/api/assignments', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
+          // Add assignment
+          await apiClient.post("/api/assignments", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
           });
-          alert('Assignment created successfully!');
+          // alert('✅ Assignment created successfully!');
+
+          Swal.fire({
+            icon: "success",
+            title: "Assignment created!",
+            text: "✅ Assignment created successfully!",
+            timer: 2000,
+            showConfirmButton: false,
+          });
         }
 
         resetForm();
-        navigate('/admin/manage-assignments');
+        navigate("/admin/manage-assignments");
       } catch (err) {
         console.error(err);
-        alert('Failed to submit assignment: ' + (err.response?.data?.message || err.message));
+        Swal.fire({
+          icon: "error",
+          title: "Submission failed!",
+          text: `❌ ${err.response?.data?.message || err.message}`,
+        });
+        // alert('❌ Failed to submit assignment: ' + (err.response?.data?.message || err.message));
       }
     },
   });
 
-  // Fetch assignment by ID for editing
+  // Fetch chapters when course changes
+  useEffect(() => {
+    const fetchChaptersByCourse = async () => {
+      const courseId = formik.values.course;
+      if (!courseId) {
+        setAvailableChapters([]);
+        return;
+      }
+
+      try {
+        const res = await apiClient.get(`/api/chapters/course/${courseId}`);
+        setAvailableChapters(res.data?.data || []);
+      } catch (err) {
+        console.error("Error fetching chapters for course:", err);
+        setAvailableChapters([]);
+      }
+    };
+
+    fetchChaptersByCourse();
+  }, [formik.values.course]);
+
+  // Fetch assignment when editing
   useEffect(() => {
     if (!assignmentId) return;
 
@@ -81,19 +132,37 @@ export default function AddAssignment() {
         if (res.data.success && res.data.data) {
           const assignment = res.data.data;
           formik.setValues({
-            chapter: assignment.chapter?._id || '',
-            title: assignment.title || '',
-            description: assignment.description || '',
-            deadline: assignment.deadline?.split('T')[0] || '', // format YYYY-MM-DD
+            course: assignment.chapter?.course || assignment.course || "",
+            chapter: assignment.chapter?._id || "",
+            title: assignment.title || "",
+            description: assignment.description || "",
+            deadline: assignment.deadline?.split("T")[0] || "",
             fileUrl: null,
           });
+
+          if (assignment.fileUrl) {
+            setExistingFile(DIR.ASSIGNMENT_FILES + assignment.fileUrl);
+          }
         } else {
-          alert('Assignment not found');
+          Swal.fire({
+            icon: "warning",
+            title: "Oops...",
+            text: "Assignment not found",
+          })
+
+          // alert('Assignment not found');
           navigate('/admin/manage-assignments');
         }
       } catch (err) {
         console.error(err);
-        alert('Failed to fetch assignment');
+
+        Swal.fire({
+          icon: "Warning",
+          title: "Warning !",
+          text: "Failed to fetch assignment",
+        })
+
+        // alert('Failed to fetch assignment');
         navigate('/admin/manage-assignments');
       } finally {
         setLoading(false);
@@ -103,111 +172,156 @@ export default function AddAssignment() {
     fetchAssignment();
   }, [assignmentId]);
 
-  if (loading) return <p className="text-center mt-10">Loading assignment...</p>;
+  if (loading)
+    return <p className="text-center mt-10">Loading assignment...</p>;
 
   return (
     <FormikProvider value={formik}>
-  <form
-    onSubmit={formik.handleSubmit}
-    className="p-8 bg-white rounded-lg shadow-lg max-w-3xl mx-auto space-y-6 border-4 border-[rgba(14,85,200,0.83)]"
-  >
-    <h2 className="text-3xl font-bold mb-6 text-blue-700 text-center">
-      {assignmentId ? 'Edit Assignment' : 'Add Assignment'}
-    </h2>
-
-    {/* Grid Container */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-      {/* Chapter */}
-      <div className="flex flex-col">
-        <label className="font-medium mb-2">Chapter</label>
-        <select
-          name="chapter"
-          value={formik.values.chapter}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="">Select Chapter</option>
-          {availableChapters.map((ch) => (
-            <option key={ch._id} value={ch._id}>{ch.title}</option>
-          ))}
-        </select>
-        {formik.touched.chapter && formik.errors.chapter && (
-          <p className="text-red-500 text-sm mt-1">{formik.errors.chapter}</p>
-        )}
-      </div>
-
-      {/* Title */}
-      <div className="flex flex-col">
-        <label className="font-medium mb-2">Title</label>
-        <input
-          type="text"
-          name="title"
-          value={formik.values.title}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        {formik.touched.title && formik.errors.title && (
-          <p className="text-red-500 text-sm mt-1">{formik.errors.title}</p>
-        )}
-      </div>
-
-      {/* Deadline */}
-      <div className="flex flex-col">
-        <label className="font-medium mb-2">Deadline</label>
-        <input
-          type="date"
-          name="deadline"
-          value={formik.values.deadline}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        {formik.touched.deadline && formik.errors.deadline && (
-          <p className="text-red-500 text-sm mt-1">{formik.errors.deadline}</p>
-        )}
-      </div>
-
-      {/* File Upload */}
-      <div className="flex flex-col">
-        <label className="font-medium mb-2">File (PDF, DOC, PPT, ZIP)</label>
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
-          onChange={(e) => formik.setFieldValue('fileUrl', e.currentTarget.files[0])}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-      </div>
-
-      {/* Description (Full width) */}
-      <div className="flex flex-col md:col-span-2">
-        <label className="font-medium mb-2">Description</label>
-        <textarea
-          name="description"
-          value={formik.values.description}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          rows={5}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        {formik.touched.description && formik.errors.description && (
-          <p className="text-red-500 text-sm mt-1">{formik.errors.description}</p>
-        )}
-      </div>
-    </div>
-
-    {/* Submit Button */}
-    <div className="text-center mt-4">
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+      <form
+        onSubmit={formik.handleSubmit}
+        className="p-8 bg-white rounded-lg shadow-lg max-w-3xl mx-auto space-y-6 border-4 border-[rgba(14,85,200,0.83)]"
       >
-        {assignmentId ? 'Update Assignment' : 'Submit Assignment'}
-      </button>
-    </div>
-  </form>
-</FormikProvider>
+        <h2 className="text-3xl font-bold mb-6 text-blue-700 text-center">
+          {assignmentId ? "Edit Assignment" : "Add Assignment"}
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Course */}
+          <div className="flex flex-col">
+            <label className="font-medium mb-2">Course</label>
+            <select
+              name="course"
+              value={formik.values.course}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">Select Course</option>
+              {availableCourses.map((course) => (
+                <option key={course._id} value={course._id}>
+                  {course.title}
+                </option>
+              ))}
+            </select>
+            {formik.touched.course && formik.errors.course && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.course}
+              </p>
+            )}
+          </div>
+
+          {/* Chapter */}
+          <div className="flex flex-col">
+            <label className="font-medium mb-2">Chapter</label>
+            <select
+              name="chapter"
+              value={formik.values.chapter}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              disabled={!formik.values.course}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100"
+            >
+              <option value="">Select Chapter</option>
+              {availableChapters.map((ch) => (
+                <option key={ch._id} value={ch._id}>
+                  {ch.title}
+                </option>
+              ))}
+            </select>
+            {formik.touched.chapter && formik.errors.chapter && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.chapter}
+              </p>
+            )}
+          </div>
+
+          {/* Title */}
+          <div className="flex flex-col">
+            <label className="font-medium mb-2">Title</label>
+            <input
+              type="text"
+              name="title"
+              value={formik.values.title}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            {formik.touched.title && formik.errors.title && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.title}</p>
+            )}
+          </div>
+
+          {/* Deadline */}
+          <div className="flex flex-col">
+            <label className="font-medium mb-2">Deadline</label>
+            <input
+              type="date"
+              name="deadline"
+              value={formik.values.deadline}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            {formik.touched.deadline && formik.errors.deadline && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.deadline}
+              </p>
+            )}
+          </div>
+
+          {/* File Upload */}
+          <div className="flex flex-col">
+            <label className="font-medium mb-2">File (PDF)</label>
+
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
+              onChange={(e) =>
+                formik.setFieldValue("fileUrl", e.currentTarget.files[0])
+              }
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            {existingFile && (
+              <a
+                href={existingFile}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline mb-2"
+              >
+                View Existing File
+              </a>
+            )}
+          </div>
+
+          {/* Description */}
+          <div className="flex flex-col md:col-span-2">
+            <label className="font-medium mb-2">Description</label>
+            <textarea
+              name="description"
+              value={formik.values.description}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              rows={5}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            {formik.touched.description && formik.errors.description && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="text-center mt-4">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+          >
+            {assignmentId ? "Update Assignment" : "Add Assignment"}
+          </button>
+        </div>
+      </form>
+    </FormikProvider>
   );
 }

@@ -5341,3 +5341,3223 @@
   // );
 
 // course form previour working code with old ui 
+
+// // SessionCategoryForm.jsx
+// import { useFormik } from "formik";
+// import { useEffect, useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import Swal from "sweetalert2";
+// import * as Yup from "yup";
+
+// import {
+//   createSessionCategory,
+//   deleteSessionCategory,
+//   getSessionCategories,
+//   updateSessionCategory,
+// } from "./upSkillsApi";
+
+// import InputField from "../form/InputField";
+// import TextAreaField from "../form/TextAreaField";
+// import ScrollableTable from "../table/ScrollableTable";
+// import EventTableModal from "./EventTableModal";
+
+// import { Pencil, Plus, Settings, Trash2 } from "lucide-react";
+// import { Tooltip } from "react-tooltip";
+
+// // ----------------------
+// // Validation Schema
+// // ----------------------
+// const validationSchema = Yup.object({
+//   name: Yup.string().required("Name is required"),
+//   slug: Yup.string().required("Slug is required"),
+//   desc: Yup.string().required("Description is required"),
+//   type: Yup.string().required("Type is required"),
+//   isActive: Yup.boolean(),
+// });
+
+// // ----------------------
+// // Main Component
+// // ----------------------
+// const SessionCategoryForm = () => {
+//   const [sessionCategories, setSessionCategories] = useState([]);
+//   const [selectedCategory, setSelectedCategory] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [isTableOpen, setIsTableOpen] = useState(false);
+//   const navigate = useNavigate();
+
+//   // ----------------------
+//   // Fetch all session categories
+//   // ----------------------
+//   const fetchCategories = async () => {
+//     try {
+//       const data = await getSessionCategories();
+//       setSessionCategories(data || []);
+//     } catch (error) {
+//       console.error("Error fetching session categories:", error);
+//       Swal.fire("Error!", "Failed to fetch session categories.", "error");
+//     }
+//   };
+
+//   // Initial fetch
+//   useEffect(() => {
+//     fetchCategories();
+//   }, []);
+
+//   // ----------------------
+//   // Formik setup
+//   // ----------------------
+//   const formik = useFormik({
+//     initialValues: {
+//       name: "",
+//       slug: "",
+//       desc: "",
+//       type: "",
+//       isActive: true,
+//     },
+//     validationSchema,
+//     onSubmit: async (values, { resetForm }) => {
+//       setLoading(true);
+
+//       try {
+//         if (selectedCategory) {
+//           // Update existing category
+//           await updateSessionCategory(selectedCategory._id, values);
+//           Swal.fire("Success!", "Session category updated successfully!", "success");
+//         } else {
+//           // Create new category
+//           await createSessionCategory(values);
+//           Swal.fire("Success!", "Session category created successfully!", "success");
+//         }
+
+//         resetForm();
+//         setSelectedCategory(null);
+//         fetchCategories();
+//       } catch (error) {
+//         console.error("❌ Error saving session category:", error);
+//         Swal.fire("Error!", "Failed to save session category.", "error");
+//       } finally {
+//         setLoading(false);
+//       }
+//     },
+//   });
+
+//   // ----------------------
+//   // Edit category
+//   // ----------------------
+//   const handleEdit = (category) => {
+//     setSelectedCategory(category);
+//     formik.setValues({
+//       name: category.name,
+//       slug: category.slug,
+//       desc: category.desc,
+//       type: category.type,
+//       isActive: category.isActive,
+//     });
+//   };
+
+//   // ----------------------
+//   // Delete category using SweetAlert
+//   // ----------------------
+//   const handleDelete = async (id) => {
+//     const result = await Swal.fire({
+//       title: "Are you sure?",
+//       text: "You won't be able to revert this!",
+//       icon: "warning",
+//       showCancelButton: true,
+//       confirmButtonColor: "#3085d6",
+//       cancelButtonColor: "#d33",
+//       confirmButtonText: "Yes, delete it!",
+//     });
+
+//     if (result.isConfirmed) {
+//       try {
+//         await deleteSessionCategory(id);
+//         Swal.fire("Deleted!", "Category has been deleted.", "success");
+//         fetchCategories();
+//       } catch (error) {
+//         console.error("❌ Delete failed:", error);
+//         Swal.fire("Error!", "Failed to delete category.", "error");
+//       }
+//     }
+//   };
+
+//   // ----------------------
+//   // Open manage modal
+//   // ----------------------
+//   const handleManage = (category) => {
+//     setSelectedCategory(category);
+//     setIsTableOpen(true);
+//   };
+
+//   // ----------------------
+//   // Table columns
+//   // ----------------------
+//   const columns = [
+//     { header: "Name", accessor: "name" },
+//     { header: "Type", accessor: "type" },
+//     {
+//       header: "Status",
+//       accessor: (row) => (
+//         <span
+//           className={`px-2 py-1 rounded text-xs font-semibold ${
+//             row.isActive
+//               ? "bg-green-100 text-green-700"
+//               : "bg-red-100 text-red-700"
+//           }`}
+//         >
+//           {row.isActive ? "Active" : "Inactive"}
+//         </span>
+//       ),
+//     },
+//     {
+//       header: "Actions",
+//       accessor: (row) => (
+//         <div className="flex space-x-4">
+//           {/* Edit */}
+//           <button
+//             data-tooltip-id="tooltip"
+//             data-tooltip-content="Edit"
+//             className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition"
+//             onClick={() => handleEdit(row)}
+//           >
+//             <Pencil size={18} />
+//           </button>
+
+//           {/* Delete */}
+//           <button
+//             data-tooltip-id="tooltip"
+//             data-tooltip-content="Delete"
+//             className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition"
+//             onClick={() => handleDelete(row._id)}
+//           >
+//             <Trash2 size={18} />
+//           </button>
+
+//           {/* Manage */}
+//           <button
+//             data-tooltip-id="tooltip"
+//             data-tooltip-content="Manage"
+//             className="p-2 rounded-lg hover:bg-indigo-50 text-indigo-600 transition"
+//             onClick={() => handleManage(row)}
+//           >
+//             <Settings size={18} />
+//           </button>
+
+//           {/* Create content */}
+//           <button
+//             data-tooltip-id="tooltip"
+//             data-tooltip-content={`Manage ${row.slug}`}
+//             className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition"
+//             onClick={() =>
+//               navigate(`/admin/session-category/${row._id}/manage`)
+//             }
+//           >
+//             <Plus size={18} />
+//           </button>
+//         </div>
+//       ),
+//     },
+//   ];
+
+//   // ----------------------
+//   // Render
+//   // ----------------------
+//   return (
+//     <div className="relative h-[550px] w-full flex items-center justify-center p-2">
+//       <div className="relative z-10 w-full max-w-7xl flex flex-col lg:flex-row gap-6 h-[75vh]">
+//         {/* ========== FORM SECTION ========== */}
+//         <div className="w-full lg:w-1/2 backdrop-blur-lg bg-white/60 border-3 border-blue-700 border-opacity-80 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+//           {/* Header */}
+//           <div className="p-6 border-b border-white/30">
+//             <h2 className="text-2xl font-extrabold text-indigo-600 tracking-tight">
+//               {selectedCategory
+//                 ? "✏️ Edit Session Category"
+//                 : "➕ Create Session Category"}
+//             </h2>
+//           </div>
+
+//           {/* Scrollable Form */}
+//           <div className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
+//             <form onSubmit={formik.handleSubmit} className="space-y-4">
+//               <div className="grid grid-cols-2 gap-4">
+//                 <InputField label="Name" name="name" formik={formik} />
+//                 <InputField label="Slug" name="slug" formik={formik} />
+//                 <InputField label="Type" name="type" formik={formik} />
+
+//                 {/* Active Toggle */}
+//                 <div className="flex items-center gap-4 mt-4">
+//                   <span className="text-sm font-medium text-gray-700">Active</span>
+//                   <label className="relative inline-flex items-center cursor-pointer">
+//                     <input
+//                       type="checkbox"
+//                       name="isActive"
+//                       checked={formik.values.isActive}
+//                       onChange={formik.handleChange}
+//                       className="sr-only peer"
+//                     />
+//                     <div className="w-12 h-7 bg-gray-300 peer-checked:bg-blue-600 rounded-full transition-colors duration-300"></div>
+//                     <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+//                   </label>
+//                 </div>
+//               </div>
+
+//               <TextAreaField label="Description" name="desc" formik={formik} />
+
+//               {/* Buttons */}
+//               <div className="pt-4 space-y-1 flex flex-col lg:flex-row gap-4">
+//                 <button
+//                   type="submit"
+//                   disabled={loading}
+//                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-70"
+//                 >
+//                   {loading
+//                     ? "⏳ Submitting..."
+//                     : selectedCategory
+//                     ? "💾 Update Category"
+//                     : "🚀 Create Category"}
+//                 </button>
+
+//                 {selectedCategory && (
+//                   <button
+//                     type="button"
+//                     onClick={() => {
+//                       setSelectedCategory(null);
+//                       formik.resetForm();
+//                     }}
+//                     className="w-full bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all"
+//                   >
+//                     ❌ Cancel Edit
+//                   </button>
+//                 )}
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+
+//         {/* ========== TABLE SECTION ========== */}
+//         <div className="w-full lg:w-1/2 backdrop-blur-lg bg-white/60 border-3 border-blue-700 border-opacity-80 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+//           {/* Header */}
+//           <div className="p-6 border-b border-white/30 flex items-center justify-between">
+//             <h2 className="text-2xl font-extrabold text-indigo-600 tracking-tight">
+//               📚 Session Categories
+//             </h2>
+//           </div>
+
+//           {/* Scrollable Table */}
+//           <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+//             <div className="rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+//               <ScrollableTable
+//                 columns={columns}
+//                 data={sessionCategories}
+//                 maxHeight="100%"
+//               />
+//             </div>
+//           </div>
+
+//           {/* Modal */}
+//           <EventTableModal
+//             isOpen={isTableOpen}
+//             onClose={() => setIsTableOpen(false)}
+//             categoryId={selectedCategory?._id}
+//             categorySlug={selectedCategory?.slug}
+//           />
+
+//           {/* Tooltip */}
+//           <Tooltip id="tooltip" place="top" />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+
+
+      // try {
+      //   if (selectedCategory) {
+      //     // Update existing category
+      //     await updateSessionCategory(selectedCategory._id, values);
+      //     Swal.fire(
+      //       "Success!",
+      //       "Session category updated successfully!",
+      //       "success"
+      //     );
+      //   } else {
+      //     // Create new category
+      //     await createSessionCategory(values);
+      //     Swal.fire(
+      //       "Success!",
+      //       "Session category created successfully!",
+      //       "success"
+      //     );
+      //   }
+
+      //   resetForm();
+      //   setSelectedCategory(null);
+      //   setIsFormOpen(false);
+      //   fetchCategories();
+      // } catch (error) {
+      //   console.error("❌ Error saving session category:", error);
+
+      //   // Try to extract backend message
+      //   const backendMessage =
+      //     error.response?.data?.message || "Failed to save session category.";
+
+      //   Swal.fire("Error!", backendMessage, "warning");
+      // } finally {
+      //   setLoading(false);
+      // }
+
+// export default SessionCategoryForm;
+//  working session booking table and form just its ui is one peside other  
+
+// import { FieldArray, FormikProvider, useFormik } from 'formik';
+// import { useEffect, useState } from 'react';
+// import { useSearchParams } from 'react-router-dom';
+// import * as Yup from 'yup';
+// import apiClient from '../../../api/axiosConfig';
+// import { createPhase, fetchPhases, fetchWeeks } from '../../../api/curriculum';
+
+// export default function AddCurriculum() {
+//    const [searchParams] = useSearchParams();
+//   const courseId = searchParams.get('courseId');
+//   const phaseId = searchParams.get('phaseId');
+//   const weekId = searchParams.get('weekId');
+//   const [step, setStep] = useState(1);
+//   const [availableCourses, setAvailableCourses] = useState([]);
+//   const [availablePhases, setAvailablePhases] = useState([]);
+//   const [availableWeeks, setAvailableWeeks] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [toast, setToast] = useState(null);
+
+//   const showToast = (message, type = 'success') => {
+//     setToast({ message, type });
+//     setTimeout(() => setToast(null), 3000);
+//   };
+
+
+//   useEffect(() => {
+//     if (courseId) {
+//       console.log("Adding Phase for Course ID:", courseId);
+//     } else if (phaseId) {
+//       console.log("Adding Week for Phase ID:", phaseId);
+//     } else if (weekId) {
+//       console.log("Adding Chapter for Week ID:", weekId);
+//     }
+//   }, [courseId, phaseId, weekId]);
+
+//   useEffect(() => {
+//   if (courseId) setStep(1);
+//   else if (phaseId) setStep(2);
+//   else if (weekId) setStep(3);
+// }, [courseId, phaseId, weekId]);
+
+
+
+//   // Fetch all data
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       setLoading(true);
+//       try {
+//         const [coursesResp, phasesResp, weeksResp] = await Promise.all([
+//           apiClient.get('/api/courses/all'),
+//           apiClient.get('/api/phases'),
+//           apiClient.get('/api/weeks'),
+//         ]);
+//         setAvailableCourses(coursesResp.data?.data || []);
+//         setAvailablePhases(phasesResp.data?.data || []);
+//         setAvailableWeeks(weeksResp.data?.data || []);
+//       } catch (err) {
+//         showToast('Error fetching data', 'error');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     fetchData();
+//   }, []);
+
+//   // Refresh data after successful operations
+
+//   const refreshData = async () => {
+//     try {
+//       const [phases, weeks] = await Promise.all([fetchPhases(), fetchWeeks()]);
+//       setAvailablePhases(phases);
+//       setAvailableWeeks(weeks);
+//     } catch (err) {
+//       console.error('Error refreshing data:', err);
+//     }
+//   };
+
+
+//   // Phase Form
+//   // const phaseFormik = useFormik({
+//   //   initialValues: {
+//   //     course: '',
+//   //     title: '',
+//   //     description: '',
+//   //   },
+//   //   validationSchema: Yup.object({
+//   //     course: Yup.string().required('Course is required'),
+//   //     title: Yup.string().required('Title is required'),
+//   //     description: Yup.string().required('Description is required'),
+//   //   }),
+//   //   onSubmit: async (values, { resetForm }) => {
+//   //     setLoading(true);
+//   //     try {
+//   //       await apiClient.post('/api/phases', [values]);
+//   //       showToast('🎉 Phase created successfully!', 'success');
+//   //       resetForm();
+//   //       await refreshData();
+//   //     } catch (err) {
+//   //       showToast('❌ Error creating phase: ' + (err.response?.data?.message || err.message), 'error');
+//   //     } finally {
+//   //       setLoading(false);
+//   //     }
+//   //   },
+//   // });
+
+//   const phaseFormik = useFormik({
+//   enableReinitialize: true, // ✅ important
+//   initialValues: {
+//     course: courseId || '',
+//     title: '',
+//     description: '',
+//   },
+//   validationSchema: Yup.object({
+//     course: Yup.string().required('Course is required'),
+//     title: Yup.string().required('Title is required'),
+//     // description: Yup.string().required('Description is required'),
+//   }),
+//   onSubmit: async (values, { resetForm }) => {
+//     setLoading(true);
+//     try {
+//  await createPhase(values);
+//       showToast('🎉 Phase created successfully!', 'success');
+//       resetForm();
+//       await refreshData();
+//     } catch (err) {
+//       showToast('❌ Error creating phase: ' + (err.response?.data?.message || err.message), 'error');
+//     } finally {
+//       setLoading(false);
+//     }
+//   },
+// });
+
+// // // ✅ Define this helper before using
+// // const getNextWeekNumber = (phaseId) => {
+// //   const phaseWeeks = availableWeeks.filter(w => w.phase === phaseId);
+// //   if (phaseWeeks.length === 0) return 1;
+// //   return Math.max(...phaseWeeks.map(w => w.weekNumber)) + 1;
+// // };
+
+//   // Weeks Form
+// const weeksFormik = useFormik({
+//   enableReinitialize: true,
+//   initialValues: {
+//     phaseId: phaseId || '',
+//     weeks: [{ weekNumber: 1, title: '' }],
+//   },
+//     validationSchema: Yup.object({
+//       phaseId: Yup.string().required('Phase is required'),
+//       weeks: Yup.array()
+//         .of(
+//           Yup.object({
+//             weekNumber: Yup.number().min(1).required('Week number is required'),
+//             // title: Yup.string().required('Week title is required'),
+//           })
+//         )
+//         .min(1, 'At least one week is required'),
+//     }),
+//     onSubmit: async (values, { resetForm }) => {
+//       setLoading(true);
+//       try {
+//         const weekPromises = values.weeks.map(week =>
+//           apiClient.post('/api/weeks', [{ ...week, phase: values.phaseId }])
+//         );
+//         await Promise.all(weekPromises);
+//         showToast('🎉 Weeks created successfully!', 'success');
+//         resetForm();
+//         await refreshData();
+//       } catch (err) {
+//         showToast('❌ Error creating weeks: ' + (err.response?.data?.message || err.message), 'error');
+//       } finally {
+//         setLoading(false);
+//       }
+//     },
+//   });
+// // useEffect(() => {
+// //   if (weeksFormik.values.phaseId && availableWeeks.length > 0) {
+// //     const nextWeek = getNextWeekNumber(weeksFormik.values.phaseId);
+
+// //     const currentWeekNumber = weeksFormik.values.weeks[0]?.weekNumber;
+
+// //     // Only set nextWeek if the field is empty
+// //     if (currentWeekNumber === '' || currentWeekNumber === null || currentWeekNumber === undefined) {
+// //       weeksFormik.setFieldValue('weeks[0].weekNumber', nextWeek);
+// //     }
+// //   }
+// // }, [weeksFormik.values.phaseId, availableWeeks]);
+
+
+//   // Chapter Form
+//   const chapterFormik = useFormik({
+//   enableReinitialize: true,
+//   initialValues: {
+//     week: weekId || '',
+//     title: '',
+//     points: [{ title: '', description: '' }],
+//   },
+//     validationSchema: Yup.object({
+//       week: Yup.string().required('Week is required'),
+//       title: Yup.string().required('Title is required'),
+//       points: Yup.array()
+//         .of(
+//           Yup.object({
+//             title: Yup.string().required('Point title is required'),
+//             // description: Yup.string().required('Description is required'),
+//           })
+//         )
+//         .min(1, 'At least one learning point is required'),
+//     }),
+//     onSubmit: async (values, { resetForm }) => {
+//       setLoading(true);
+//       try {
+//         await apiClient.post('/api/chapters', [values]);
+//         showToast('🎉 Chapter created successfully!', 'success');
+//         resetForm();
+//         await refreshData();
+//       } catch (err) {
+//         showToast('❌ Error creating chapter: ' + (err.response?.data?.message || err.message), 'error');
+//       } finally {
+//         setLoading(false);
+//       }
+//     },
+//   });
+
+//   // Toast Component
+//   const Toast = ({ message, type, onClose }) => (
+//     <div className={`fixed top-6 right-6 px-6 py-3 rounded-xl shadow-2xl text-white font-semibold z-50 flex items-center gap-3 animate-slide-in ${
+//       type === 'success' ? 'bg-green-500' : 'bg-red-500'
+//     }`}>
+//       <span>{message}</span>
+//       <button onClick={onClose} className="text-white hover:text-gray-200 font-bold">✕</button>
+//     </div>
+//   );
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-2">
+//       <div className="max-w-4xl mx-auto p-6">
+//         {/* Header */}
+//         <div className="text-center mb-8">
+//           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+//             🎯 Curriculum Builder
+//           </h1>
+//           <p className="text-gray-600 text-lg">
+//             Build your course curriculum step by step
+//           </p>
+//         </div>
+
+//         {/* Progress Steps */}
+//         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+//           <div className="flex justify-between items-center mb-6">
+//             {[
+//               { label: '1. Create Phase', value: 1, icon: '🏗️' },
+//               { label: '2. Add Weeks', value: 2, icon: '📅' },
+//               { label: '3. Build Chapters', value: 3, icon: '📚' },
+//             ].map(({ label, value, icon }) => (
+//               <div key={value} className="flex flex-col items-center flex-1">
+//                 <button
+//                   onClick={() => setStep(value)}
+//                   className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+//                     step === value
+//                       ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-105'
+//                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+//                   }`}
+//                 >
+//                   <span className="text-xl">{icon}</span>
+//                   <span className="hidden sm:block">{label}</span>
+//                 </button>
+//                 <div className={`w-full h-1 mt-3 rounded-full ${
+//                   step >= value ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-200'
+//                 }`}></div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Loading Overlay */}
+//         {loading && (
+//           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+//             <div className="bg-white rounded-2xl p-8 text-center shadow-2xl">
+//               <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+//               <p className="text-gray-700 font-semibold">Processing...</p>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Phase Form */}
+//         {step === 1 && (
+//           <div className="bg-white rounded-2xl shadow-lg p-8">
+//             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+//               <span className="text-3xl">🏗️</span>
+//               Create New Phase
+//             </h2>
+//             <form onSubmit={phaseFormik.handleSubmit} className="space-y-6">
+//               <div>
+//                 <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                   Select Course
+//                 </label>
+//                 <select
+//                   name="course"
+//                   value={phaseFormik.values.course}
+//                   onChange={phaseFormik.handleChange}
+//                   onBlur={phaseFormik.handleBlur}
+//                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                 >
+//                   <option value="">Choose a Course</option>
+//                   {availableCourses.map((course) => (
+//                     <option key={course._id} value={course._id}>
+//                       {course.title}
+//                     </option>
+//                   ))}
+//                 </select>
+//                 {phaseFormik.touched.course && phaseFormik.errors.course && (
+//                   <p className="text-red-500 text-sm mt-1">{phaseFormik.errors.course}</p>
+//                 )}
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                   Phase Title
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="title"
+//                   value={phaseFormik.values.title}
+//                   onChange={phaseFormik.handleChange}
+//                   onBlur={phaseFormik.handleBlur}
+//                   placeholder="e.g., Foundations, Advanced Concepts, etc."
+//                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                 />
+//                 {phaseFormik.touched.title && phaseFormik.errors.title && (
+//                   <p className="text-red-500 text-sm mt-1">{phaseFormik.errors.title}</p>
+//                 )}
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                   Description
+//                 </label>
+//                 <textarea
+//                   name="description"
+//                   rows="4"
+//                   value={phaseFormik.values.description}
+//                   onChange={phaseFormik.handleChange}
+//                   onBlur={phaseFormik.handleBlur}
+//                   placeholder="Describe what students will learn in this phase..."
+//                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
+//                 />
+//                 {phaseFormik.touched.description && phaseFormik.errors.description && (
+//                   <p className="text-red-500 text-sm mt-1">{phaseFormik.errors.description}</p>
+//                 )}
+//               </div>
+
+//               <div className="flex gap-4 pt-4">
+//                 <button
+//                   type="submit"
+//                   disabled={loading}
+//                   className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+//                 >
+//                   {loading ? 'Creating...' : '🚀 Create Phase'}
+//                 </button>
+//                 <button
+//                   type="button"
+//                   onClick={() => setStep(2)}
+//                   className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+//                 >
+//                   Next: Add Weeks →
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         )}
+
+//         {/* Weeks Form */}
+//         {step === 2 && (
+//           <FormikProvider value={weeksFormik}>
+//             <div className="bg-white rounded-2xl shadow-lg p-8">
+//               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+//                 <span className="text-3xl">📅</span>
+//                 Add Weeks to Phase
+//               </h2>
+//               <form onSubmit={weeksFormik.handleSubmit} className="space-y-6">
+//                 <div>
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                     Select Phase
+//                   </label>
+//                   <select
+//                     name="phaseId"
+//                     value={weeksFormik.values.phaseId}
+//                     onChange={weeksFormik.handleChange}
+//                     onBlur={weeksFormik.handleBlur}
+//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                   >
+//                     <option value="">Choose a Phase</option>
+//                     {availablePhases.map((phase) => (
+//                       <option key={phase._id} value={phase._id}>
+//                         {phase.title}
+//                       </option>
+//                     ))}
+//                   </select>
+//                   {weeksFormik.touched.phaseId && weeksFormik.errors.phaseId && (
+//                     <p className="text-red-500 text-sm mt-1">{weeksFormik.errors.phaseId}</p>
+//                   )}
+//                 </div>
+
+//                 <FieldArray name="weeks">
+//                   {({ push, remove }) => (
+//                     <div className="space-y-4">
+//                       <div className="flex justify-between items-center">
+//                         <label className="block text-sm font-semibold text-gray-700">
+//                           Week Details
+//                         </label>
+//                         <button
+//                           type="button"
+//                           onClick={() => push({ weekNumber: weeksFormik.values.weeks.length + 1, title: '' })}
+//                           className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
+//                         >
+//                           ➕ Add Week
+//                         </button>
+//                       </div>
+
+//                       {weeksFormik.values.weeks.map((week, index) => (
+//                         <div key={index} className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
+//                           <div className="flex gap-4 items-start">
+//                             <div className="flex-1">
+//                               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                 Week Number
+//                               </label>
+//                               <input
+//                                 type="number"
+//                                 name={`weeks.${index}.weekNumber`}
+//                                 value={week.weekNumber}
+//                                 onChange={weeksFormik.handleChange}
+//                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+//                                 min="1"
+//                               />
+//                             </div>
+//                             <div className="flex-1">
+//                               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                 Week Title
+//                               </label>
+//                               <input
+//                                 type="text"
+//                                 name={`weeks.${index}.title`}
+//                                 value={week.title}
+//                                 onChange={weeksFormik.handleChange}
+//                                 placeholder="e.g., JavaScript Fundamentals"
+//                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+//                               />
+//                             </div>
+//                             <button
+//                               type="button"
+//                               onClick={() => remove(index)}
+//                               disabled={weeksFormik.values.weeks.length === 1}
+//                               className="text-red-500 hover:text-red-700 disabled:text-gray-400 mt-6"
+//                             >
+//                               🗑️
+//                             </button>
+//                           </div>
+//                           {weeksFormik.errors.weeks?.[index] && (
+//                             <p className="text-red-500 text-sm mt-2">
+//                               {Object.values(weeksFormik.errors.weeks[index]).join(', ')}
+//                             </p>
+//                           )}
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+//                 </FieldArray>
+
+//                 <div className="flex gap-4 pt-4">
+//                   <button
+//                     type="button"
+//                     onClick={() => setStep(1)}
+//                     className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+//                   >
+//                     ← Back to Phases
+//                   </button>
+//                   <button
+//                     type="submit"
+//                     disabled={loading}
+//                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+//                   >
+//                     {loading ? 'Creating...' : '🚀 Create Weeks'}
+//                   </button>
+//                   <button
+//                     type="button"
+//                     onClick={() => setStep(3)}
+//                     className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+//                   >
+//                     Next: Add Chapters →
+//                   </button>
+//                 </div>
+//               </form>
+//             </div>
+//           </FormikProvider>
+//         )}
+
+//         {/* Chapter Form */}
+//         {step === 3 && (
+//           <FormikProvider value={chapterFormik}>
+//             <div className="bg-white rounded-2xl shadow-lg p-8">
+//               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+//                 <span className="text-3xl">📚</span>
+//                 Build Chapter Content
+//               </h2>
+//               <form onSubmit={chapterFormik.handleSubmit} className="space-y-6">
+//                 <div>
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                     Select Week
+//                   </label>
+//                   <select
+//                     name="week"
+//                     value={chapterFormik.values.week}
+//                     onChange={chapterFormik.handleChange}
+//                     onBlur={chapterFormik.handleBlur}
+//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                   >
+//                     <option value="">Choose a Week</option>
+//                     {availableWeeks.map((week) => (
+//                       <option key={week._id} value={week._id}>
+//                         Week {week.weekNumber}: {week.title}
+//                       </option>
+//                     ))}
+//                   </select>
+//                   {chapterFormik.touched.week && chapterFormik.errors.week && (
+//                     <p className="text-red-500 text-sm mt-1">{chapterFormik.errors.week}</p>
+//                   )}
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                     Chapter Title
+//                   </label>
+//                   <input
+//                     type="text"
+//                     name="title"
+//                     value={chapterFormik.values.title}
+//                     onChange={chapterFormik.handleChange}
+//                     onBlur={chapterFormik.handleBlur}
+//                     placeholder="e.g., Introduction to React Components"
+//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                   />
+//                   {chapterFormik.touched.title && chapterFormik.errors.title && (
+//                     <p className="text-red-500 text-sm mt-1">{chapterFormik.errors.title}</p>
+//                   )}
+//                 </div>
+
+//                 <FieldArray name="points">
+//                   {({ push, remove }) => (
+//                     <div className="space-y-4">
+//                       <div className="flex justify-between items-center">
+//                         <label className="block text-sm font-semibold text-gray-700">
+//                           Learning Points
+//                         </label>
+//                         <button
+//                           type="button"
+//                           onClick={() => push({ title: '', description: '' })}
+//                           className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
+//                         >
+//                           ➕ Add Point
+//                         </button>
+//                       </div>
+
+//                       {chapterFormik.values.points.map((point, index) => (
+//                         <div key={index} className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
+//                           <div className="flex gap-4">
+//                             <div className="flex-1 space-y-3">
+//                               <div>
+//                                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                   Point Title
+//                                 </label>
+//                                 <input
+//                                   type="text"
+//                                   name={`points.${index}.title`}
+//                                   value={point.title}
+//                                   onChange={chapterFormik.handleChange}
+//                                   placeholder="e.g., Understanding JSX"
+//                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+//                                 />
+//                               </div>
+//                               <div>
+//                                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                   Description
+//                                 </label>
+//                                 <textarea
+//                                   name={`points.${index}.description`}
+//                                   value={point.description}
+//                                   onChange={chapterFormik.handleChange}
+//                                   placeholder="Detailed explanation..."
+//                                   rows="3"
+//                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"
+//                                 />
+//                               </div>
+//                             </div>
+//                             <button
+//                               type="button"
+//                               onClick={() => remove(index)}
+//                               disabled={chapterFormik.values.points.length === 1}
+//                               className="text-red-500 hover:text-red-700 disabled:text-gray-400"
+//                             >
+//                               🗑️
+//                             </button>
+//                           </div>
+//                           {chapterFormik.errors.points?.[index] && (
+//                             <p className="text-red-500 text-sm mt-2">
+//                               {Object.values(chapterFormik.errors.points[index]).join(', ')}
+//                             </p>
+//                           )}
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+//                 </FieldArray>
+
+//                 <div className="flex gap-4 pt-4">
+//                   <button
+//                     type="button"
+//                     onClick={() => setStep(2)}
+//                     className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+//                   >
+//                     ← Back to Weeks
+//                   </button>
+//                   <button
+//                     type="submit"
+//                     disabled={loading}
+//                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+//                   >
+//                     {loading ? 'Creating...' : '🚀 Create Chapter'}
+//                   </button>
+//                 </div>
+//               </form>
+//             </div>
+//           </FormikProvider>
+//         )}
+
+//         {/* Toast */}
+//         {toast && (
+//           <Toast
+//             message={toast.message}
+//             type={toast.type}
+//             onClose={() => setToast(null)}
+//           />
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+// this is the add curriculum working section with old ui without automatically switching sections 
+
+// import { useEffect, useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import apiClient from "../../../api/axiosConfig";
+// import { fetchCourseById, getAllCourses } from "../../../api/courses";
+
+// // Enhanced Modal Component
+// const Modal = ({ title, values, onSave, onClose, type = "edit" }) => {
+//   const [formData, setFormData] = useState(values);
+
+//   const handleChange = (key, val) => setFormData({ ...formData, [key]: val });
+
+//   const handlePointChange = (index, key, val) => {
+//     const updatedPoints = [...(formData.points || [])];
+//     updatedPoints[index][key] = val;
+//     setFormData({ ...formData, points: updatedPoints });
+//   };
+
+//   const handleAddPoint = () => {
+//     setFormData({
+//       ...formData,
+//       points: [...(formData.points || []), { title: "", description: "" }],
+//     });
+//   };
+
+//   const handleRemovePoint = (index) => {
+//     const updatedPoints = formData.points.filter((_, i) => i !== index);
+//     setFormData({ ...formData, points: updatedPoints });
+//   };
+
+//   return (
+//     <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
+//       <div className="bg-white rounded-2xl w-[600px] shadow-2xl p-6 relative max-h-[85vh] overflow-y-auto">
+//         <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+//           {type === "delete" ? "🗑️" : "✏️"} {title}
+//         </h2>
+
+//         {type === "delete" ? (
+//           <div className="text-center py-8">
+//             <div className="text-6xl mb-4">⚠️</div>
+//             <p className="text-gray-700 text-lg mb-2">
+//               Are you sure you want to delete this?
+//             </p>
+//             <p className="text-gray-500">This action cannot be undone.</p>
+//           </div>
+//         ) : (
+//           <>
+//             {/* Title field */}
+//             <div className="mb-6">
+//               <label className="text-gray-700 text-sm font-semibold mb-2 block">
+//                 Title
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.title || ""}
+//                 onChange={(e) => handleChange("title", e.target.value)}
+//                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                 placeholder="Enter title..."
+//               />
+//             </div>
+
+//             {/* Description field for phases */}
+//             {formData.description !== undefined && (
+//               <div className="mb-6">
+//                 <label className="text-gray-700 text-sm font-semibold mb-2 block">
+//                   Description
+//                 </label>
+//                 <textarea
+//                   value={formData.description || ""}
+//                   onChange={(e) => handleChange("description", e.target.value)}
+//                   rows="3"
+//                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
+//                   placeholder="Enter description..."
+//                 />
+//               </div>
+//             )}
+
+//             {/* Week number field for weeks */}
+//             {formData.weekNumber !== undefined && (
+//               <div className="mb-6">
+//                 <label className="text-gray-700 text-sm font-semibold mb-2 block">
+//                   Week Number
+//                 </label>
+//                 <input
+//                   type="number"
+//                   value={formData.weekNumber || ""}
+//                   onChange={(e) =>
+//                     handleChange("weekNumber", parseInt(e.target.value))
+//                   }
+//                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                   min="1"
+//                 />
+//               </div>
+//             )}
+
+//             {/* Points for chapters */}
+//             {formData.points !== undefined && (
+//               <div className="mb-6">
+//                 <div className="flex justify-between items-center mb-4">
+//                   <label className="text-gray-700 text-sm font-semibold">
+//                     Learning Points
+//                   </label>
+//                   <button
+//                     type="button"
+//                     onClick={handleAddPoint}
+//                     className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition-all"
+//                   >
+//                     ➕ Add Point
+//                   </button>
+//                 </div>
+//                 <div className="space-y-4 max-h-60 overflow-y-auto">
+//                   {(formData.points || []).map((point, index) => (
+//                     <div
+//                       key={index}
+//                       className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50"
+//                     >
+//                       <div className="flex justify-between items-center mb-3">
+//                         <h4 className="text-sm font-semibold text-gray-700">
+//                           Point {index + 1}
+//                         </h4>
+//                         <button
+//                           onClick={() => handleRemovePoint(index)}
+//                           className="text-red-500 hover:text-red-700 text-sm font-medium"
+//                         >
+//                           🗑️ Remove
+//                         </button>
+//                       </div>
+//                       <input
+//                         type="text"
+//                         placeholder="Point Title"
+//                         value={point.title}
+//                         onChange={(e) =>
+//                           handlePointChange(index, "title", e.target.value)
+//                         }
+//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-blue-200"
+//                       />
+//                       <textarea
+//                         placeholder="Description"
+//                         value={point.description}
+//                         onChange={(e) =>
+//                           handlePointChange(
+//                             index,
+//                             "description",
+//                             e.target.value
+//                           )
+//                         }
+//                         rows="2"
+//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 resize-none"
+//                       />
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+//             )}
+//           </>
+//         )}
+
+//         {/* Action Buttons */}
+//         <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+//           <button
+//             onClick={onClose}
+//             className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-all"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             onClick={() => onSave(formData)}
+//             className={`px-6 py-3 rounded-xl font-semibold text-white flex items-center gap-2 transition-all ${
+//               type === "delete"
+//                 ? "bg-red-500 hover:bg-red-600"
+//                 : "bg-blue-500 hover:bg-blue-600"
+//             }`}
+//           >
+//             {type === "delete" ? "🗑️ Delete" : "💾 Save Changes"}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// // Toast Component
+// const Toast = ({ message, type, onClose }) => (
+//   <div
+//     className={`fixed top-6 right-6 px-6 py-3 rounded-xl shadow-2xl text-white font-semibold z-50 flex items-center gap-3 animate-slide-in ${
+//       type === "success" ? "bg-green-500" : "bg-red-500"
+//     }`}
+//   >
+//     <span>{message}</span>
+//     <button
+//       onClick={onClose}
+//       className="text-white hover:text-gray-200 font-bold"
+//     >
+//       ✕
+//     </button>
+//   </div>
+// );
+
+// const ManageCurriculum = () => {
+//   const [courses, setCourses] = useState([]);
+//   const [selectedCourse, setSelectedCourse] = useState("");
+//   const [phases, setPhases] = useState([]);
+//   const [openPhase, setOpenPhase] = useState(null);
+//   const [openWeek, setOpenWeek] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [toast, setToast] = useState(null);
+//   const [modal, setModal] = useState(null);
+//   const navigate = useNavigate();
+
+//   const showToast = (msg, type = "success") => {
+//     setToast({ message: msg, type });
+//     setTimeout(() => setToast(null), 3000);
+//   };
+
+//   // Fetch Courses
+//   useEffect(() => {
+//     const fetchCourses = async () => {
+//       try {
+//         const coursesData = await getAllCourses();
+//         setCourses(coursesData || []);
+//       } catch (error) {
+//         showToast("❌ Failed to load courses", "error");
+//       }
+//     };
+
+//     fetchCourses();
+//   }, []);
+
+//   // Fetch Phases for selected course
+//   const fetchPhases = async (courseId) => {
+//     if (!courseId) return;
+
+//     setLoading(true);
+//     try {
+//       const course = await fetchCourseById(courseId);
+//       setPhases(course?.phases || []);
+//     } catch (error) {
+//       showToast("❌ Failed to load curriculum", "error");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+//   const handleCourseChange = (e) => {
+//     const id = e.target.value;
+//     setSelectedCourse(id);
+//     setOpenPhase(null);
+//     setOpenWeek(null);
+//     if (id) fetchPhases(id);
+//   };
+
+//   // CRUD Operations
+//   const updateEntity = async (url, payload, successMsg) => {
+//     setLoading(true);
+//     try {
+//       await apiClient.put(url, payload);
+//       showToast(`✅ ${successMsg}`, "success");
+//       fetchPhases(selectedCourse);
+//     } catch (err) {
+//       showToast(
+//         `❌ Failed to update: ${err.response?.data?.message || err.message}`,
+//         "error"
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const deleteEntity = async (url, successMsg) => {
+//     setLoading(true);
+//     try {
+//       await apiClient.delete(url);
+//       showToast(`✅ ${successMsg}`, "success");
+//       fetchPhases(selectedCourse);
+//     } catch (err) {
+//       showToast(
+//         `❌ Failed to delete: ${err.response?.data?.message || err.message}`,
+//         "error"
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Phase Operations
+//   const handleEditPhase = (phase) => {
+//     setModal({
+//       title: "Edit Phase",
+//       values: {
+//         title: phase.title,
+//         description: phase.description,
+//         course: selectedCourse,
+//       },
+//       onSave: (data) => {
+//         setModal(null);
+//         updateEntity(
+//           `/api/phases/${phase._id}`,
+//           data,
+//           "Phase updated successfully!"
+//         );
+//       },
+//     });
+//   };
+
+//   const handleDeletePhase = (phase) => {
+//     setModal({
+//       title: "Delete Phase",
+//       values: {},
+//       onSave: () => {
+//         setModal(null);
+//         deleteEntity(`/api/phases/${phase._id}`, "Phase deleted successfully!");
+//       },
+//       type: "delete",
+//     });
+//   };
+
+//   // Week Operations
+//   const handleEditWeek = (week) => {
+//     setModal({
+//       title: "Edit Week",
+//       values: {
+//         title: week.title,
+//         weekNumber: week.weekNumber,
+//         phase: week.phase,
+//       },
+//       onSave: (data) => {
+//         setModal(null);
+//         updateEntity(
+//           `/api/weeks/${week._id}`,
+//           data,
+//           "Week updated successfully!"
+//         );
+//       },
+//     });
+//   };
+
+//   const handleDeleteWeek = (week) => {
+//     setModal({
+//       title: "Delete Week",
+//       values: {},
+//       onSave: () => {
+//         setModal(null);
+//         deleteEntity(`/api/weeks/${week._id}`, "Week deleted successfully!");
+//       },
+//       type: "delete",
+//     });
+//   };
+
+//   // Chapter Operations
+//   const handleEditChapter = (chapter) => {
+//     setModal({
+//       title: "Edit Chapter",
+//       values: {
+//         title: chapter.title || "",
+//         points: chapter.points || [],
+//         week: chapter.week,
+//       },
+//       onSave: (data) => {
+//         setModal(null);
+//         updateEntity(
+//           `/api/chapters/${chapter._id}`,
+//           data,
+//           "Chapter updated successfully!"
+//         );
+//       },
+//     });
+//   };
+
+//   const handleDeleteChapter = (chapter) => {
+//     setModal({
+//       title: "Delete Chapter",
+//       values: {},
+//       onSave: () => {
+//         setModal(null);
+//         deleteEntity(
+//           `/api/chapters/${chapter._id}`,
+//           "Chapter deleted successfully!"
+//         );
+//       },
+//       type: "delete",
+//     });
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
+//       <div className="max-w-6xl mx-auto p-6">
+//         {/* Header */}
+//         <div className="text-center mb-8">
+//           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+//             📚 Manage Curriculum
+//           </h1>
+//           <p className="text-gray-600 text-lg">
+//             View, edit, and manage your course curriculum structure
+//           </p>
+//         </div>
+
+//         {/* Course Selector */}
+//         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+//           <label className="block text-lg font-semibold text-gray-700 mb-3">
+//             🎯 Select Course
+//           </label>
+//           <select
+//             value={selectedCourse}
+//             onChange={handleCourseChange}
+//             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//           >
+//             <option value="">-- Choose a Course --</option>
+//             {courses.map((course) => (
+//               <option key={course._id} value={course._id}>
+//                 {course.title}
+//               </option>
+//             ))}
+//           </select>
+//         </div>
+
+//         {/* Loading State */}
+//         {loading && (
+//           <div className="text-center py-12">
+//             <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+//             <p className="text-gray-600 font-semibold">Loading...</p>
+//           </div>
+//         )}
+
+//         {/* Curriculum Structure */}
+//         {!loading && phases.length > 0 && (
+//           <div className="space-y-6">
+//             {phases.map((phase, index) => (
+//               <div
+//                 key={phase._id}
+//                 className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100 hover:border-blue-200 transition-all duration-300"
+//               >
+//                 {/* Phase Header */}
+//                 <div
+//                   onClick={() =>
+//                     setOpenPhase(openPhase === phase._id ? null : phase._id)
+//                   }
+//                   className="flex justify-between items-center p-6 cursor-pointer bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all"
+//                 >
+//                   <div className="flex items-center gap-4">
+//                     {/* Render phase number only if this phase is open */}
+//                     {/* {openPhase === phase._id && ( */}
+//                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center text-white text-xl">
+//                       {index + 1}
+//                     </div>
+//                     {/* )} */}
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-800">
+//                         {phase.title}
+//                       </h3>
+//                       <p className="text-gray-600">{phase.description}</p>
+//                     </div>
+//                   </div>
+//                   <div className="flex items-center gap-3">
+//                     <button
+//                       onClick={(e) => {
+//                         e.stopPropagation();
+//                         handleEditPhase(phase);
+//                       }}
+//                       className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-all"
+//                     >
+//                       ✏️
+//                     </button>
+//                     <button
+//                       onClick={(e) => {
+//                         e.stopPropagation();
+//                         handleDeletePhase(phase);
+//                       }}
+//                       className="w-10 h-10 bg-red-500 text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition-all"
+//                     >
+//                       🗑️
+//                     </button>
+//                     {selectedCourse && (
+//                       <div className="flex justify-end">
+//                         <button
+//                           onClick={() =>
+//                             navigate(
+//                               `/admin/add-curriculum?courseId=${selectedCourse}`
+//                             )
+//                           }
+//                           className="bg-green-500 text-white px-2 py-2 rounded-lg font-semibold hover:bg-green-600 transition-all"
+//                         >
+//                           ➕
+//                         </button>
+//                       </div>
+//                     )}
+//                     <span className="text-2xl text-blue-600">
+//                       {openPhase === phase._id ? "🔽" : "▶️"}
+//                     </span>
+//                   </div>
+//                 </div>
+
+//                 {/* Weeks Section */}
+//                 {openPhase === phase._id &&
+//                   phase.weeks &&
+//                   phase.weeks.length > 0 && (
+//                     <div className="p-6 bg-gray-50 space-y-4">
+//                       {phase.weeks.map((week) => (
+//                         <div
+//                           key={week._id}
+//                           className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden"
+//                         >
+//                           {/* Week Header */}
+//                           <div
+//                             onClick={() =>
+//                               setOpenWeek(
+//                                 openWeek === week._id ? null : week._id
+//                               )
+//                             }
+//                             className="flex justify-between items-center p-4 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 hover:from-gray-100 hover:to-blue-100 transition-all"
+//                           >
+//                             <div className="flex items-center gap-3">
+//                               <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
+//                                 📅
+//                               </div>
+//                               <div>
+//                                 <h4 className="font-semibold text-gray-800">
+//                                   Week {week.weekNumber}: {week.title}
+//                                 </h4>
+//                                 <p className="text-sm text-gray-600">
+//                                   {week.chapters?.length || 0} chapters
+//                                 </p>
+//                               </div>
+//                             </div>
+//                             <div className="flex items-center gap-2">
+//                               <button
+//                                 onClick={(e) => {
+//                                   e.stopPropagation();
+//                                   handleEditWeek(week);
+//                                 }}
+//                                 className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-all text-sm"
+//                               >
+//                                 ✏️
+//                               </button>
+//                               <button
+//                                 onClick={(e) => {
+//                                   e.stopPropagation();
+//                                   handleDeleteWeek(week);
+//                                 }}
+//                                 className="w-8 h-8 bg-red-500 text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition-all text-sm"
+//                               >
+//                                 🗑️
+//                               </button>
+//                               <button
+//                                 onClick={(e) => {
+//                                   e.stopPropagation();
+//                                   navigate(
+//                                     `/admin/add-curriculum?weekId=${week._id}`
+//                                   );
+//                                 }}
+//                                 className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center hover:bg-green-600 transition-all text-sm"
+//                                 title="Add Chapter"
+//                               >
+//                                 ➕
+//                               </button>
+//                               <span className="text-2xl text-blue-600">
+//                                 {openWeek === week._id ? "🔽" : "▶️"}
+//                               </span>
+//                             </div>
+//                           </div>
+
+//                           {/* Chapters Section */}
+//                           {openWeek === week._id &&
+//                             week.chapters &&
+//                             week.chapters.length > 0 && (
+//                               <div className="p-4 bg-white space-y-3">
+//                                 {week.chapters.map((chapter, index) => (
+//                                   <div
+//                                     key={chapter._id}
+//                                     className="border-2 border-gray-200 rounded-lg p-4 bg-gradient-to-r from-gray-50 to-white hover:from-blue-50 transition-all"
+//                                   >
+//                                     <div className="flex justify-between items-start">
+//                                       <div className="flex items-start gap-3 flex-1">
+//                                         <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white text-sm mt-1">
+//                                           📚
+//                                         </div>
+//                                         <div className="flex-1">
+//                                           <h5 className="font-semibold text-gray-800 mb-2">
+//                                             {chapter.title ||
+//                                               `Chapter ${index + 1}`}
+//                                           </h5>
+//                                           <div className="space-y-2">
+//                                             {chapter.points?.map(
+//                                               (point, pointIndex) => (
+//                                                 <div
+//                                                   key={point._id || pointIndex}
+//                                                   className="flex items-start gap-2 text-sm"
+//                                                 >
+//                                                   <span className="text-green-500 mt-1">
+//                                                     ✅
+//                                                   </span>
+//                                                   <div>
+//                                                     <span className="font-medium text-gray-700">
+//                                                       {point.title}
+//                                                     </span>
+//                                                     {point.description && (
+//                                                       <p className="text-gray-600 text-xs mt-1">
+//                                                         {point.description}
+//                                                       </p>
+//                                                     )}
+//                                                   </div>
+//                                                 </div>
+//                                               )
+//                                             )}
+//                                           </div>
+//                                         </div>
+//                                       </div>
+//                                       <div className="flex gap-2">
+//                                         <button
+//                                           onClick={() =>
+//                                             handleEditChapter(chapter)
+//                                           }
+//                                           className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-all text-sm"
+//                                         >
+//                                           ✏️
+//                                         </button>
+//                                         <button
+//                                           onClick={() =>
+//                                             handleDeleteChapter(chapter)
+//                                           }
+//                                           className="w-8 h-8 bg-red-500 text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition-all text-sm"
+//                                         >
+//                                           🗑️
+//                                         </button>
+//                                         <button
+//                                           onClick={(e) => {
+//                                             e.stopPropagation();
+//                                             navigate(
+//                                               `/admin/add-curriculum?weekId=${week._id}`
+//                                             );
+//                                           }}
+//                                           className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center hover:bg-green-600 transition-all text-sm"
+//                                           title="Add Chapter"
+//                                         >
+//                                           ➕
+//                                         </button>
+//                                       </div>
+//                                     </div>
+//                                   </div>
+//                                 ))}
+//                               </div>
+//                             )}
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+//               </div>
+//             ))}
+//           </div>
+//         )}
+
+//         {/* Empty State */}
+//         {!loading && selectedCourse && phases.length === 0 && (
+//           <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
+//             <div className="text-6xl mb-4">📝</div>
+//             <h3 className="text-xl font-semibold text-gray-700 mb-2">
+//               No Curriculum Found
+//             </h3>
+//             <p className="text-gray-500 mb-6">
+//               This course doesn't have any curriculum yet.
+//             </p>
+//             <button
+//               onClick={() => (window.location.href = "/admin/add-curriculum")}
+//               className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl transition-all"
+//             >
+//               🚀 Create Curriculum
+//             </button>
+//           </div>
+//         )}
+
+//         {/* Initial State */}
+//         {!loading && !selectedCourse && (
+//           <div className="text-center py-20 bg-white rounded-2xl shadow-lg">
+//             <div className="text-6xl mb-4">🎯</div>
+//             <h3 className="text-xl font-semibold text-gray-700 mb-2">
+//               Select a Course
+//             </h3>
+//             <p className="text-gray-500">
+//               Choose a course from the dropdown above to manage its curriculum.
+//             </p>
+//           </div>
+//         )}
+
+//         {/* Toast */}
+//         {toast && (
+//           <Toast
+//             message={toast.message}
+//             type={toast.type}
+//             onClose={() => setToast(null)}
+//           />
+//         )}
+
+//         {/* Modal */}
+//         {modal && (
+//           <Modal
+//             title={modal.title}
+//             values={modal.values}
+//             onSave={modal.onSave}
+//             onClose={() => setModal(null)}
+//             type={modal.type}
+//           />
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ManageCurriculum;
+//  this is the working manage curriculum section with its old ui 
+
+
+// import { FormikProvider, useFormik } from "formik";
+// import { useEffect, useState } from "react";
+// import { useNavigate, useParams } from "react-router-dom";
+// import * as Yup from "yup";
+// import apiClient from "../../../api/axiosConfig";
+
+// export default function AddLectures() {
+//   const { lectureId } = useParams(); // Get lectureId from route
+//   const navigate = useNavigate();
+
+//   const [availableChapters, setAvailableChapters] = useState([]);
+//   const [loading, setLoading] = useState(false);
+
+//   // ✅ Fetch chapters
+//   useEffect(() => {
+//     const fetchChapters = async () => {
+//       try {
+//         const res = await apiClient.get("/api/chapters");
+//         setAvailableChapters(res.data?.data || []);
+//       } catch (err) {
+//         console.error("Error fetching chapters:", err);
+//       }
+//     };
+
+//     fetchChapters();
+//   }, []);
+
+//   // ✅ Formik setup
+//   const formik = useFormik({
+//     initialValues: {
+//       chapter: "",
+//       title: "",
+//       contentUrl: null,
+//       duration: "",
+//       description: "",
+//     },
+//     validationSchema: Yup.object({
+//       chapter: Yup.string().required("Chapter is required"),
+//       title: Yup.string().required("Title is required"),
+//       duration: Yup.string().required("Duration is required"),
+//       description: Yup.string().required("Description is required"),
+//     }),
+//     onSubmit: async (values, { resetForm }) => {
+//       try {
+//         const formData = new FormData();
+//         formData.append("chapter", values.chapter);
+//         formData.append("title", values.title);
+//         formData.append("duration", values.duration);
+//         formData.append("description", values.description);
+//         if (values.contentUrl) formData.append("contentUrl", values.contentUrl);
+
+//         if (lectureId) {
+//           // ✅ Update lecture
+//           await apiClient.put(`/api/lectures/${lectureId}`, formData, {
+//             headers: { "Content-Type": "multipart/form-data" },
+//           });
+//           alert("Lecture updated successfully!");
+//         } else {
+//           // ✅ Add new lecture
+//           await apiClient.post("/api/lectures", formData, {
+//             headers: { "Content-Type": "multipart/form-data" },
+//           });
+//           alert("Lecture created successfully!");
+//         }
+
+//         resetForm();
+//         navigate("/admin/manage-course-videos");
+//       } catch (error) {
+//         console.error(error);
+//         alert(
+//           "Failed to submit lecture: " +
+//             (error.response?.data?.message || error.message)
+//         );
+//       }
+//     },
+//   });
+
+//   // ✅ Fetch lecture data if editing
+//   useEffect(() => {
+//     if (!lectureId) return;
+
+//     const fetchLecture = async () => {
+//       setLoading(true);
+//       try {
+//         const res = await apiClient.get(`/api/lectures/${lectureId}`);
+//         if (res.data.success && res.data.data) {
+//           const lecture = res.data.data;
+//           formik.setValues({
+//             chapter: lecture.chapter?._id || "",
+//             title: lecture.title || "",
+//             contentUrl: null, // user can re-upload
+//             duration: lecture.duration || "",
+//             description: lecture.description || "",
+//           });
+//         } else {
+//           alert("Lecture not found");
+//           navigate("/admin/manage-course-videos");
+//         }
+//       } catch (err) {
+//         console.error(err);
+//         alert("Failed to fetch lecture");
+//         navigate("/admin/manage-course-videos");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchLecture();
+//   }, [lectureId]);
+
+//   if (loading) return <p className="text-center mt-10">Loading lecture...</p>;
+
+//   // ✅ Form UI
+//   return (
+//     <FormikProvider value={formik}>
+//       <form
+//         onSubmit={formik.handleSubmit}
+//         className="space-y-6 p-6 bg-white rounded-xl shadow-md max-w-xl mx-auto"
+//       >
+//         <h2 className="text-2xl font-bold mb-4 text-blue-700">
+//           {lectureId ? "Edit Lecture" : "Add Lecture"}
+//         </h2>
+
+//         {/* Chapter Dropdown */}
+//         <div>
+//           <label className="block font-medium mb-1">Chapter</label>
+//           <select
+//             name="chapter"
+//             value={formik.values.chapter}
+//             onChange={formik.handleChange}
+//             onBlur={formik.handleBlur}
+//             className="w-full border rounded-lg px-4 py-2"
+//           >
+//             <option value="">Select Chapter</option>
+//             {availableChapters.map((ch) => (
+//               <option key={ch._id} value={ch._id}>
+//                 {ch.title}
+//               </option>
+//             ))}
+//           </select>
+//           {formik.touched.chapter && formik.errors.chapter && (
+//             <p className="text-red-500 text-sm">{formik.errors.chapter}</p>
+//           )}
+//         </div>
+
+//         {/* Title */}
+//         <div>
+//           <label className="block font-medium mb-1">Title</label>
+//           <input
+//             type="text"
+//             name="title"
+//             value={formik.values.title}
+//             onChange={formik.handleChange}
+//             onBlur={formik.handleBlur}
+//             className="w-full border rounded-lg px-4 py-2"
+//           />
+//           {formik.touched.title && formik.errors.title && (
+//             <p className="text-red-500 text-sm">{formik.errors.title}</p>
+//           )}
+//         </div>
+
+//         {/* Duration */}
+//         <div>
+//           <label className="block font-medium mb-1">
+//             Duration (e.g., 30 min)
+//           </label>
+//           <input
+//             type="text"
+//             name="duration"
+//             value={formik.values.duration}
+//             onChange={formik.handleChange}
+//             onBlur={formik.handleBlur}
+//             className="w-full border rounded-lg px-4 py-2"
+//           />
+//           {formik.touched.duration && formik.errors.duration && (
+//             <p className="text-red-500 text-sm">{formik.errors.duration}</p>
+//           )}
+//         </div>
+
+//         {/* Description */}
+//         <div>
+//           <label className="block font-medium mb-1">Description</label>
+//           <textarea
+//             name="description"
+//             value={formik.values.description}
+//             onChange={formik.handleChange}
+//             onBlur={formik.handleBlur}
+//             rows={4}
+//             className="w-full border rounded-lg px-4 py-2"
+//           />
+//           {formik.touched.description && formik.errors.description && (
+//             <p className="text-red-500 text-sm">{formik.errors.description}</p>
+//           )}
+//         </div>
+
+//         {/* MP4 File Upload */}
+//         <div>
+//           <label className="block font-medium mb-1">Lecture Video (.mp4)</label>
+//           <input
+//             type="file"
+//             accept="video/mp4"
+//             onChange={(e) =>
+//               formik.setFieldValue("contentUrl", e.currentTarget.files[0])
+//             }
+//             className="w-full"
+//           />
+//         </div>
+
+//         {/* Submit Button */}
+//         <button
+//           type="submit"
+//           className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+//         >
+//           {lectureId ? "Update Lecture" : "Submit Lecture"}
+//         </button>
+//       </form>
+//     </FormikProvider>
+//   );
+// }
+
+// working add lecture form only on base of chapyer 
+
+
+// import { FormikProvider, useFormik } from "formik";
+// import { useEffect, useState } from "react";
+// import { useNavigate, useParams } from "react-router-dom";
+// import * as Yup from "yup";
+
+// import { fetchAllChapters } from "../../../api/curriculum";
+// import { createNote, fetchNoteById, updateNote } from "../../../api/notes";
+// import { DIR } from "../../../utils/constants";
+
+// import Swal from "sweetalert2";
+// import Dropdown from "../../form/Dropdown";
+// import InputField from "../../form/InputField";
+// import PDFUploadField from "../../form/PDFUploadField";
+// import TextAreaField from "../../form/TextAreaField";
+// import { getAllCourses } from "../../../api/courses";
+
+// export default function AddNotes() {
+//   const { noteId } = useParams();
+//   const navigate = useNavigate();
+//   const [availableCourses, setAvailableCourses] = useState([]);
+
+
+//   const [availableChapters, setAvailableChapters] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [existingFile, setExistingFile] = useState(null);
+
+//   useEffect(() => {
+//   const fetchCourses = async () => {
+//     try {
+//       const courses = await getAllCourses();
+//       setAvailableCourses(courses);
+//     } catch (err) {
+//       console.error("Failed to load courses:", err);
+//     }
+//   };
+//   fetchCourses();
+// }, []);
+
+
+// // Fetch all chapters on mount
+// useEffect(() => {
+//   const fetchChapters = async () => {
+//     try {
+//       const chapters = await fetchAllChapters();
+//       setAvailableChapters(chapters);
+//     } catch (err) {
+//       console.error("Failed to load chapters:", err);
+//     }
+//   };
+//   fetchChapters();
+// }, []);
+
+// // Formik configuration
+// const formik = useFormik({
+//   initialValues: {
+//      course: "", // new field
+//     chapter: "",
+//     title: "",
+//     content: "",
+//     type: "",
+//     duration: "",
+//     file: null,
+//   },
+//   validationSchema: Yup.object({
+//     chapter: Yup.string().required("Chapter is required"),
+//     title: Yup.string().required("Title is required"),
+//     content: Yup.string().required("Content is required"),
+//     // type: Yup.string().required("Type is required"),
+//     duration: Yup.string().required("Duration is required"),
+//   }),
+//   onSubmit: async (values, { resetForm }) => {
+//     try {
+//       const formData = new FormData();
+//       Object.entries(values).forEach(([key, value]) => {
+//         if (value) formData.append(key, value);
+//       });
+
+//       if (noteId) {
+//         await updateNote(noteId, formData);
+//         Swal.fire("Success", "Note updated successfully!", "success");
+//       } else {
+//         await createNote(formData);
+//         Swal.fire("Success", "Note created successfully!", "success");
+//       }
+
+//       resetForm();
+//       navigate("/admin/manage-notes");
+//     } catch (error) {
+//       console.error(error);
+//       Swal.fire(
+//         "Error",
+//         "Failed to submit note: " +
+//           (error.response?.data?.message || error.message),
+//         "error"
+//       );
+//     }
+//   },
+// });
+
+// // Fetch existing note for edit
+// useEffect(() => {
+//   const fetchNote = async () => {
+//     if (!noteId || availableChapters.length === 0) return;
+
+//     setLoading(true);
+//     try {
+//       const note = await fetchNoteById(noteId);
+
+//       if (note) {
+//         formik.setValues({
+//            course: note.course?._id || "", // new field
+//           chapter: note.chapter?._id || "",
+//           title: note.title || "",
+//           content: note.content || "",
+//           type: note.type || "",
+//           duration: note.duration || "",
+//           file: null,
+//         });
+
+//         if (note.file) setExistingFile(note.file);
+//       } else {
+//         Swal.fire("Not Found", "Note not found.", "warning");
+//         navigate("/admin/manage-notes");
+//       }
+//     } catch (err) {
+//       console.error(err);
+//       Swal.fire("Error", "Failed to fetch note details.", "error");
+//       navigate("/admin/manage-notes");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   fetchNote();
+// }, [noteId, availableChapters]);
+
+// if (loading)
+//   return (
+//     <p className="text-center mt-10 text-blue-700 font-medium">
+//       Loading note details...
+//     </p>
+//   );
+
+//   return (
+//     <FormikProvider value={formik}>
+//       <form
+//         onSubmit={formik.handleSubmit}
+//        className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-6 overflow-hidden border-4 border-[rgba(14,85,200,0.83)]"
+
+//       >
+//         {/* Form Heading */}
+//         <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center">
+//           {noteId ? "Edit Note" : "Add New Note"}
+//         </h2>
+
+//         {/* Form Fields Grid */}
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//           <Dropdown
+//   label="Course"
+//   name="course"
+//   options={availableCourses}
+//   formik={formik}
+// />
+
+
+//           {/* Chapter Dropdown */}
+//           <Dropdown
+//             label="Chapter"
+//             name="chapter"
+//             options={availableChapters}
+//             formik={formik}
+//           />
+
+//           {/* Type Input */}
+//           {/* <InputField
+//             label="Type"
+//             name="type"
+//             placeholder="e.g., Article, PDF, PPT"
+//             formik={formik}
+//           /> */}
+
+//           {/* Title Input */}
+//           <InputField label="Title" name="title" formik={formik} />
+
+//           {/* Duration Input */}
+//           <InputField
+//             label="Duration"
+//             name="duration"
+//             placeholder="e.g., 15:30"
+//             formik={formik}
+//           />
+
+//           {/* File Upload */}
+//           <div className="md:col-span-2">
+//             <PDFUploadField name="file" label="Upload File" formik={formik} />
+
+//             {/* Existing file preview */}
+//             {existingFile && !formik.values.file && (
+//               <p className="mt-2 text-sm text-blue-700">
+//                 Existing file:{" "}
+//                 <a
+//                   href={`${DIR.COURSE_NOTES}${existingFile}`}
+//                   target="_blank"
+//                   rel="noopener noreferrer"
+//                   className="underline font-medium"
+//                 >
+//                   {existingFile}
+//                 </a>
+//               </p>
+//             )}
+//           </div>
+
+//           {/* Content TextArea */}
+//           <div className="md:col-span-2">
+//             <TextAreaField
+//               label="Content"
+//               name="content"
+//               formik={formik}
+//               rows={4}
+//             />
+//           </div>
+//         </div>
+
+//         {/* Submit Button */}
+//         <div className="text-center">
+//           <button
+//             type="submit"
+//             className="bg-blue-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300"
+//           >
+//             {noteId ? "Update Note" : "Submit Note"}
+//           </button>
+//         </div>
+//       </form>
+//     </FormikProvider>
+//   );
+// }
+//  working code for add notes form section without course id only chapter id 
+
+// import { FormikProvider, useFormik } from 'formik';
+// import { useEffect, useState } from 'react';
+// import { useNavigate, useParams } from 'react-router-dom';
+// import * as Yup from 'yup';
+// import apiClient from '../../../api/axiosConfig';
+
+// export default function AddAssignment() {
+//   const { assignmentId } = useParams(); // For edit
+//   const navigate = useNavigate();
+//   const [availableChapters, setAvailableChapters] = useState([]);
+//   const [loading, setLoading] = useState(false);
+
+//   // Fetch chapters for dropdown
+//   useEffect(() => {
+//     const fetchChapters = async () => {
+//       try {
+//         const res = await apiClient.get('/api/chapters');
+//         setAvailableChapters(res.data?.data || []);
+//       } catch (err) {
+//         console.error('Error fetching chapters:', err);
+//       }
+//     };
+//     fetchChapters();
+//   }, []);
+
+//   // Formik setup
+//   const formik = useFormik({
+//     initialValues: {
+//       chapter: '',
+//       title: '',
+//       description: '',
+//       deadline: '',
+//       fileUrl: null,
+//     },
+//     validationSchema: Yup.object({
+//       chapter: Yup.string().required('Chapter is required'),
+//       title: Yup.string().required('Title is required'),
+//       description: Yup.string().required('Description is required'),
+//       deadline: Yup.string().required('Deadline is required'),
+//     }),
+//     onSubmit: async (values, { resetForm }) => {
+//       try {
+//         const formData = new FormData();
+//         formData.append('chapter', values.chapter);
+//         formData.append('title', values.title);
+//         formData.append('description', values.description);
+//         formData.append('deadline', values.deadline);
+//         if (values.fileUrl) formData.append('fileUrl', values.fileUrl);
+
+//         if (assignmentId) {
+//           // Update
+//           await apiClient.put(`/api/assignments/${assignmentId}`, formData, {
+//             headers: { 'Content-Type': 'multipart/form-data' },
+//           });
+//           alert('Assignment updated successfully!');
+//         } else {
+//           // Add
+//           await apiClient.post('/api/assignments', formData, {
+//             headers: { 'Content-Type': 'multipart/form-data' },
+//           });
+//           alert('Assignment created successfully!');
+//         }
+
+//         resetForm();
+//         navigate('/admin/manage-assignments');
+//       } catch (err) {
+//         console.error(err);
+//         alert('Failed to submit assignment: ' + (err.response?.data?.message || err.message));
+//       }
+//     },
+//   });
+
+//   // Fetch assignment by ID for editing
+//   useEffect(() => {
+//     if (!assignmentId) return;
+
+//     const fetchAssignment = async () => {
+//       setLoading(true);
+//       try {
+//         const res = await apiClient.get(`/api/assignments/${assignmentId}`);
+//         if (res.data.success && res.data.data) {
+//           const assignment = res.data.data;
+//           formik.setValues({
+//             chapter: assignment.chapter?._id || '',
+//             title: assignment.title || '',
+//             description: assignment.description || '',
+//             deadline: assignment.deadline?.split('T')[0] || '', // format YYYY-MM-DD
+//             fileUrl: null,
+//           });
+//         } else {
+//           alert('Assignment not found');
+//           navigate('/admin/manage-assignments');
+//         }
+//       } catch (err) {
+//         console.error(err);
+//         alert('Failed to fetch assignment');
+//         navigate('/admin/manage-assignments');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchAssignment();
+//   }, [assignmentId]);
+
+//   if (loading) return <p className="text-center mt-10">Loading assignment...</p>;
+
+//   return (
+//     <FormikProvider value={formik}>
+//   <form
+//     onSubmit={formik.handleSubmit}
+//     className="p-8 bg-white rounded-lg shadow-lg max-w-3xl mx-auto space-y-6 border-4 border-[rgba(14,85,200,0.83)]"
+//   >
+//     <h2 className="text-3xl font-bold mb-6 text-blue-700 text-center">
+//       {assignmentId ? 'Edit Assignment' : 'Add Assignment'}
+//     </h2>
+
+//     {/* Grid Container */}
+//     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+//       {/* Chapter */}
+//       <div className="flex flex-col">
+//         <label className="font-medium mb-2">Chapter</label>
+//         <select
+//           name="chapter"
+//           value={formik.values.chapter}
+//           onChange={formik.handleChange}
+//           onBlur={formik.handleBlur}
+//           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+//         >
+//           <option value="">Select Chapter</option>
+//           {availableChapters.map((ch) => (
+//             <option key={ch._id} value={ch._id}>{ch.title}</option>
+//           ))}
+//         </select>
+//         {formik.touched.chapter && formik.errors.chapter && (
+//           <p className="text-red-500 text-sm mt-1">{formik.errors.chapter}</p>
+//         )}
+//       </div>
+
+//       {/* Title */}
+//       <div className="flex flex-col">
+//         <label className="font-medium mb-2">Title</label>
+//         <input
+//           type="text"
+//           name="title"
+//           value={formik.values.title}
+//           onChange={formik.handleChange}
+//           onBlur={formik.handleBlur}
+//           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+//         />
+//         {formik.touched.title && formik.errors.title && (
+//           <p className="text-red-500 text-sm mt-1">{formik.errors.title}</p>
+//         )}
+//       </div>
+
+//       {/* Deadline */}
+//       <div className="flex flex-col">
+//         <label className="font-medium mb-2">Deadline</label>
+//         <input
+//           type="date"
+//           name="deadline"
+//           value={formik.values.deadline}
+//           onChange={formik.handleChange}
+//           onBlur={formik.handleBlur}
+//           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+//         />
+//         {formik.touched.deadline && formik.errors.deadline && (
+//           <p className="text-red-500 text-sm mt-1">{formik.errors.deadline}</p>
+//         )}
+//       </div>
+
+//       {/* File Upload */}
+//       <div className="flex flex-col">
+//         <label className="font-medium mb-2">File (PDF, DOC, PPT, ZIP)</label>
+//         <input
+//           type="file"
+//           accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
+//           onChange={(e) => formik.setFieldValue('fileUrl', e.currentTarget.files[0])}
+//           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+//         />
+//       </div>
+
+//       {/* Description (Full width) */}
+//       <div className="flex flex-col md:col-span-2">
+//         <label className="font-medium mb-2">Description</label>
+//         <textarea
+//           name="description"
+//           value={formik.values.description}
+//           onChange={formik.handleChange}
+//           onBlur={formik.handleBlur}
+//           rows={5}
+//           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+//         />
+//         {formik.touched.description && formik.errors.description && (
+//           <p className="text-red-500 text-sm mt-1">{formik.errors.description}</p>
+//         )}
+//       </div>
+//     </div>
+
+//     {/* Submit Button */}
+//     <div className="text-center mt-4">
+//       <button
+//         type="submit"
+//         className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+//       >
+//         {assignmentId ? 'Update Assignment' : 'Submit Assignment'}
+//       </button>
+//     </div>
+//   </form>
+// </FormikProvider>
+//   );
+// }
+
+//  add assignment working for based on chapter id 
+
+
+
+// import { FieldArray, FormikProvider, useFormik } from "formik";
+// import { useEffect, useState } from "react";
+// import { useSearchParams } from "react-router-dom";
+// import * as Yup from "yup";
+// import apiClient from "../../../api/axiosConfig";
+// import { createPhase, fetchPhases, fetchWeeks } from "../../../api/curriculum";
+
+// export default function AddCurriculum() {
+//   const [searchParams] = useSearchParams();
+//   const courseId = searchParams.get("courseId");
+//   const phaseId = searchParams.get("phaseId");
+//   const weekId = searchParams.get("weekId");
+//   const [step, setStep] = useState(1);
+//   const [availableCourses, setAvailableCourses] = useState([]);
+//   const [availablePhases, setAvailablePhases] = useState([]);
+//   const [availableWeeks, setAvailableWeeks] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [toast, setToast] = useState(null);
+//   const [successPopup, setSuccessPopup] = useState({
+//     show: false,
+//     type: "",
+//     data: null,
+//   });
+
+//   const showToast = (message, type = "success") => {
+//     setToast({ message, type });
+//     setTimeout(() => setToast(null), 3000);
+//   };
+
+//   useEffect(() => {
+//     if (courseId) {
+//       console.log("Adding Topics for Course ID:", courseId);
+//     } else if (phaseId) {
+//       console.log("Adding Sub-Topics for Topic ID:", phaseId);
+//     } else if (weekId) {
+//       console.log("Adding Chapter for Sub-Topic ID:", weekId);
+//     }
+//   }, [courseId, phaseId, weekId]);
+
+//   useEffect(() => {
+//     if (courseId) setStep(1);
+//     else if (phaseId) setStep(2);
+//     else if (weekId) setStep(3);
+//   }, [courseId, phaseId, weekId]);
+
+//   // Fetch all data
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       setLoading(true);
+//       try {
+//         const [coursesResp, phasesResp, weeksResp] = await Promise.all([
+//           apiClient.get("/api/courses/all"),
+//           apiClient.get("/api/phases"),
+//           apiClient.get("/api/weeks"),
+//         ]);
+//         setAvailableCourses(coursesResp.data?.data || []);
+//         setAvailablePhases(phasesResp.data?.data || []);
+//         setAvailableWeeks(weeksResp.data?.data || []);
+//       } catch (err) {
+//         showToast("Error fetching data", "error");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     fetchData();
+//   }, []);
+
+//   // Refresh data after successful operations
+//   const refreshData = async () => {
+//     try {
+//       const [phases, weeks] = await Promise.all([fetchPhases(), fetchWeeks()]);
+//       setAvailablePhases(phases);
+//       setAvailableWeeks(weeks);
+//     } catch (err) {
+//       console.error("Error refreshing data:", err);
+//     }
+//   };
+
+//   // Phase Form
+//   const phaseFormik = useFormik({
+//     enableReinitialize: true,
+//     initialValues: {
+//       course: courseId || "",
+//       title: "",
+//       description: "",
+//     },
+//     validationSchema: Yup.object({
+//       course: Yup.string().required("Course is required"),
+//       title: Yup.string().required("Title is required"),
+//     }),
+//     onSubmit: async (values, { resetForm }) => {
+//       setLoading(true);
+//       try {
+//         const response = await createPhase(values);
+//         const newPhase = response.data || response;
+
+//         showToast("🎉 Topic created successfully!", "success");
+//         resetForm();
+//         await refreshData();
+
+//         // Show success popup with the created phase data
+//         setSuccessPopup({
+//           show: true,
+//           type: "phase",
+//           data: newPhase,
+//         });
+//       } catch (err) {
+//         showToast(
+//           "❌ Error creating topic: " +
+//             (err.response?.data?.message || err.message),
+//           "error"
+//         );
+//       } finally {
+//         setLoading(false);
+//       }
+//     },
+//   });
+
+//   // Weeks Form
+//   const weeksFormik = useFormik({
+//     enableReinitialize: true,
+//     initialValues: {
+//       phaseId: phaseId || "",
+//       weeks: [{ weekNumber: 1, title: "" }],
+//     },
+//     validationSchema: Yup.object({
+//       phaseId: Yup.string().required("Topic is required"),
+//       weeks: Yup.array()
+//         .of(
+//           Yup.object({
+//             weekNumber: Yup.number()
+//               .min(1)
+//               .required("Sub-topic number is required"),
+//           })
+//         )
+//         .min(1, "At least one sub-topic is required"),
+//     }),
+//     onSubmit: async (values, { resetForm }) => {
+//       setLoading(true);
+//       try {
+//         const weekPromises = values.weeks.map((week) =>
+//           apiClient.post("/api/weeks", [{ ...week, phase: values.phaseId }])
+//         );
+//         const responses = await Promise.all(weekPromises);
+//         const newWeeks = responses.map((res) => res.data || res);
+
+//         showToast("🎉 Sub-Topic created successfully!", "success");
+//         resetForm();
+//         await refreshData();
+
+//         // Show success popup with the created weeks data
+//         setSuccessPopup({
+//           show: true,
+//           type: "weeks",
+//           data: newWeeks,
+//         });
+//       } catch (err) {
+//         showToast(
+//           "❌ Error creating sub-topic: " +
+//             (err.response?.data?.message || err.message),
+//           "warning"
+//         );
+//       } finally {
+//         setLoading(false);
+//       }
+//     },
+//   });
+
+//   // Chapter Form
+//   const chapterFormik = useFormik({
+//     enableReinitialize: true,
+//     initialValues: {
+//       week: weekId || "",
+//       title: "",
+//       points: [{ title: "", description: "" }],
+//     },
+//     validationSchema: Yup.object({
+//       week: Yup.string().required("Sub-topic is required"),
+//       title: Yup.string().required("Title is required"),
+//       points: Yup.array()
+//         .of(
+//           Yup.object({
+//             title: Yup.string().required("Point title is required"),
+//           })
+//         )
+//         .min(1, "At least one learning point is required"),
+//     }),
+//     onSubmit: async (values, { resetForm }) => {
+//       setLoading(true);
+//       try {
+//         const response = await apiClient.post("/api/chapters", [values]);
+//         const newChapter = response.data || response;
+
+//         showToast("🎉 Chapter created successfully!", "success");
+//         resetForm();
+//         await refreshData();
+
+//         // Show success popup with the created chapter data
+//         setSuccessPopup({
+//           show: true,
+//           type: "chapter",
+//           data: newChapter,
+//         });
+//       } catch (err) {
+//         showToast(
+//           "❌ Error creating chapter: " +
+//             (err.response?.data?.message || err.message),
+//           "error"
+//         );
+//       } finally {
+//         setLoading(false);
+//       }
+//     },
+//   });
+
+//   // Handle success popup actions
+//   const handleSuccessAction = (action) => {
+//     switch (successPopup.type) {
+//       case "phase":
+//         if (action === "addMore") {
+//           // Reset form and stay on same step
+//           phaseFormik.resetForm();
+//         } else if (action === "proceed") {
+//           // Move to next step (weeks)
+//           setStep(2);
+//         }
+//         break;
+
+//       case "weeks":
+//         if (action === "addMore") {
+//           // Reset form and stay on same step
+//           weeksFormik.resetForm();
+//         } else if (action === "proceed") {
+//           // Move to next step (chapters)
+//           setStep(3);
+//         }
+//         break;
+
+//       case "chapter":
+//         if (action === "addMore") {
+//           // Reset form and stay on same step
+//           chapterFormik.resetForm();
+//         } else if (action === "done") {
+//           // Reset everything and go back to step 1
+//           setStep(1);
+//           phaseFormik.resetForm();
+//           weeksFormik.resetForm();
+//           chapterFormik.resetForm();
+//         }
+//         break;
+//     }
+//     setSuccessPopup({ show: false, type: "", data: null });
+//   };
+
+//   // Success Popup Component
+//   const SuccessPopup = () => {
+//     if (!successPopup.show) return null;
+
+//     const getPopupConfig = () => {
+//       switch (successPopup.type) {
+//         case "phase":
+//           return {
+//             title: "Topic Created Successfully! 🎉",
+//             // message: `"${successPopup.data?.title}" has been created.`,
+//             buttons: [
+//               {
+//                 label: "Add More Topics",
+//                 action: "addMore",
+//                 variant: "secondary",
+//               },
+//               {
+//                 label: "Proceed to Sub-topics",
+//                 action: "proceed",
+//                 variant: "primary",
+//               },
+//             ],
+//           };
+//         case "weeks":
+//           return {
+//             title: "Sub-Topic Created Successfully!",
+//             // message: `${successPopup.data?.length || 1} Sub-topic(s) have been added.`,
+//             buttons: [
+//               {
+//                 label: "Add More Sub-Topic",
+//                 action: "addMore",
+//                 variant: "secondary",
+//               },
+//               {
+//                 label: "Proceed to Chapters",
+//                 action: "proceed",
+//                 variant: "primary",
+//               },
+//             ],
+//           };
+//         case "chapter":
+//           return {
+//             title: "Chapter Created Successfully! 📚",
+//             // message: `"${successPopup.data?.title}" chapter has been created.`,
+//             buttons: [
+//               {
+//                 label: "Add New Chapter",
+//                 action: "addMore",
+//                 variant: "secondary",
+//               },
+//               { label: "Done", action: "done", variant: "primary" },
+//             ],
+//           };
+//         default:
+//           return { title: "", message: "", buttons: [] };
+//       }
+//     };
+
+//     const config = getPopupConfig();
+
+//     return (
+//       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+//         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-scale-in">
+//           <div className="text-center mb-6">
+//             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+//               <span className="text-3xl">✅</span>
+//             </div>
+//             <h3 className="text-2xl font-bold text-gray-800 mb-2">
+//               {config.title}
+//             </h3>
+//             <p className="text-gray-600">{config.message}</p>
+//           </div>
+
+//           <div className="flex flex-col gap-3">
+//             {config.buttons.map((button, index) => (
+//               <button
+//                 key={index}
+//                 onClick={() => handleSuccessAction(button.action)}
+//                 className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
+//                   button.variant === "primary"
+//                     ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg"
+//                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+//                 }`}
+//               >
+//                 {button.label}
+//               </button>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   };
+
+//   // Toast Component
+//   const Toast = ({ message, type, onClose }) => (
+//     <div
+//       className={`fixed top-6 right-6 px-6 py-3 rounded-xl shadow-2xl text-white font-semibold z-50 flex items-center gap-3 animate-slide-in ${
+//         type === "success" ? "bg-green-500" : "bg-red-500"
+//       }`}
+//     >
+//       <span>{message}</span>
+//       <button
+//         onClick={onClose}
+//         className="text-white hover:text-gray-200 font-bold"
+//       >
+//         ✕
+//       </button>
+//     </div>
+//   );
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-2">
+//       <div className="max-w-7xl mx-auto p-6">
+//         {/* Header */}
+//         <div className="text-start mb-8">
+//           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+//             🎯 Curriculum Builder
+//           </h1>
+//           <hr />
+//           {/* <p className="text-gray-600 text-lg">
+//             Build your course curriculum step by step
+//           </p> */}
+//         </div>
+
+//         {/* Progress Steps */}
+//         {/* <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+//           <div className="flex justify-between items-center mb-6">
+//             {[
+//               { label: '1. Add Topic', value: 1, icon: '🏗️' },
+//               { label: '2. Add Sub-Topics', value: 2, icon: '📅' },
+//               { label: '3. Build Chapters', value: 3, icon: '📚' },
+//             ].map(({ label, value, icon }) => (
+//               <div key={value} className="flex flex-col items-center flex-1">
+//                 <button
+//                   onClick={() => setStep(value)}
+//                   className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+//                     step === value
+//                       ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-105'
+//                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+//                   }`}
+//                 >
+//                   <span className="text-xl">{icon}</span>
+//                   <span className="hidden sm:block">{label}</span>
+//                 </button>
+//                 <div className={`w-full h-1 mt-3 rounded-full ${
+//                   step >= value ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-200'
+//                 }`}></div>
+//               </div>
+//             ))}
+//           </div>
+//         </div> */}
+
+//         {/* Loading Overlay */}
+//         {loading && (
+//           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+//             <div className="bg-white rounded-2xl p-8 text-center shadow-2xl">
+//               <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+//               <p className="text-gray-700 font-semibold">Processing...</p>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Phase Form */}
+//         {step === 1 && (
+//           <div className="bg-white rounded-2xl shadow-lg p-8">
+//             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+//               <span className="text-3xl">🏗️</span>
+//               Create New Topic
+//             </h2>
+//             <form onSubmit={phaseFormik.handleSubmit} className="space-y-6">
+//               <div>
+//                 <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                   Select Course
+//                 </label>
+//                 <select
+//                   name="course"
+//                   value={phaseFormik.values.course}
+//                   onChange={phaseFormik.handleChange}
+//                   onBlur={phaseFormik.handleBlur}
+//                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                 >
+//                   <option value="">Choose a Course</option>
+//                   {availableCourses.map((course) => (
+//                     <option key={course._id} value={course._id}>
+//                       {course.title}
+//                     </option>
+//                   ))}
+//                 </select>
+//                 {phaseFormik.touched.course && phaseFormik.errors.course && (
+//                   <p className="text-red-500 text-sm mt-1">
+//                     {phaseFormik.errors.course}
+//                   </p>
+//                 )}
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                   Topic Name
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="title"
+//                   value={phaseFormik.values.title}
+//                   onChange={phaseFormik.handleChange}
+//                   onBlur={phaseFormik.handleBlur}
+//                   placeholder="e.g., Foundations, Advanced Concepts, etc."
+//                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                 />
+//                 {phaseFormik.touched.title && phaseFormik.errors.title && (
+//                   <p className="text-red-500 text-sm mt-1">
+//                     {phaseFormik.errors.title}
+//                   </p>
+//                 )}
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                   Description
+//                 </label>
+//                 <textarea
+//                   name="description"
+//                   rows="4"
+//                   value={phaseFormik.values.description}
+//                   onChange={phaseFormik.handleChange}
+//                   onBlur={phaseFormik.handleBlur}
+//                   placeholder="Describe what students will learn in this topic..."
+//                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
+//                 />
+//                 {phaseFormik.touched.description &&
+//                   phaseFormik.errors.description && (
+//                     <p className="text-red-500 text-sm mt-1">
+//                       {phaseFormik.errors.description}
+//                     </p>
+//                   )}
+//               </div>
+
+//               <div className="flex gap-4 pt-4">
+//                 <button
+//                   type="submit"
+//                   disabled={loading}
+//                   className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+//                 >
+//                   {loading ? "Adding..." : "🚀 Add Topic"}
+//                 </button>
+//                 {/* <button
+//                   type="button"
+//                   onClick={() => setStep(2)}
+//                   className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+//                 >
+//                   Next: Add Sub-Topics →
+//                 </button> */}
+//               </div>
+//             </form>
+//           </div>
+//         )}
+
+//         {/* Weeks Form */}
+//         {step === 2 && (
+//           <FormikProvider value={weeksFormik}>
+//             <div className="bg-white rounded-2xl shadow-lg p-8">
+//               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+//                 <span className="text-3xl">📅</span>
+//                 Add Sub-Topic for Topics
+//               </h2>
+//               <form onSubmit={weeksFormik.handleSubmit} className="space-y-6">
+//                 <div>
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                     Select Topic
+//                   </label>
+//                   <select
+//                     name="phaseId"
+//                     value={weeksFormik.values.phaseId}
+//                     onChange={weeksFormik.handleChange}
+//                     onBlur={weeksFormik.handleBlur}
+//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                   >
+//                     <option value="">Choose a Topic</option>
+//                     {availablePhases.map((phase) => (
+//                       <option key={phase._id} value={phase._id}>
+//                         {phase.title}
+//                       </option>
+//                     ))}
+//                   </select>
+//                   {weeksFormik.touched.phaseId &&
+//                     weeksFormik.errors.phaseId && (
+//                       <p className="text-red-500 text-sm mt-1">
+//                         {weeksFormik.errors.phaseId}
+//                       </p>
+//                     )}
+//                 </div>
+
+//                 <FieldArray name="weeks">
+//                   {({ push, remove }) => (
+//                     <div className="space-y-4">
+//                       <div className="flex justify-between items-center">
+//                         <label className="block text-sm font-semibold text-gray-700">
+//                           Sub-topic Details
+//                         </label>
+//                         <button
+//                           type="button"
+//                           onClick={() =>
+//                             push({
+//                               weekNumber: weeksFormik.values.weeks.length + 1,
+//                               title: "",
+//                             })
+//                           }
+//                           className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
+//                         >
+//                           ➕ Add Sub-Topics
+//                         </button>
+//                       </div>
+
+//                       {weeksFormik.values.weeks.map((week, index) => (
+//                         <div
+//                           key={index}
+//                           className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50"
+//                         >
+//                           <div className="flex gap-4 items-start">
+//                             <div className="flex-1">
+//                               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                 Sub-Topic Number
+//                               </label>
+//                               <input
+//                                 type="number"
+//                                 name={`weeks.${index}.weekNumber`}
+//                                 value={week.weekNumber}
+//                                 onChange={weeksFormik.handleChange}
+//                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+//                                 min="1"
+//                               />
+//                             </div>
+//                             <div className="flex-1">
+//                               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                 Week Title
+//                               </label>
+//                               <input
+//                                 type="text"
+//                                 name={`weeks.${index}.title`}
+//                                 value={week.title}
+//                                 onChange={weeksFormik.handleChange}
+//                                 placeholder="e.g., JavaScript Fundamentals"
+//                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+//                               />
+//                             </div>
+//                             <button
+//                               type="button"
+//                               onClick={() => remove(index)}
+//                               disabled={weeksFormik.values.weeks.length === 1}
+//                               className="text-red-500 hover:text-red-700 disabled:text-gray-400 mt-6"
+//                             >
+//                               🗑️
+//                             </button>
+//                           </div>
+//                           {weeksFormik.errors.weeks?.[index] && (
+//                             <p className="text-red-500 text-sm mt-2">
+//                               {Object.values(
+//                                 weeksFormik.errors.weeks[index]
+//                               ).join(", ")}
+//                             </p>
+//                           )}
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+//                 </FieldArray>
+
+//                 <div className="flex gap-4 pt-4">
+//                   {/* <button
+//                     type="button"
+//                     onClick={() => setStep(1)}
+//                     className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+//                   >
+//                     ← Back to Topic
+//                   </button> */}
+//                   <button
+//                     type="submit"
+//                     disabled={loading}
+//                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+//                   >
+//                     {loading ? "Adding..." : "🚀 Add Sub-Topics"}
+//                   </button>
+//                   {/* <button
+//                     type="button"
+//                     onClick={() => setStep(3)}
+//                     className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+//                   >
+//                     Next: Add Chapters →
+//                   </button> */}
+//                 </div>
+//               </form>
+//             </div>
+//           </FormikProvider>
+//         )}
+
+//         {/* Chapter Form */}
+//         {step === 3 && (
+//           <FormikProvider value={chapterFormik}>
+//             <div className="bg-white rounded-2xl shadow-lg p-8">
+//               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+//                 <span className="text-3xl">📚</span>
+//                 Build Chapter Content
+//               </h2>
+//               <form onSubmit={chapterFormik.handleSubmit} className="space-y-6">
+//                 <div>
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                     Select Sub-topic
+//                   </label>
+//                   <select
+//                     name="week"
+//                     value={chapterFormik.values.week}
+//                     onChange={chapterFormik.handleChange}
+//                     onBlur={chapterFormik.handleBlur}
+//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                   >
+//                     <option value="">Choose a Sub-topic</option>
+//                     {availableWeeks.map((week) => (
+//                       <option key={week._id} value={week._id}>
+//                         Week {week.weekNumber}: {week.title}
+//                       </option>
+//                     ))}
+//                   </select>
+//                   {chapterFormik.touched.week && chapterFormik.errors.week && (
+//                     <p className="text-red-500 text-sm mt-1">
+//                       {chapterFormik.errors.week}
+//                     </p>
+//                   )}
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                     Chapter Title
+//                   </label>
+//                   <input
+//                     type="text"
+//                     name="title"
+//                     value={chapterFormik.values.title}
+//                     onChange={chapterFormik.handleChange}
+//                     onBlur={chapterFormik.handleBlur}
+//                     placeholder="e.g., Introduction to React Components"
+//                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+//                   />
+//                   {chapterFormik.touched.title &&
+//                     chapterFormik.errors.title && (
+//                       <p className="text-red-500 text-sm mt-1">
+//                         {chapterFormik.errors.title}
+//                       </p>
+//                     )}
+//                 </div>
+
+//                 <FieldArray name="points">
+//                   {({ push, remove }) => (
+//                     <div className="space-y-4">
+//                       <div className="flex justify-between items-center">
+//                         <label className="block text-sm font-semibold text-gray-700">
+//                           Learning Points
+//                         </label>
+//                         <button
+//                           type="button"
+//                           onClick={() => push({ title: "", description: "" })}
+//                           className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
+//                         >
+//                           ➕ Add Point
+//                         </button>
+//                       </div>
+
+//                       {chapterFormik.values.points.map((point, index) => (
+//                         <div
+//                           key={index}
+//                           className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50"
+//                         >
+//                           <div className="flex gap-4">
+//                             <div className="flex-1 space-y-3">
+//                               <div>
+//                                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                   Point Title
+//                                 </label>
+//                                 <input
+//                                   type="text"
+//                                   name={`points.${index}.title`}
+//                                   value={point.title}
+//                                   onChange={chapterFormik.handleChange}
+//                                   placeholder="e.g., Understanding JSX"
+//                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+//                                 />
+//                               </div>
+//                               <div>
+//                                 <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                   Description
+//                                 </label>
+//                                 <textarea
+//                                   name={`points.${index}.description`}
+//                                   value={point.description}
+//                                   onChange={chapterFormik.handleChange}
+//                                   placeholder="Detailed explanation..."
+//                                   rows="3"
+//                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"
+//                                 />
+//                               </div>
+//                             </div>
+//                             <button
+//                               type="button"
+//                               onClick={() => remove(index)}
+//                               disabled={
+//                                 chapterFormik.values.points.length === 1
+//                               }
+//                               className="text-red-500 hover:text-red-700 disabled:text-gray-400"
+//                             >
+//                               🗑️
+//                             </button>
+//                           </div>
+//                           {chapterFormik.errors.points?.[index] && (
+//                             <p className="text-red-500 text-sm mt-2">
+//                               {Object.values(
+//                                 chapterFormik.errors.points[index]
+//                               ).join(", ")}
+//                             </p>
+//                           )}
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+//                 </FieldArray>
+
+//                 <div className="flex gap-4 pt-4">
+//                   {/* <button
+//                     type="button"
+//                     onClick={() => setStep(2)}
+//                     className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+//                   >
+//                     ← Back to Sub-topic
+//                   </button> */}
+//                   <button
+//                     type="submit"
+//                     disabled={loading}
+//                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+//                   >
+//                     {loading ? "Creating..." : "🚀 Create Chapter"}
+//                   </button>
+//                 </div>
+//               </form>
+//             </div>
+//           </FormikProvider>
+//         )}
+
+//         {/* Success Popup */}
+//         <SuccessPopup />
+
+//         {/* Toast */}
+//         {toast && (
+//           <Toast
+//             message={toast.message}
+//             type={toast.type}
+//             onClose={() => setToast(null)}
+//           />
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+// working curriculum section by apis fectch all and not by course id 

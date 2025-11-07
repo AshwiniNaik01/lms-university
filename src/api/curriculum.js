@@ -33,6 +33,17 @@ export const createPhase = async (phaseData) => {
   }
 };
 
+/**
+ * Fetch all phases for a specific course
+ * @param {string} courseId - The course ID to filter phases
+ * @returns {Promise<Array>} - List of phases for the given course
+ */
+// Phases API
+export const getPhasesByCourse = async (courseId) => {
+  const response = await apiClient.get(`/api/phases/${courseId}`);
+  return response.data?.data || [];
+};
+
 
 /**
  * Fetch all weeks
@@ -68,6 +79,11 @@ export const createWeeks = async (weeksData, phaseId) => {
   }
 };
 
+// Weeks API
+export const getWeeksByCourse = async (courseId) => {
+  const response = await apiClient.get(`/api/weeks/course/${courseId}`);
+  return response.data?.data || [];
+};
 
 export const fetchAllChapters = async () => {
   try {
@@ -79,3 +95,19 @@ export const fetchAllChapters = async () => {
   }
 };
 
+
+
+/**
+ * Create a new chapter
+ * @param {object} chapterData - Chapter data including week, title, and points
+ * @returns {Promise<object>} - The created chapter data
+ */
+export const createChapter = async (chapterData) => {
+  try {
+    const response = await apiClient.post("/api/chapters", [chapterData]);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating chapter:", error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};

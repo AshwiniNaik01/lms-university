@@ -28,15 +28,31 @@ const Navbar = () => {
   //   }
   // };
 
-  const handleLogout = () => {
-    logout();
 
-    if (currentUser?.user?.role === "student") {
-      window.location.href = STUDENT_PORTAL_URL; // ← Clean and centralized
-    } else {
-      navigate("/login");
-    }
-  };
+  const handleLogout = () => {
+  // 1️⃣ Clear cookies & reset auth state
+  logout(); // clears cookies and sets currentUser to null
+
+  // 2️⃣ Redirect based on previous role
+  // Note: currentUser is still available in closure here
+  if (currentUser?.user?.role === "student") {
+    // Student → redirect to external portal
+    window.location.href = STUDENT_PORTAL_URL;
+  } else {
+    // Admin/Trainer → navigate inside app
+    navigate("/login");
+  }
+};
+
+  // const handleLogout = () => {
+  //   logout();
+
+  //   if (currentUser?.user?.role === "student") {
+  //     window.location.href = STUDENT_PORTAL_URL; // ← Clean and centralized
+  //   } else {
+  //     navigate("/login");
+  //   }
+  // };
 
   return (
     <nav className="relative w-full h-16 shadow-md overflow-hidden font-sans">
@@ -148,7 +164,7 @@ const Navbar = () => {
           </>
         ) : (
           <>
-            <Link
+            {/* <Link
               to="/login"
               className="px-3 py-1 border border-white rounded hover:bg-white hover:text-[#53B8EC] transition"
             >
@@ -159,7 +175,7 @@ const Navbar = () => {
               className="px-3 py-1 bg-white text-[#485DAC] rounded hover:bg-gray-100 transition"
             >
               Register
-            </Link>
+            </Link> */}
           </>
         )}
       </div>

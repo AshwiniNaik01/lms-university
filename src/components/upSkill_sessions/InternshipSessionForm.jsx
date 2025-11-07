@@ -1,4 +1,3 @@
-
 // 📄 src/pages/admin/InternshipSessionForm.jsx
 // ======================================================
 // 🎓 Internship Session Form
@@ -18,7 +17,11 @@ import DynamicInputFields from "../form/DynamicInputFields";
 import InputField from "../form/InputField";
 import TextAreaField from "../form/TextAreaField";
 import ToggleSwitch from "../form/ToggleSwitch";
-import { createInternshipSession, getInternshipSessionById, updateInternshipSession } from "./upSkillsApi";
+import {
+  createInternshipSession,
+  getInternshipSessionById,
+  updateInternshipSession,
+} from "./upSkillsApi";
 
 // ======================================================
 // 🚀 Component
@@ -52,6 +55,7 @@ const InternshipSessionForm = () => {
       },
       certification: false,
       status: "",
+      isFree: false,
     },
 
     validationSchema: Yup.object({
@@ -66,10 +70,15 @@ const InternshipSessionForm = () => {
         const payload = {
           ...values,
           capacity: Number(values.capacity),
-          fees: {
-            ...values.fees,
-            amount: Number(values.fees.amount),
-          },
+
+          fees: values.isFree
+            ? { amount: 0, refundPolicy: "No Refund" }
+            : { ...values.fees, amount: Number(values.fees.amount) },
+
+          // fees: {
+          //   ...values.fees,
+          //   amount: Number(values.fees.amount),
+          // },
           topics: values.topics.filter((t) => t.trim() !== ""),
         };
 
@@ -108,6 +117,43 @@ const InternshipSessionForm = () => {
   // ======================================================
   // 📦 Fetch existing session data (edit mode)
   // ======================================================
+  // useEffect(() => {
+  //   const fetchSession = async () => {
+  //     if (!isEditMode || !sessionId) return;
+  //     try {
+  //       const data = await getInternshipSessionById(sessionId);
+  //       if (data) {
+  //         formik.setValues({
+  //           title: data.title || "",
+  //           description: data.description || "",
+  //           startDate: data.startDate?.split("T")[0] || "",
+  //           endDate: data.endDate?.split("T")[0] || "",
+  //           duration: data.duration || "",
+  //           mode: data.mode || "",
+  //           location: data.location || "",
+  //           topics: Array.isArray(data.topics) ? data.topics : [""],
+  //           capacity: data.capacity?.toString() || "",
+  //           fees: {
+  //             amount: data.fees?.amount?.toString() || "",
+  //             refundPolicy: data.fees?.refundPolicy || "",
+  //           },
+  //           certification: data.certification ?? false,
+  //           status: data.status || "",
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error("❌ Failed to fetch internship session:", error);
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "Fetch Error",
+  //         text: "Unable to load session details.",
+  //       });
+  //     }
+  //   };
+
+  //   fetchSession();
+  // }, [isEditMode, sessionId]);
+
   useEffect(() => {
     const fetchSession = async () => {
       if (!isEditMode || !sessionId) return;
@@ -130,6 +176,7 @@ const InternshipSessionForm = () => {
             },
             certification: data.certification ?? false,
             status: data.status || "",
+            isFree: data.isFree ?? false, // ✅ Add this line
           });
         }
       } catch (error) {
@@ -148,37 +195,42 @@ const InternshipSessionForm = () => {
   // ======================================================
   // 🎨 UI Rendering
   // ======================================================
-return (
-  <form
-    onSubmit={formik.handleSubmit}
-    className="space-y-10 p-8 max-w-6xl mx-auto bg-white shadow-xl rounded-xl border-3 border-blue-700 border-opacity-80"
-  >
-    {/* 🏷️ Header */}
-    <h2 className="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-4 mb-4 text-start">
-      {isEditMode ? "Edit Internship Session" : "Create Internship Session"}
-    </h2>
+  return (
+    <form
+      onSubmit={formik.handleSubmit}
+      className="space-y-10 p-8 max-w-6xl mx-auto bg-white shadow-xl rounded-xl border-3 border-blue-700 border-opacity-80"
+    >
+      {/* 🏷️ Header */}
+      <h2 className="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-4 mb-4 text-start">
+        {isEditMode ? "Edit Internship Session" : "Create Internship Session"}
+      </h2>
 
-    {/* 🧾 Basic Information */}
-    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
-      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-        Basic Information
-      </h3>
+      {/* 🧾 Basic Information */}
+      <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+          Basic Information
+        </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField label="Title" name="title" formik={formik} />
-        <InputField label="Duration (in months)" name="duration" type="number" formik={formik} />
-        <InputField label="Location" name="location" formik={formik} />
-        <InputField
-          label="Capacity"
-          name="capacity"
-          type="number"
-          formik={formik}
-        />
-      </div>
-    </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InputField label="Title" name="title" formik={formik} />
+          <InputField
+            label="Duration (in months)"
+            name="duration"
+            type="number"
+            formik={formik}
+          />
+          <InputField label="City" name="location" formik={formik} />
+          <InputField
+            label="Capacity"
+            name="capacity"
+            type="number"
+            formik={formik}
+          />
+        </div>
+      </section>
 
-    {/* 💰 Fees & Payment */}
-    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+      {/* 💰 Fees & Payment */}
+      {/* <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
       <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
         Fees & Payment
       </h3>
@@ -189,98 +241,154 @@ return (
           type="number"
           formik={formik}
         />
-        <InputField
-          label="Refund Policy"
-          name="fees.refundPolicy"
-          formik={formik}
-        />
+
+   <Dropdown
+  label="Refund Policy"
+  name="fees.refundPolicy"
+  formik={formik}
+  options={[
+    { _id: "no_refund", title: "No Refund" },
+    { _id: "7_days", title: "7 Days" },
+    { _id: "15_days", title: "15 Days" },
+    { _id: "1_month", title: "1 Month" },
+  ]}
+/>
+
       </div>
-    </section>
+    </section> */}
 
-    {/* 📅 Session Details */}
-    <section className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-        Session Details
-      </h3>
+      {/* 💰 Fees & Payment */}
+      <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+          Fees & Payment
+        </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Dropdown
-          label="Mode"
-          name="mode"
-          formik={formik}
-          options={[
-            { _id: "Online", title: "Online" },
-            { _id: "Offline", title: "Offline" },
-            { _id: "Hybrid", title: "Hybrid" },
-          ]}
-        />
-        <DateRangePicker formik={formik} />
+        {/* Toggle for Free */}
+        <div className="flex items-center gap-4">
+          <ToggleSwitch
+            label="Is Free?"
+            name="isFree"
+            checked={formik.values.isFree}
+            onChange={() => {
+              const newValue = !formik.values.isFree;
+              formik.setFieldValue("isFree", newValue);
+
+              // Clear fees if free
+              if (newValue) {
+                formik.setFieldValue("fees.amount", 0);
+                formik.setFieldValue("fees.refundPolicy", "No Refund");
+              }
+            }}
+          />
+        </div>
+
+        {/* Fees fields - hide if free */}
+        {!formik.values.isFree && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <InputField
+              label="Amount (₹)"
+              name="fees.amount"
+              type="number"
+              formik={formik}
+            />
+
+            <Dropdown
+              label="Refund Policy"
+              name="fees.refundPolicy"
+              formik={formik}
+              options={[
+                { _id: "no_refund", title: "No Refund" },
+                { _id: "7_days", title: "7 Days" },
+                { _id: "15_days", title: "15 Days" },
+                { _id: "1_month", title: "1 Month" },
+              ]}
+            />
+          </div>
+        )}
+      </section>
+
+      {/* 📅 Session Details */}
+      <section className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+          Session Details
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Dropdown
+            label="Mode"
+            name="mode"
+            formik={formik}
+            options={[
+              { _id: "Online", title: "Online" },
+              { _id: "Offline", title: "Offline" },
+              { _id: "Hybrid", title: "Hybrid" },
+            ]}
+          />
+          <DateRangePicker formik={formik} />
+        </div>
+
+        <TextAreaField label="Description" name="description" formik={formik} />
+
+        <DynamicInputFields label="Topics" name="topics" formik={formik} />
+      </section>
+
+      {/* ⚙️ Additional Settings */}
+      <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+          Additional Settings
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Dropdown
+            label="Status"
+            name="status"
+            formik={formik}
+            options={[
+              { _id: "Upcoming", title: "Upcoming" },
+              { _id: "Ongoing", title: "Ongoing" },
+              { _id: "Past", title: "Past" },
+            ]}
+          />
+
+          <ToggleSwitch
+            label="Certification Available"
+            name="certification"
+            checked={formik.values.certification}
+            onChange={() =>
+              formik.setFieldValue(
+                "certification",
+                !formik.values.certification
+              )
+            }
+          />
+        </div>
+      </section>
+
+      {/* 🚀 Submit Button */}
+      <div className="flex justify-end pt-4 border-t border-gray-200 gap-4">
+        <button
+          type="button"
+          onClick={() => navigate(-1)} // Go back to previous page
+          className="px-8 py-4 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-xl shadow-lg transition duration-300"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={formik.isSubmitting}
+          className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-lg transition duration-300 disabled:opacity-50"
+        >
+          {formik.isSubmitting
+            ? isEditMode
+              ? "Updating..."
+              : "Creating..."
+            : isEditMode
+            ? "Update Internship Session"
+            : "Create Internship Session"}
+        </button>
       </div>
-
-      <TextAreaField
-        label="Description"
-        name="description"
-        formik={formik}
-      />
-
-      <DynamicInputFields
-        label="Topics"
-        name="topics"
-        formik={formik}
-      />
-    </section>
-
-    {/* ⚙️ Additional Settings */}
-    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
-      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-        Additional Settings
-      </h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Dropdown
-          label="Status"
-          name="status"
-          formik={formik}
-          options={[
-            { _id: "Upcoming", title: "Upcoming" },
-            { _id: "Ongoing", title: "Ongoing" },
-            { _id: "Past", title: "Past" },
-          ]}
-        />
-
-        <ToggleSwitch
-          label="Certification Available"
-          name="certification"
-          checked={formik.values.certification}
-          onChange={() =>
-            formik.setFieldValue(
-              "certification",
-              !formik.values.certification
-            )
-          }
-        />
-      </div>
-    </section>
-
-    {/* 🚀 Submit Button */}
-    <div className="flex justify-end pt-4 border-t border-gray-200">
-      <button
-        type="submit"
-        disabled={formik.isSubmitting}
-        className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-lg transition duration-300 disabled:opacity-50"
-      >
-        {formik.isSubmitting
-          ? isEditMode
-            ? "Updating..."
-            : "Creating..."
-          : isEditMode
-          ? "Update Internship Session"
-          : "Create Internship Session"}
-      </button>
-    </div>
-  </form>
-);
-
+    </form>
+  );
 };
 
 export default InternshipSessionForm;

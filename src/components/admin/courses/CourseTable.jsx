@@ -1,53 +1,40 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../../api/axiosConfig";
 import { useAuth } from "../../../contexts/AuthContext";
-// import apiClient from "../../api/axiosConfig.js";
-// import { useAuth } from "../../contexts/AuthContext.jsx";
+import Modal from "../../popupModal/Modal";
+import ScrollableTable from "../../table/ScrollableTable";
+// import Modal from "../../Modal"; // adjust path
 
-const CourseTable = ({ onEdit }) => {
+const CourseTable = () => {
   const { token } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
-    const navigate = useNavigate(); // ✅ for navigation
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
 
-//   const fetchCourses = async () => {
-//     setLoading(true);
-//     setError("");
-//     try {
-//       const res = await apiClient.get("/api/courses/all", {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
-//      setCourses(res.data.data); // ✅ CORRECT — this extracts the array of courses
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalCourseData, setModalCourseData] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
-//     } catch (err) {
-//       setError(
-//         err.response?.data?.message || err.message || "Failed to load courses."
-//       );
-//     }
-//     setLoading(false);
-//   };
+  const navigate = useNavigate();
 
-const fetchCourses = async () => {
-  setLoading(true);
-  try {
-    const res = await apiClient.get("/api/courses/all", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    
-    console.log("Fetched courses:", res.data); // Debug
-
-    const courseList = Array.isArray(res.data.data) ? res.data.data : [];
-    setCourses(courseList);
-  } catch (err) {
-    console.error(err);
-    setError("Failed to fetch courses.");
-  }
-  setLoading(false);
-};
-
+  const fetchCourses = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get("/api/courses/all", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const courseList = Array.isArray(res.data.data) ? res.data.data : [];
+      setCourses(courseList);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch courses.");
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -55,7 +42,6 @@ const fetchCourses = async () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
-
     setDeletingId(id);
     try {
       await apiClient.delete(`/api/courses/${id}`, {
@@ -63,92 +49,176 @@ const fetchCourses = async () => {
       });
       setCourses((prev) => prev.filter((course) => course._id !== id));
     } catch (err) {
-      alert(
-        err.response?.data?.message || err.message || "Failed to delete course."
-      );
+      alert(err.response?.data?.message || err.message || "Failed to delete course.");
     }
     setDeletingId(null);
   };
 
-  if (loading)
-    return <div className="text-center p-4 text-indigo-600">Loading...</div>;
+  // Fetch course by ID and open modal
+  const handleViewClick = async (id) => {
+    setModalLoading(true);
+    setIsModalOpen(true);
 
-  if (error)
-    return (
-      <div className="text-center p-4 text-red-600 font-semibold">{error}</div>
-    );
+    try {
+      const { data } = await apiClient.get(`/api/courses/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        setModalCourseData(data.data);
+      } else {
+        setModalCourseData(null);
+        alert("Failed to fetch course details");
+      }
+    } catch (err) {
+      console.error(err);
+      setModalCourseData(null);
+      alert("Error fetching course details");
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
-  if (courses.length === 0)
-    return (
-      <div className="text-center p-4 text-gray-600 font-semibold">
-        No courses found.
-      </div>
-    );
+  const columns = [
+    { header: "Title", accessor: "title" },
+    { header: "Duration", accessor: "duration" },
+    // { header: "Certificate", accessor: (row) => (row.features?.certificate ? "Yes" : "No") },
+    // { header: "Coding Exercises", accessor: (row) => (row.features?.codingExercises ? "Yes" : "No") },
+    // { header: "Recorded Lectures", accessor: (row) => (row.features?.recordedLectures ? "Yes" : "No") },
+    {
+      header: "Actions",
+      accessor: (row) => (
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleViewClick(row._id)}
+            className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            View
+          </button>
+          <button
+            onClick={() => navigate(`/admin/courses/edit/${row._id}`)}
+            className="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(row._id)}
+            disabled={deletingId === row._id}
+            className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+          >
+            {deletingId === row._id ? "Deleting..." : "Delete"}
+          </button>
+          <button
+            onClick={() => navigate(`/admin/add-curriculum?type=phase&courseId=${row._id}`)}
+            className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Add Curriculum
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  if (loading) return <div className="text-center p-4 text-indigo-600">Loading...</div>;
+  if (error) return <div className="text-center p-4 text-red-600 font-semibold">{error}</div>;
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
-         <button
-          onClick={() => navigate("/admin/add-courses")} // ✅ Navigate to form
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          + Create New Course
-        </button>
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-indigo-600 text-white">
-          <tr>
-            <th className="px-6 py-3 text-left text-sm font-semibold">
-              Title
-            </th>
-            <th className="px-6 py-3 text-left text-sm font-semibold">
-              Instructor
-            </th>
-            <th className="px-6 py-3 text-left text-sm font-semibold">
-              Duration
-            </th>
-            <th className="px-6 py-3 text-left text-sm font-semibold">Active</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {courses.map((course) => (
-            <tr key={course._id}>
-              <td className="px-6 py-4 whitespace-nowrap">{course.title}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {course.instructor || "-"}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">{course.duration}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {course.isActive ? "Yes" : "No"}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap space-x-2">
+    <div className="space-y-4">
+      <button
+        onClick={() => navigate("/admin/add-courses")}
+        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        + Create New Course
+      </button>
 
-                <button
-  onClick={() => navigate(`/admin/courses/edit/${course._id}`)} // 🔁 Navigate to edit form
-  className="px-3 py-1 bg-yellow-400 rounded hover:bg-yellow-500 text-white"
->
-  Edit
-</button>
+      <ScrollableTable
+        columns={columns}
+        data={courses}
+        maxHeight="600px"
+        emptyMessage="No courses found"
+      />
 
-                {/* <button
-                  onClick={() => onEdit(course)}
-                  className="px-3 py-1 bg-yellow-400 rounded hover:bg-yellow-500 text-white"
-                >
-                  Edit
-                </button> */}
-                <button
-                  onClick={() => handleDelete(course._id)}
-                  disabled={deletingId === course._id}
-                  className="px-3 py-1 bg-red-600 rounded hover:bg-red-700 text-white disabled:opacity-50"
-                >
-                  {deletingId === course._id ? "Deleting..." : "Delete"}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        header={modalCourseData ? modalCourseData.title : "Loading..."}
+      >
+        {modalLoading ? (
+          <p>Loading...</p>
+        ) : modalCourseData ? (
+          <div className="space-y-4 text-gray-700">
+            <p><strong>Description:</strong> {modalCourseData.description}</p>
+            <p><strong>Overview:</strong> {modalCourseData.overview}</p>
+
+            <div>
+              <strong>Learning Outcomes:</strong>
+              <ul className="list-disc ml-5">
+                {modalCourseData.learningOutcomes?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <strong>Benefits:</strong>
+              <ul className="list-disc ml-5">
+                {modalCourseData.benefits?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <strong>Key Features:</strong>
+              <ul className="list-disc ml-5">
+                {modalCourseData.keyFeatures?.map((feature) => (
+                  <li key={feature._id}>
+                    <strong>{feature.title}:</strong> {feature.description}
+                    {feature.subPoints?.length > 0 && (
+                      <ul className="list-decimal ml-5">
+                        {feature.subPoints.map((sub, i) => (
+                          <li key={i}>{sub}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {modalCourseData.trainer?.length > 0 && (
+              <div>
+                <strong>Trainer Info:</strong>
+                {modalCourseData.trainer.map((t) => (
+                  <div key={t._id} className="border p-2 rounded mb-2">
+                    <p><strong>Name:</strong> {t.fullName}</p>
+                    <p><strong>Title:</strong> {t.title}</p>
+                    <p><strong>Qualification:</strong> {t.highestQualification}</p>
+                    <p><strong>College:</strong> {t.collegeName}</p>
+                    <p><strong>Total Experience:</strong> {t.totalExperience}</p>
+                    <p><strong>Available Timing:</strong> {t.availableTiming}</p>
+                    <p>
+                      <strong>LinkedIn:</strong>{" "}
+                      <a href={t.linkedinProfile?.trim()} target="_blank" className="text-blue-600 underline">
+                        {t.linkedinProfile?.trim()}
+                      </a>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p><strong>Rating:</strong> {modalCourseData.rating}</p>
+            <p><strong>Enrolled Count:</strong> {modalCourseData.enrolledCount}</p>
+            <p><strong>Status:</strong> {modalCourseData.isActive ? "Active" : "Inactive"}</p>
+          </div>
+        ) : (
+          <p>No data found.</p>
+        )}
+      </Modal>
     </div>
   );
 };
 
 export default CourseTable;
+

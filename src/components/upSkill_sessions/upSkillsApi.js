@@ -32,6 +32,11 @@ export const deleteSessionCategory = async (id) => {
   return response.data;
 };
 
+// 📍 Fetch a single session category by ID
+export const getSessionCategoryById = async (id) => {
+  const response = await apiClient.get(`${ENDPOINT}/${id}`);
+  return response.data?.data || null;
+};
 
 
 // ============================================================================================================================
