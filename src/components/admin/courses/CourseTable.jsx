@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
 import { useAuth } from "../../../contexts/AuthContext";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
-// import Modal from "../../Modal"; // adjust path
 
 const CourseTable = () => {
   const { token } = useAuth();
@@ -49,7 +48,9 @@ const CourseTable = () => {
       });
       setCourses((prev) => prev.filter((course) => course._id !== id));
     } catch (err) {
-      alert(err.response?.data?.message || err.message || "Failed to delete course.");
+      alert(
+        err.response?.data?.message || err.message || "Failed to delete course."
+      );
     }
     setDeletingId(null);
   };
@@ -78,12 +79,52 @@ const CourseTable = () => {
     }
   };
 
+  // Clone course function
+  const handleClone = async (id) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to clone this course?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, clone it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const { data } = await apiClient.post(
+          `/api/courses/${id}/clone`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (data.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Cloned!",
+            text: data.message || "Course cloned successfully.",
+          });
+          fetchCourses(); // Refresh the table
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Failed",
+            text: data.message || "Failed to clone course.",
+          });
+        }
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: err.response?.data?.message || "Something went wrong!",
+        });
+      }
+    }
+  };
+
   const columns = [
     { header: "Title", accessor: "title" },
     { header: "Duration", accessor: "duration" },
-    // { header: "Certificate", accessor: (row) => (row.features?.certificate ? "Yes" : "No") },
-    // { header: "Coding Exercises", accessor: (row) => (row.features?.codingExercises ? "Yes" : "No") },
-    // { header: "Recorded Lectures", accessor: (row) => (row.features?.recordedLectures ? "Yes" : "No") },
     {
       header: "Actions",
       accessor: (row) => (
@@ -108,18 +149,30 @@ const CourseTable = () => {
             {deletingId === row._id ? "Deleting..." : "Delete"}
           </button>
           <button
-            onClick={() => navigate(`/admin/add-curriculum?type=phase&courseId=${row._id}`)}
+            onClick={() =>
+              navigate(`/admin/add-curriculum?type=phase&courseId=${row._id}`)
+            }
             className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
           >
             Add Curriculum
+          </button>
+          <button
+            onClick={() => handleClone(row._id)}
+            className="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+          >
+            Clone
           </button>
         </div>
       ),
     },
   ];
 
-  if (loading) return <div className="text-center p-4 text-indigo-600">Loading...</div>;
-  if (error) return <div className="text-center p-4 text-red-600 font-semibold">{error}</div>;
+  if (loading)
+    return <div className="text-center p-4 text-indigo-600">Loading...</div>;
+  if (error)
+    return (
+      <div className="text-center p-4 text-red-600 font-semibold">{error}</div>
+    );
 
   return (
     <div className="space-y-4">
@@ -147,8 +200,12 @@ const CourseTable = () => {
           <p>Loading...</p>
         ) : modalCourseData ? (
           <div className="space-y-4 text-gray-700">
-            <p><strong>Description:</strong> {modalCourseData.description}</p>
-            <p><strong>Overview:</strong> {modalCourseData.overview}</p>
+            <p>
+              <strong>Description:</strong> {modalCourseData.description}
+            </p>
+            <p>
+              <strong>Overview:</strong> {modalCourseData.overview}
+            </p>
 
             <div>
               <strong>Learning Outcomes:</strong>
@@ -191,15 +248,31 @@ const CourseTable = () => {
                 <strong>Trainer Info:</strong>
                 {modalCourseData.trainer.map((t) => (
                   <div key={t._id} className="border p-2 rounded mb-2">
-                    <p><strong>Name:</strong> {t.fullName}</p>
-                    <p><strong>Title:</strong> {t.title}</p>
-                    <p><strong>Qualification:</strong> {t.highestQualification}</p>
-                    <p><strong>College:</strong> {t.collegeName}</p>
-                    <p><strong>Total Experience:</strong> {t.totalExperience}</p>
-                    <p><strong>Available Timing:</strong> {t.availableTiming}</p>
+                    <p>
+                      <strong>Name:</strong> {t.fullName}
+                    </p>
+                    <p>
+                      <strong>Title:</strong> {t.title}
+                    </p>
+                    <p>
+                      <strong>Qualification:</strong> {t.highestQualification}
+                    </p>
+                    <p>
+                      <strong>College:</strong> {t.collegeName}
+                    </p>
+                    <p>
+                      <strong>Total Experience:</strong> {t.totalExperience}
+                    </p>
+                    <p>
+                      <strong>Available Timing:</strong> {t.availableTiming}
+                    </p>
                     <p>
                       <strong>LinkedIn:</strong>{" "}
-                      <a href={t.linkedinProfile?.trim()} target="_blank" className="text-blue-600 underline">
+                      <a
+                        href={t.linkedinProfile?.trim()}
+                        target="_blank"
+                        className="text-blue-600 underline"
+                      >
                         {t.linkedinProfile?.trim()}
                       </a>
                     </p>
@@ -208,9 +281,16 @@ const CourseTable = () => {
               </div>
             )}
 
-            <p><strong>Rating:</strong> {modalCourseData.rating}</p>
-            <p><strong>Enrolled Count:</strong> {modalCourseData.enrolledCount}</p>
-            <p><strong>Status:</strong> {modalCourseData.isActive ? "Active" : "Inactive"}</p>
+            <p>
+              <strong>Rating:</strong> {modalCourseData.rating}
+            </p>
+            <p>
+              <strong>Enrolled Count:</strong> {modalCourseData.enrolledCount}
+            </p>
+            <p>
+              <strong>Status:</strong>{" "}
+              {modalCourseData.isActive ? "Active" : "Inactive"}
+            </p>
           </div>
         ) : (
           <p>No data found.</p>
@@ -221,4 +301,3 @@ const CourseTable = () => {
 };
 
 export default CourseTable;
-

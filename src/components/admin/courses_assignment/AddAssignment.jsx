@@ -1,4 +1,3 @@
-
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,8 +6,6 @@ import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
 import { getAllCourses } from "../../../api/courses";
 import { DIR } from "../../../utils/constants";
-
-// const ASSIGNMENT_FILES = process.env.BASE_URL + '/uploads/assignments/';
 
 export default function AddAssignment() {
   const { assignmentId } = useParams();
@@ -67,8 +64,8 @@ export default function AddAssignment() {
             icon: "success",
             title: "Assignment updated!",
             text: "✅ Assignment updated successfully!",
-            timer: 2000,
-            showConfirmButton: false,
+            // timer: 2000,
+            showConfirmButton: true,
           });
         } else {
           // Add assignment
@@ -81,8 +78,8 @@ export default function AddAssignment() {
             icon: "success",
             title: "Assignment created!",
             text: "✅ Assignment created successfully!",
-            timer: 2000,
-            showConfirmButton: false,
+            // timer: 2000,
+            showConfirmButton: true,
           });
         }
 
@@ -148,10 +145,11 @@ export default function AddAssignment() {
             icon: "warning",
             title: "Oops...",
             text: "Assignment not found",
-          })
+            confirmButtonColor: "#0E55C8",
+          });
 
           // alert('Assignment not found');
-          navigate('/admin/manage-assignments');
+          navigate("/admin/manage-assignments");
         }
       } catch (err) {
         console.error(err);
@@ -160,10 +158,11 @@ export default function AddAssignment() {
           icon: "Warning",
           title: "Warning !",
           text: "Failed to fetch assignment",
-        })
+          confirmButtonColor: "#0E55C8",
+        });
 
         // alert('Failed to fetch assignment');
-        navigate('/admin/manage-assignments');
+        navigate("/admin/manage-assignments");
       } finally {
         setLoading(false);
       }
@@ -179,7 +178,7 @@ export default function AddAssignment() {
     <FormikProvider value={formik}>
       <form
         onSubmit={formik.handleSubmit}
-        className="p-8 bg-white rounded-lg shadow-lg max-w-3xl mx-auto space-y-6 border-4 border-[rgba(14,85,200,0.83)]"
+        className="p-8 bg-white rounded-lg shadow-lg max-w-5xl mx-auto space-y-6 border-4 border-[rgba(14,85,200,0.83)]"
       >
         <h2 className="text-3xl font-bold mb-6 text-blue-700 text-center">
           {assignmentId ? "Edit Assignment" : "Add Assignment"}

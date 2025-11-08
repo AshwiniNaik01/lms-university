@@ -1,15 +1,14 @@
-
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import * as Yup from "yup";
 
 import apiClient from "../../../api/axiosConfig";
+import { getAllCourses } from "../../../api/courses";
 import { createNote, fetchNoteById, updateNote } from "../../../api/notes";
 import { DIR } from "../../../utils/constants";
-import { getAllCourses } from "../../../api/courses";
 
-import Swal from "sweetalert2";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import PDFUploadField from "../../form/PDFUploadField";
@@ -24,7 +23,7 @@ export default function AddNotes() {
   const [loading, setLoading] = useState(false);
   const [existingFile, setExistingFile] = useState(null);
 
-  // ✅ Fetch courses
+  // ✅ Fetch all courses on mount
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -45,7 +44,6 @@ export default function AddNotes() {
       title: "",
       content: "",
       type: "",
-      // duration: "",
       file: null,
     },
     validationSchema: Yup.object({
@@ -53,7 +51,6 @@ export default function AddNotes() {
       chapter: Yup.string().required("Chapter is required"),
       title: Yup.string().required("Title is required"),
       content: Yup.string().required("Content is required"),
-      // duration: Yup.string().required("Duration is required"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -84,7 +81,7 @@ export default function AddNotes() {
     },
   });
 
-  // ✅ Fetch chapters when course changes
+  // ✅ Fetch chapters whenever a course changes
   useEffect(() => {
     const fetchChaptersByCourse = async () => {
       const courseId = formik.values.course;
@@ -105,25 +102,35 @@ export default function AddNotes() {
     fetchChaptersByCourse();
   }, [formik.values.course]);
 
-  // ✅ Fetch existing note for edit
+  // ✅ Fetch existing note for editing
   useEffect(() => {
     const fetchNote = async () => {
       if (!noteId) return;
 
       setLoading(true);
       try {
-        const note = await fetchNoteById(noteId);
+        const res = await fetchNoteById(noteId);
+        const note = res?.data || res; // handles both raw and wrapped responses
 
         if (note) {
-          formik.setValues({
-            course: note.course?._id || "",
-            chapter: note.chapter?._id || "",
-            title: note.title || "",
-            content: note.content || "",
-            type: note.type || "",
-            // duration: note.duration || "",
-            file: null,
-          });
+          // ✅ Extract correct course and chapter from nested structure
+          const courseId = note.chapter?.courseDetails?._id || "";
+          const chapterId = note.chapter?._id || "";
+
+          // First set course to trigger chapter loading
+          formik.setFieldValue("course", courseId);
+
+          // Wait for chapters to load before setting chapter
+          setTimeout(() => {
+            formik.setValues({
+              course: courseId,
+              chapter: chapterId,
+              title: note.title || "",
+              content: note.content || "",
+              type: note.type || "",
+              file: null,
+            });
+          }, 400);
 
           if (note.file) setExistingFile(note.file);
         } else {
@@ -156,7 +163,7 @@ export default function AddNotes() {
         className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-6 overflow-hidden border-4 border-[rgba(14,85,200,0.83)]"
       >
         <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center">
-          {noteId ? "Edit Note" : "Add Study Material"}
+          {noteId ? "Edit Study Material" : "Add Study Material"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -168,7 +175,7 @@ export default function AddNotes() {
             formik={formik}
           />
 
-          {/* Chapter Dropdown (filtered by selected course) */}
+          {/* Chapter Dropdown */}
           <Dropdown
             label="Chapter"
             name="chapter"
@@ -178,14 +185,6 @@ export default function AddNotes() {
 
           {/* Title */}
           <InputField label="Title" name="title" formik={formik} />
-
-          {/* Duration */}
-          {/* <InputField
-            label="Duration"
-            name="duration"
-            placeholder="e.g., 15:30"
-            formik={formik}
-          /> */}
 
           {/* File Upload */}
           <div className="md:col-span-2">
@@ -222,7 +221,7 @@ export default function AddNotes() {
             type="submit"
             className="bg-blue-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300"
           >
-            {noteId ? "Update Note" : "Add Study Material"}
+            {noteId ? "Update Study Material" : "Add Study Material"}
           </button>
         </div>
       </form>

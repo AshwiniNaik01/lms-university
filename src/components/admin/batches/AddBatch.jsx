@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -60,7 +59,7 @@ const AddBatch = ({ onBatchSaved }) => {
       if (!id) return;
       try {
         setLoading(true);
-        const res = await apiClient.get(`/api/batches/${id}`);
+        const res = await apiClient.get(`/api/batches/batches/${id}`);
         const batch = Array.isArray(res.data.data)
           ? res.data.data[0]
           : res.data.data;
@@ -171,9 +170,13 @@ const AddBatch = ({ onBatchSaved }) => {
       if (onBatchSaved) onBatchSaved();
       navigate("/admin/manage-batches");
     } catch (err) {
-      console.error("Error submitting batch:", err.response?.data || err.message);
+      console.error(
+        "Error submitting batch:",
+        err.response?.data || err.message
+      );
       const message =
-        err.response?.data?.message || "Failed to save batch. Please try again.";
+        err.response?.data?.message ||
+        "Failed to save batch. Please try again.";
       Swal.fire("Error", message, "error");
     } finally {
       setLoading(false);
@@ -264,7 +267,9 @@ const AddBatch = ({ onBatchSaved }) => {
 
           {/* Mode */}
           <div>
-            <label className="block font-semibold mb-1 text-gray-700">Mode</label>
+            <label className="block font-semibold mb-1 text-gray-700">
+              Mode
+            </label>
             <select
               name="mode"
               value={formData.mode}
@@ -273,7 +278,7 @@ const AddBatch = ({ onBatchSaved }) => {
             >
               <option value="Online">Online</option>
               <option value="Offline">Offline</option>
-                   <option value="hybrid">Hybrid</option>
+              <option value="hybrid">Hybrid</option>
             </select>
           </div>
 
@@ -307,18 +312,18 @@ const AddBatch = ({ onBatchSaved }) => {
           </div>
 
           {/* Notes */}
-       <TextAreaField
-  label="Additional Notes"
-  name="additionalNotes"
-  formik={{
-    values: formData,
-    handleChange: handleChange,
-    handleBlur: () => {},
-    touched: {},
-    errors: {},
-  }}
-  rows={4} // optional, default is 4
-/>
+          <TextAreaField
+            label="Additional Notes"
+            name="additionalNotes"
+            formik={{
+              values: formData,
+              handleChange: handleChange,
+              handleBlur: () => {},
+              touched: {},
+              errors: {},
+            }}
+            rows={4} // optional, default is 4
+          />
 
           {/* Submit */}
           <div className="text-center">

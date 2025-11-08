@@ -64,7 +64,7 @@ const Navbar = () => {
           className="h-13 w-auto object-contain"
         />
         <Link className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5ec2f4] via-[#485DAC] to-[#E9577C]">
-          Code Drift's LMS
+          Code Drift's Falcon
         </Link>
       </div>
 

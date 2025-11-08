@@ -1,7 +1,8 @@
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AdminLayout from "./components/layout/AdminLayout.jsx";
 // import CourseForm from "./components/admin/courses/CourseForm.jsx";
 const CourseForm = lazy(() =>
   import("./components/admin/courses/CourseForm.jsx")
@@ -10,14 +11,15 @@ const CourseForm = lazy(() =>
 const CourseTable = lazy(() =>
   import("./components/admin/courses/CourseTable.jsx")
 );
-// import AdminLayout from "./components/layout/AdminLayout.jsx";
-const AdminLayout = lazy(() => import("./components/layout/AdminLayout.jsx"));
-// import Footer from "./components/layout/Footer.jsx";
-const Footer = lazy(() => import("./components/layout/Footer.jsx"));
-// import Navbar from "./components/layout/Navbar.jsx";
-const Navbar = lazy(() => import("./components/layout/Navbar.jsx"));
-// import PrivateRoute from "./components/layout/PrivateRoute.jsx";
-const PrivateRoute = lazy(() => import("./components/layout/PrivateRoute.jsx"));
+// const AdminLayout = lazy(() => import("./components/layout/AdminLayout.jsx"));
+import Footer from "./components/layout/Footer.jsx";
+// const Footer = lazy(() => import("./components/layout/Footer.jsx"));
+import Navbar from "./components/layout/Navbar.jsx";
+import SessionCategoryList from "./components/upSkill_sessions/SessionCategoryList.jsx";
+import { useAuth } from "./contexts/AuthContext.jsx";
+// const Navbar = lazy(() => import("./components/layout/Navbar.jsx"));
+import PrivateRoute from "./components/layout/PrivateRoute.jsx";
+// const PrivateRoute = lazy(() => import("./components/layout/PrivateRoute.jsx"));
 // import ScrollToTop from "./components/layout/ScrollToTop.jsx";
 const ScrollToTop = lazy(() => import("./components/layout/ScrollToTop.jsx"));
 // import VideoPlayerPage from "./components/student-course/VideoPlayerPage.jsx";
@@ -32,11 +34,16 @@ const ManageSessionCategory = lazy(() =>
 const SessionCategoryForm = lazy(() =>
   import("./components/upSkill_sessions/SessionCategoryForm.jsx")
 );
-import { useAuth } from "./contexts/AuthContext.jsx";
-import SessionCategoryList from "./components/upSkill_sessions/SessionCategoryList.jsx";
-import AddMeetingForm from "./components/admin/meeting/AddMeetingForm.jsx";
-import ManageMeeting from "./components/admin/meeting/ManageMeeting.jsx";
-import Attendance from "./components/admin/meeting/Attendance.jsx";
+// import AddMeetingForm from "./components/admin/meeting/AddMeetingForm.jsx";
+const AddMeetingForm = lazy(() => import("./components/admin/meeting/AddMeetingForm.jsx"));
+// import ManageMeeting from "./components/admin/meeting/ManageMeeting.jsx";
+const ManageMeeting = lazy(() => import("./components/admin/meeting/ManageMeeting.jsx"));
+// import Attendance from "./components/admin/meeting/Attendance.jsx";
+const Attendance = lazy(() => import("./components/admin/meeting/Attendance.jsx"));
+// import EnrollStudentForm from "./components/admin/enrollStudent/EnrollStudentForm.jsx";
+const EnrollStudentForm = lazy(() => import("./components/admin/enrollStudent/EnrollStudentForm.jsx"));
+// import EnrolledStudentList from "./components/admin/enrollStudent/EnrolledStudentList.jsx";
+const EnrolledStudentList = lazy(() => import("./components/admin/enrollStudent/EnrolledStudentList.jsx"));
 // import BranchListPage from "./pages/BranchListPage.jsx";
 const BranchListPage = lazy(() => import("./pages/BranchListPage.jsx"));
 // import CourseListPage from "./pages/CourseListPage.jsx";
@@ -45,8 +52,8 @@ const CourseListPage = lazy(() => import("./pages/CourseListPage.jsx"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 // import LoginPage from "./pages/LoginPage.jsx";
 const LoginPage = lazy(() => import("./pages/LoginPage.jsx"));
-// import NotFoundPage from "./pages/NotFoundPage.jsx";
-const NotFoundPage = lazy(() => import("./pages/NotFoundPage.jsx"));
+import NotFoundPage from "./pages/NotFoundPage.jsx";
+// const NotFoundPage = lazy(() => import("./pages/NotFoundPage.jsx"));
 // import ResultDetailPage from "./pages/ResultDetailPage.jsx";
 const ResultDetailPage = lazy(() => import("./pages/ResultDetailPage.jsx"));
 // import VerifyEmailPage from "./pages/VerifyEmailPage";
@@ -302,20 +309,19 @@ function App() {
                     path="book-session"
                     element={<SessionCategoryForm />}
                   />
-                <Route
-  path="/admin/session-category/:slug/:id/list"
-  element={<SessionCategoryList />}
-/>
+                  <Route
+                    path="/admin/session-category/:slug/:id/list"
+                    element={<SessionCategoryList />}
+                  />
                   <Route path="trainer-management" element={<TrainerTable />} />
                   {/* <Route
                     path="session-category/:slug/:id/manage"
                     element={<ManageSessionCategory />}
                   /> */}
-
                   <Route
-  path="session-category/:slug/:id/manage"
-  element={<ManageSessionCategory />}
-/>
+                    path="session-category/:slug/:id/manage"
+                    element={<ManageSessionCategory />}
+                  />
                   <Route
                     path="session-category/:id/manage/event"
                     element={<EventTablePage />}
@@ -350,13 +356,18 @@ function App() {
                     element={<ManageAssignments />}
                   />
                   <Route path="add-meeting" element={<AddMeetingForm />} />
-                   <Route path="manage-meeting" element={<ManageMeeting />} />
-                   <Route path="attendance/:meetingId" element={<Attendance />} />
+                  <Route path="manage-meeting" element={<ManageMeeting />} />
+                  <Route
+                    path="attendance/:meetingId"
+                    element={<Attendance />}
+                  />
                   <Route path="add-notes" element={<AddNotes />} />
                   <Route path="manage-notes" element={<ManageNotes />} />
                   {/* Notes */}
                   {/* <Route path="add-notes" element={<AddNotes />} /> */}
                   <Route path="edit-note/:noteId" element={<AddNotes />} />
+                  <Route path="enroll-student" element={<EnrollStudentForm />} />
+                  <Route path="enrolled-student-list" element={<EnrolledStudentList />} />
                   {/* <Route path="manage-notes" element={<ManageNotes />} /> */}
                 </Route>
               </Route>
