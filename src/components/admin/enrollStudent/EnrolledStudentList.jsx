@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
@@ -91,21 +92,98 @@ const EnrolledStudentList = () => {
       accessor: (row) =>
         new Date(row.enrollment?.enrolledAt).toLocaleString() || "-",
     },
+
     {
       header: "Actions",
       accessor: (row) => (
-        <button
-          onClick={() => {
-            setSelectedEnrollment(row);
-            setModalType("details");
-            setIsModalOpen(true);
-          }}
-          className="text-white hover:underline font-medium bg-blue-500 px-4 py-2 rounded-md"
-        >
-          View
-        </button>
+        <div className="flex gap-2">
+          {/* View Button */}
+          <button
+            onClick={() => {
+              setSelectedEnrollment(row);
+              setModalType("details");
+              setIsModalOpen(true);
+            }}
+            className="text-white font-medium bg-blue-500 px-4 py-2 rounded-md"
+          >
+            View
+          </button>
+
+          {/* Edit Button */}
+          <button
+            onClick={() =>
+              navigate(`/admin/enroll-student/${row.enrollment._id}`)
+            }
+            className="text-white font-medium bg-yellow-500 px-4 py-2 rounded-md"
+          >
+            Edit
+          </button>
+
+          {/* Delete Button */}
+          <button
+            onClick={async () => {
+              const result = await Swal.fire({
+                title: "Are you sure?",
+                text: `Do you want to delete ${row.student?.fullName}'s enrollment?`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Yes, delete it!",
+              });
+
+              if (result.isConfirmed) {
+                try {
+                  setLoading(true);
+                  await apiClient.delete(
+                    `/api/enrollments/${row.enrollment._id}`
+                  );
+                  Swal.fire(
+                    "Deleted!",
+                    "Enrollment has been deleted.",
+                    "success"
+                  );
+
+                  // Refresh enrollments
+                  setEnrollments((prev) =>
+                    prev.filter((e) => e.enrollment._id !== row.enrollment._id)
+                  );
+                } catch (err) {
+                  console.error(err);
+                  Swal.fire(
+                    "Error",
+                    err.response?.data?.message ||
+                      "Failed to delete enrollment.",
+                    "error"
+                  );
+                } finally {
+                  setLoading(false);
+                }
+              }
+            }}
+            className="text-white font-medium bg-red-500 px-4 py-2 rounded-md"
+          >
+            Delete
+          </button>
+        </div>
       ),
     },
+
+    // {
+    //   header: "Actions",
+    //   accessor: (row) => (
+    //     <button
+    //       onClick={() => {
+    //         setSelectedEnrollment(row);
+    //         setModalType("details");
+    //         setIsModalOpen(true);
+    //       }}
+    //       className="text-white hover:underline font-medium bg-blue-500 px-4 py-2 rounded-md"
+    //     >
+    //       View
+    //     </button>
+    //   ),
+    // },
   ];
 
   // ✅ Modal content based on type
@@ -191,7 +269,9 @@ const EnrolledStudentList = () => {
     <div className="flex flex-col max-h-screen bg-white font-sans">
       {/* ✅ Header */}
       <div className="flex justify-between items-center px-8 py-2 bg-white shadow-md z-10">
-        <h2 className="text-2xl font-bold text-gray-700">Manage Enrolled Student</h2>
+        <h2 className="text-2xl font-bold text-gray-700">
+          Manage Enrolled Student
+        </h2>
         <button
           onClick={() => navigate("/admin/enroll-student")}
           className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"

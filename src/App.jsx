@@ -368,6 +368,7 @@ function App() {
                   <Route path="edit-note/:noteId" element={<AddNotes />} />
                   <Route path="enroll-student" element={<EnrollStudentForm />} />
                   <Route path="enrolled-student-list" element={<EnrolledStudentList />} />
+                     <Route path="enroll-student/:enrollmentId" element={<EnrollStudentForm />} />
                   {/* <Route path="manage-notes" element={<ManageNotes />} /> */}
                 </Route>
               </Route>

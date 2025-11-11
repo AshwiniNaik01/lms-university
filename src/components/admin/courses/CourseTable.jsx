@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaClone, FaEdit, FaEye, FaPlus, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
@@ -116,11 +117,56 @@ const CourseTable = () => {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: err.response?.data?.message || "Something went wrong!",
+          text: err.response?.data?.message || "Please Try Again !!",
         });
       }
     }
   };
+
+  // const columns = [
+  //   { header: "Title", accessor: "title" },
+  //   { header: "Duration", accessor: "duration" },
+  //   {
+  //     header: "Actions",
+  //     accessor: (row) => (
+  //       <div className="flex gap-2">
+  //         <button
+  //           onClick={() => handleViewClick(row._id)}
+  //           className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+  //         >
+  //           View
+  //         </button>
+  //         <button
+  //           onClick={() => navigate(`/admin/courses/edit/${row._id}`)}
+  //           className="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
+  //         >
+  //           Edit
+  //         </button>
+  //         <button
+  //           onClick={() => handleDelete(row._id)}
+  //           disabled={deletingId === row._id}
+  //           className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+  //         >
+  //           {deletingId === row._id ? "Deleting..." : "Delete"}
+  //         </button>
+  //         <button
+  //           onClick={() =>
+  //             navigate(`/admin/add-curriculum?type=phase&courseId=${row._id}`)
+  //           }
+  //           className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+  //         >
+  //           Add Curriculum
+  //         </button>
+  //         <button
+  //           onClick={() => handleClone(row._id)}
+  //           className="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+  //         >
+  //           Clone
+  //         </button>
+  //       </div>
+  //     ),
+  //   },
+  // ];
 
   const columns = [
     { header: "Title", accessor: "title" },
@@ -129,38 +175,52 @@ const CourseTable = () => {
       header: "Actions",
       accessor: (row) => (
         <div className="flex gap-2">
+          {/* View */}
           <button
             onClick={() => handleViewClick(row._id)}
-            className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            title="View"
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            View
+            <FaEye size={16} />
           </button>
+
+          {/* Edit */}
           <button
             onClick={() => navigate(`/admin/courses/edit/${row._id}`)}
-            className="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
+            title="Edit"
+            className="p-2 bg-yellow-400 text-white rounded hover:bg-yellow-500"
           >
-            Edit
+            <FaEdit size={16} />
           </button>
+
+          {/* Delete */}
           <button
             onClick={() => handleDelete(row._id)}
             disabled={deletingId === row._id}
-            className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+            title="Delete"
+            className="p-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
           >
-            {deletingId === row._id ? "Deleting..." : "Delete"}
+            <FaTrash size={16} />
           </button>
+
+          {/* Add Curriculum */}
           <button
             onClick={() =>
               navigate(`/admin/add-curriculum?type=phase&courseId=${row._id}`)
             }
-            className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+            title="Add Curriculum"
+            className="p-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
-            Add Curriculum
+            <FaPlus size={16} />
           </button>
+
+          {/* Clone */}
           <button
             onClick={() => handleClone(row._id)}
-            className="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+            title="Clone"
+            className="p-2 bg-purple-600 text-white rounded hover:bg-purple-700"
           >
-            Clone
+            <FaClone size={16} />
           </button>
         </div>
       ),
@@ -174,32 +234,167 @@ const CourseTable = () => {
       <div className="text-center p-4 text-red-600 font-semibold">{error}</div>
     );
 
+  // return (
+  //   <div className="space-y-4">
+  //     <button
+  //       onClick={() => navigate("/admin/add-courses")}
+  //       className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+  //     >
+  //       + Create New Course
+  //     </button>
+
+  //     <ScrollableTable
+  //       columns={columns}
+  //       data={courses}
+  //       maxHeight="600px"
+  //       emptyMessage="No courses found"
+  //     />
+
+  //     {/* Modal */}
+  //     <Modal
+  //       isOpen={isModalOpen}
+  //       onClose={() => setIsModalOpen(false)}
+  //       header={modalCourseData ? modalCourseData.title : "Loading..."}
+  //     >
+  //       {modalLoading ? (
+  //         <p>Loading...</p>
+  //       ) : modalCourseData ? (
+  //         <div className="space-y-4 text-gray-700">
+  //           <p>
+  //             <strong>Description:</strong> {modalCourseData.description}
+  //           </p>
+  //           <p>
+  //             <strong>Overview:</strong> {modalCourseData.overview}
+  //           </p>
+
+  //           <div>
+  //             <strong>Learning Outcomes:</strong>
+  //             <ul className="list-disc ml-5">
+  //               {modalCourseData.learningOutcomes?.map((item, idx) => (
+  //                 <li key={idx}>{item}</li>
+  //               ))}
+  //             </ul>
+  //           </div>
+
+  //           <div>
+  //             <strong>Benefits:</strong>
+  //             <ul className="list-disc ml-5">
+  //               {modalCourseData.benefits?.map((item, idx) => (
+  //                 <li key={idx}>{item}</li>
+  //               ))}
+  //             </ul>
+  //           </div>
+
+  //           <div>
+  //             <strong>Key Features:</strong>
+  //             <ul className="list-disc ml-5">
+  //               {modalCourseData.keyFeatures?.map((feature) => (
+  //                 <li key={feature._id}>
+  //                   <strong>{feature.title}:</strong> {feature.description}
+  //                   {feature.subPoints?.length > 0 && (
+  //                     <ul className="list-decimal ml-5">
+  //                       {feature.subPoints.map((sub, i) => (
+  //                         <li key={i}>{sub}</li>
+  //                       ))}
+  //                     </ul>
+  //                   )}
+  //                 </li>
+  //               ))}
+  //             </ul>
+  //           </div>
+
+  //           {modalCourseData.trainer?.length > 0 && (
+  //             <div>
+  //               <strong>Trainer Info:</strong>
+  //               {modalCourseData.trainer.map((t) => (
+  //                 <div key={t._id} className="border p-2 rounded mb-2">
+  //                   <p>
+  //                     <strong>Name:</strong> {t.fullName}
+  //                   </p>
+  //                   <p>
+  //                     <strong>Title:</strong> {t.title}
+  //                   </p>
+  //                   <p>
+  //                     <strong>Qualification:</strong> {t.highestQualification}
+  //                   </p>
+  //                   <p>
+  //                     <strong>College:</strong> {t.collegeName}
+  //                   </p>
+  //                   <p>
+  //                     <strong>Total Experience:</strong> {t.totalExperience}
+  //                   </p>
+  //                   <p>
+  //                     <strong>Available Timing:</strong> {t.availableTiming}
+  //                   </p>
+  //                   <p>
+  //                     <strong>LinkedIn:</strong>{" "}
+  //                     <a
+  //                       href={t.linkedinProfile?.trim()}
+  //                       target="_blank"
+  //                       className="text-blue-600 underline"
+  //                     >
+  //                       {t.linkedinProfile?.trim()}
+  //                     </a>
+  //                   </p>
+  //                 </div>
+  //               ))}
+  //             </div>
+  //           )}
+
+  //           <p>
+  //             <strong>Rating:</strong> {modalCourseData.rating}
+  //           </p>
+  //           <p>
+  //             <strong>Enrolled Count:</strong> {modalCourseData.enrolledCount}
+  //           </p>
+  //           <p>
+  //             <strong>Status:</strong>{" "}
+  //             {modalCourseData.isActive ? "Active" : "Inactive"}
+  //           </p>
+  //         </div>
+  //       ) : (
+  //         <p>No data found.</p>
+  //       )}
+  //     </Modal>
+  //   </div>
+  // );
+
   return (
-    <div className="space-y-4">
-      <button
-        onClick={() => navigate("/admin/add-courses")}
-        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-      >
-        + Create New Course
-      </button>
+    <div className="space-y-6">
+      {/* ✅ Header Section */}
+      <div className="flex justify-between items-center bg-white shadow-md px-6 py-4 rounded-md">
+        <h2 className="text-2xl font-bold text-gray-700 tracking-wide">
+          Manage Courses
+        </h2>
+        <button
+          onClick={() => navigate("/admin/add-courses")}
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-all duration-200"
+        >
+          + Create New Course
+        </button>
+      </div>
 
-      <ScrollableTable
-        columns={columns}
-        data={courses}
-        maxHeight="600px"
-        emptyMessage="No courses found"
-      />
+      {/* ✅ Table Section */}
+      <div className="bg-white shadow-sm rounded-md p-4">
+        <ScrollableTable
+          columns={columns}
+          data={courses}
+          maxHeight="600px"
+          emptyMessage="No courses found"
+        />
+      </div>
 
-      {/* Modal */}
+      {/* ✅ Modal for Course Details */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         header={modalCourseData ? modalCourseData.title : "Loading..."}
       >
         {modalLoading ? (
-          <p>Loading...</p>
+          <p className="text-gray-500 text-center py-6">Loading...</p>
         ) : modalCourseData ? (
           <div className="space-y-4 text-gray-700">
+            {/* Description & Overview */}
             <p>
               <strong>Description:</strong> {modalCourseData.description}
             </p>
@@ -207,47 +402,60 @@ const CourseTable = () => {
               <strong>Overview:</strong> {modalCourseData.overview}
             </p>
 
-            <div>
-              <strong>Learning Outcomes:</strong>
-              <ul className="list-disc ml-5">
-                {modalCourseData.learningOutcomes?.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                ))}
-              </ul>
-            </div>
+            {/* Learning Outcomes */}
+            {modalCourseData.learningOutcomes?.length > 0 && (
+              <div>
+                <strong>Learning Outcomes:</strong>
+                <ul className="list-disc ml-5 space-y-1">
+                  {modalCourseData.learningOutcomes.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            <div>
-              <strong>Benefits:</strong>
-              <ul className="list-disc ml-5">
-                {modalCourseData.benefits?.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                ))}
-              </ul>
-            </div>
+            {/* Benefits */}
+            {modalCourseData.benefits?.length > 0 && (
+              <div>
+                <strong>Benefits:</strong>
+                <ul className="list-disc ml-5 space-y-1">
+                  {modalCourseData.benefits.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            <div>
-              <strong>Key Features:</strong>
-              <ul className="list-disc ml-5">
-                {modalCourseData.keyFeatures?.map((feature) => (
-                  <li key={feature._id}>
-                    <strong>{feature.title}:</strong> {feature.description}
-                    {feature.subPoints?.length > 0 && (
-                      <ul className="list-decimal ml-5">
-                        {feature.subPoints.map((sub, i) => (
-                          <li key={i}>{sub}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* Key Features */}
+            {modalCourseData.keyFeatures?.length > 0 && (
+              <div>
+                <strong>Key Features:</strong>
+                <ul className="list-disc ml-5 space-y-2">
+                  {modalCourseData.keyFeatures.map((feature) => (
+                    <li key={feature._id}>
+                      <strong>{feature.title}:</strong> {feature.description}
+                      {feature.subPoints?.length > 0 && (
+                        <ul className="list-decimal ml-5 mt-1">
+                          {feature.subPoints.map((sub, i) => (
+                            <li key={i}>{sub}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
+            {/* Trainer Info */}
             {modalCourseData.trainer?.length > 0 && (
               <div>
                 <strong>Trainer Info:</strong>
                 {modalCourseData.trainer.map((t) => (
-                  <div key={t._id} className="border p-2 rounded mb-2">
+                  <div
+                    key={t._id}
+                    className="border border-gray-200 p-3 rounded-md mb-3"
+                  >
                     <p>
                       <strong>Name:</strong> {t.fullName}
                     </p>
@@ -271,6 +479,7 @@ const CourseTable = () => {
                       <a
                         href={t.linkedinProfile?.trim()}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="text-blue-600 underline"
                       >
                         {t.linkedinProfile?.trim()}
@@ -281,6 +490,7 @@ const CourseTable = () => {
               </div>
             )}
 
+            {/* Ratings and Status */}
             <p>
               <strong>Rating:</strong> {modalCourseData.rating}
             </p>
@@ -293,7 +503,7 @@ const CourseTable = () => {
             </p>
           </div>
         ) : (
-          <p>No data found.</p>
+          <p className="text-gray-500 text-center py-6">No data found.</p>
         )}
       </Modal>
     </div>

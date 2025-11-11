@@ -1,5 +1,6 @@
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
@@ -8,11 +9,13 @@ import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 
 const EnrollStudentForm = () => {
+  const { enrollmentId } = useParams(); // optional ID for edit
   const [courses, setCourses] = useState([]);
   const [filteredBatches, setFilteredBatches] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // initialize navigate
 
-  // ✅ Fetch Courses
+  // Fetch Courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -25,7 +28,7 @@ const EnrollStudentForm = () => {
     fetchCourses();
   }, []);
 
-  // ✅ Formik Setup
+  // Formik Setup
   const formik = useFormik({
     initialValues: {
       fullName: "",
@@ -40,25 +43,31 @@ const EnrollStudentForm = () => {
         .matches(/^[0-9]{10}$/, "Enter a valid 10-digit number")
         .required("Mobile number is required"),
       email: Yup.string().email("Invalid email").required("Email is required"),
-    //   coursesInterested: Yup.array().min(1, "Select at least one course"),
-    //   enrolledBatches: Yup.array().min(1, "Select at least one batch"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
         setLoading(true);
-        const res = await apiClient.post(
-          `/api/enrollments/admin/enroll`,
-          values
-        );
+        let res;
+
+        if (enrollmentId) {
+          // Update existing enrollment
+          res = await apiClient.put(`/api/enrollments/${enrollmentId}`, values);
+        } else {
+          // Create new enrollment
+          res = await apiClient.post(`/api/enrollments/admin/enroll`, values);
+        }
 
         if (res.data.success) {
-          Swal.fire("✅ Success", res.data.message, "success");
+          Swal.fire("✅ Success", res.data.message, "success").then(() => {
+            // Navigate after user clicks OK
+            navigate("/admin/enrolled-student-list");
+          });
           resetForm();
           setFilteredBatches([]);
         } else {
           Swal.fire(
             "⚠️ Warning",
-            res.data.message || "Failed to enroll",
+            res.data.message || "Operation failed",
             "warning"
           );
         }
@@ -75,7 +84,57 @@ const EnrollStudentForm = () => {
     },
   });
 
-  // ✅ Filter batches based on selected courses
+  // Prefill data if editing
+  useEffect(() => {
+    if (!enrollmentId) return;
+
+    const fetchEnrollment = async () => {
+      setLoading(true);
+      try {
+        const res = await apiClient.get(`/api/enrollments/${enrollmentId}`);
+        if (res.data.success && res.data.data) {
+          const enrollment = res.data.data;
+
+          // Prefill form values
+          formik.setValues({
+            fullName: enrollment.fullName || "",
+            mobileNo: enrollment.mobileNo || "",
+            email: enrollment.email || "",
+            coursesInterested:
+              enrollment.enrolledCourses?.map((c) => c._id) || [],
+            enrolledBatches:
+              enrollment.enrolledBatches?.map((b) => b._id) || [],
+          });
+
+          // Populate filteredBatches based on enrolled courses
+          const batchList =
+            enrollment.enrolledCourses?.flatMap(
+              (course) => course.batches || []
+            ) || [];
+          setFilteredBatches(batchList);
+        } else {
+          Swal.fire(
+            "⚠️ Warning",
+            res.data.message || "Enrollment not found",
+            "warning"
+          );
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire(
+          "⚠️ Error",
+          err.response?.data?.message || "Failed to fetch enrollment",
+          "error"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnrollment();
+  }, [enrollmentId]);
+
+  // Filter batches when courses change
   useEffect(() => {
     const selectedCourses = formik.values.coursesInterested;
     if (selectedCourses.length > 0) {
@@ -95,29 +154,20 @@ const EnrollStudentForm = () => {
         onSubmit={formik.handleSubmit}
         className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-10 overflow-hidden border-4 border-[rgba(14,85,200,0.83)]"
       >
-        {/* Header */}
         <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center">
-          Enroll Student
+          {enrollmentId ? "Update Enrollment" : "Enroll Student"}
         </h2>
 
-        {/* Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Full Name */}
           <InputField label="Full Name" name="fullName" formik={formik} />
-
-          {/* Mobile */}
           <InputField
             label="Mobile Number"
             name="mobileNo"
             type="tel"
             formik={formik}
           />
-
-          {/* Email */}
           <InputField label="Email" name="email" type="email" formik={formik} />
 
-          {/* Courses Dropdown */}
-          {/* <div className="md:col-span-2"> */}
           <MultiSelectDropdown
             label="Courses Interested"
             name="coursesInterested"
@@ -126,10 +176,7 @@ const EnrollStudentForm = () => {
             getOptionValue={(option) => option._id}
             getOptionLabel={(option) => option.title}
           />
-          {/* </div> */}
 
-          {/* Batches Dropdown (Dynamic) */}
-          {/* <div className="md:col-span-2"> */}
           <MultiSelectDropdown
             label="Select Batches"
             name="enrolledBatches"
@@ -140,10 +187,8 @@ const EnrollStudentForm = () => {
               `${batch.batchName} (${batch.mode} - ${batch.status})`
             }
           />
-          {/* </div> */}
         </div>
 
-        {/* Submit Button */}
         <div className="text-center pt-4">
           <button
             type="submit"
@@ -154,7 +199,13 @@ const EnrollStudentForm = () => {
                 : "bg-[rgba(14,85,200,0.83)] hover:bg-[rgba(14,85,200,1)]"
             }`}
           >
-            {loading ? "Enrolling..." : "Enroll Student"}
+            {loading
+              ? enrollmentId
+                ? "Updating..."
+                : "Enrolling..."
+              : enrollmentId
+              ? "Update Enrollment"
+              : "Enroll Student"}
           </button>
         </div>
       </form>

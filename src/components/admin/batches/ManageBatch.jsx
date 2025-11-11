@@ -3,6 +3,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
+import {
+  fetchActiveBatchById,
+  fetchAllBatches,
+  fetchBatchesByCourseId,
+} from "../../../api/batch";
+import { getAllCourses } from "../../../api/courses";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
 
@@ -16,40 +22,35 @@ const ManageBatch = () => {
   const navigate = useNavigate();
 
   // -------------------- Fetch All Batches --------------------
-
   const fetchBatches = async () => {
     try {
-      const res = await apiClient.get("/api/batches/all");
-      const data = res.data.data || [];
+      const data = await fetchAllBatches();
       setBatches(data);
       setNoBatchesMessage(data.length === 0 ? "No batches available" : "");
     } catch (err) {
-      console.error("Error fetching batches:", err);
-      const errorMessage =
-        err.response?.data?.message || "Failed to fetch batches";
-      setNoBatchesMessage(errorMessage);
-
+      setNoBatchesMessage(err.message);
       Swal.fire({
         icon: "error",
         title: "Failed to Fetch Batches",
-        text: errorMessage,
+        text: err.message,
         confirmButtonColor: "#3085d6",
       });
     }
   };
 
   // -------------------- Fetch Batches by Course ID --------------------
-
-  const fetchBatchesByCourseId = async (courseId) => {
+  const loadBatchesByCourse = async (courseId) => {
     try {
       if (courseId === "all") {
-        fetchBatches();
+        const data = await fetchAllBatches();
+        setBatches(data);
+        setNoBatchesMessage(data.length === 0 ? "No batches available" : "");
         return;
       }
 
-      const res = await apiClient.get(`/api/batches/course/${courseId}`);
-      if (res.data && res.data.success && res.data.data?.length > 0) {
-        setBatches(res.data.data);
+      const data = await fetchBatchesByCourseId(courseId);
+      if (data.length > 0) {
+        setBatches(data);
         setNoBatchesMessage("");
       } else {
         setBatches([]);
@@ -62,30 +63,22 @@ const ManageBatch = () => {
         });
       }
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        "Failed to fetch batches for this course";
-
-      if (err.response?.status === 404) {
-        setBatches([]);
-        setNoBatchesMessage("No batches found for this course");
-      }
-
+      setBatches([]);
+      setNoBatchesMessage(err.message);
       Swal.fire({
         icon: "error",
         title: "Error Fetching Course Batches",
-        text: errorMessage,
+        text: err.message,
         confirmButtonColor: "#d33",
       });
     }
   };
 
-  // -------------------- Fetch All Courses --------------------
-
-  const getAllCourses = async () => {
+  // -------------------- Fetch Courses --------------------
+  const loadCourses = async () => {
     try {
-      const res = await apiClient.get("/api/courses/all");
-      setCourses(res.data.data || []);
+      const coursesData = await getAllCourses(); // call API
+      setCourses(coursesData || []); // set state in main page
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || "Failed to fetch courses";
@@ -141,10 +134,7 @@ const ManageBatch = () => {
   // -------------------- Handle View --------------------
   const handleView = async (batchId) => {
     try {
-      const res = await apiClient.get(`/api/batches/batches/${batchId}`);
-      const batch = Array.isArray(res.data.data)
-        ? res.data.data[0]
-        : res.data.data;
+      const batch = await fetchActiveBatchById(batchId);
       setSelectedBatch(batch);
       setIsModalOpen(true);
     } catch (err) {
@@ -167,13 +157,13 @@ const ManageBatch = () => {
   const handleCourseFilterChange = (e) => {
     const courseId = e.target.value;
     setSelectedCourseId(courseId);
-    fetchBatchesByCourseId(courseId);
+    loadBatchesByCourse(courseId);
   };
 
   // -------------------- Fetch on Mount --------------------
   useEffect(() => {
     fetchBatches();
-    getAllCourses();
+    loadCourses();
   }, []);
 
   // -------------------- Table Columns --------------------
