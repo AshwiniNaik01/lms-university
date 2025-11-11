@@ -1,6 +1,6 @@
-
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
 import { getAllCourses } from "../../../api/courses";
 import { fetchAllTrainers } from "../../../pages/admin/trainer-management/trainerApi";
@@ -10,7 +10,6 @@ import TextAreaField from "../../form/TextAreaField";
 
 const AddMeetingForm = () => {
   const [loading, setLoading] = useState(false);
-  const [responseMessage, setResponseMessage] = useState("");
   const [courses, setCourses] = useState([]);
   const [trainers, setTrainers] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -54,22 +53,37 @@ const AddMeetingForm = () => {
     },
     onSubmit: async (values) => {
       setLoading(true);
-      setResponseMessage("");
       const submitValues = { ...values };
+
       if (values.platform === "Other") {
         submitValues.platform = customPlatform;
       }
 
       try {
         const res = await apiClient.post("/api/meetings", submitValues);
-        if (res.status === 201) {
-          setResponseMessage(res.data.success || "Meeting created successfully!");
+
+        if (res.data.success) {
+          // Success Swal
+          Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: res.data.message || "Meeting created successfully!",
+            confirmButtonText: "OK",
+          });
+
           formik.resetForm();
           setCustomPlatform("");
         }
       } catch (err) {
         console.error("Error creating meeting:", err);
-        setResponseMessage(err.response?.data?.message || "Failed to create meeting.");
+
+        // Error Swal
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: err.response?.data?.message || "Failed to create meeting.",
+          confirmButtonText: "OK",
+        });
       } finally {
         setLoading(false);
       }
@@ -94,7 +108,7 @@ const AddMeetingForm = () => {
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700">Platform</label>
             <select
-              value={["Zoom", "Google Meet"].includes(formik.values.platform) ? formik.values.platform : "Other"}
+              value={["Zoom", "Google Meet", "Teams"].includes(formik.values.platform) ? formik.values.platform : "Other"}
               onChange={(e) => {
                 const value = e.target.value;
                 formik.setFieldValue("platform", value);
@@ -185,11 +199,6 @@ const AddMeetingForm = () => {
             {loading ? "Adding..." : "Add Meeting"}
           </button>
         </div>
-
-        {/* Response Message */}
-        {/* {responseMessage && (
-          <p className="mt-4 text-green-600 font-medium text-center">{responseMessage}</p>
-        )} */}
       </form>
     </FormikProvider>
   );

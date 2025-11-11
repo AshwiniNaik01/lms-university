@@ -41,7 +41,7 @@ const dashboardCards = [
   {
     title: "Enrollment Overview",
     desc: "View all student enrollments.",
-    link: "/admin/enrollments",
+    link: "/admin/enrolled-student-list",
     icon: <FaClipboardList />,
     iconBg: "bg-yellow-100 text-yellow-600",
   },

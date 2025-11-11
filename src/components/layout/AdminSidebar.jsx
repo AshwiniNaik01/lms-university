@@ -107,6 +107,18 @@ const menuItems = [
           { label: "Manage Study Material", icon: <FaLayerGroup />, path: "/admin/manage-notes" },
         ],
       },
+       {
+        label: "Enroll Student",
+        icon: <FaTasks />, 
+        children: [
+          { label: "Enroll Student", icon: <FaRegFileAlt />, path: "/admin/enroll-student" },
+          {
+            label: "Enrolled Student List",
+            icon: <FaLayerGroup />,
+            path: "/admin/enrolled-student-list",
+          },
+        ],
+      },
         {
         label: "Meeting Management",
         icon: <FaVideo />,
@@ -117,11 +129,11 @@ const menuItems = [
       },
     ],
   },
-  {
-    label: "Enrollment Overview",
-    path: "/admin/enrollments",
-    icon: <FaClipboardList />, 
-  },
+  // {
+  //   label: "Enrollment Overview",
+  //   path: "/admin/enrollments",
+  //   icon: <FaClipboardList />, 
+  // },
   {
     label: "Trainer Management",
     path: "/admin/trainer-management",
