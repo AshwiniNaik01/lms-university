@@ -47,6 +47,7 @@ const EnrolledStudentList = () => {
     //   header: "Program",
     //   accessor: (row) => row.student?.selectedProgram || "-",
     // },
+
     {
       header: "Courses",
       accessor: (row) => {
@@ -55,9 +56,12 @@ const EnrolledStudentList = () => {
           <button
             className="text-blue-600 font-medium hover:underline"
             onClick={() => {
-              setSelectedEnrollment(row);
-              setModalType("courses");
-              setIsModalOpen(true);
+              // Navigate to course details page
+              navigate(`/admin/enrollments/${row.enrollment._id}/courses`, {
+                state: {
+                  enrolledCourses: row.enrollment?.enrolledCourses || [],
+                },
+              });
             }}
           >
             {count} {count === 1 ? "Course" : "Courses"}
@@ -67,26 +71,27 @@ const EnrolledStudentList = () => {
         );
       },
     },
-    {
-      header: "Batches",
-      accessor: (row) => {
-        const count = row.enrollment?.enrolledBatches?.length || 0;
-        return count > 0 ? (
-          <button
-            className="text-green-600 font-medium hover:underline"
-            onClick={() => {
-              setSelectedEnrollment(row);
-              setModalType("batches");
-              setIsModalOpen(true);
-            }}
-          >
-            {count} {count === 1 ? "Batch" : "Batches"}
-          </button>
-        ) : (
-          "—"
-        );
-      },
-    },
+    // {
+    //   header: "Courses",
+    //   accessor: (row) => {
+    //     const count = row.enrollment?.enrolledCourses?.length || 0;
+    //     return count > 0 ? (
+    //       <button
+    //         className="text-blue-600 font-medium hover:underline"
+    //         onClick={() => {
+    //           setSelectedEnrollment(row);
+    //           setModalType("courses");
+    //           setIsModalOpen(true);
+    //         }}
+    //       >
+    //         {count} {count === 1 ? "Course" : "Courses"}
+    //       </button>
+    //     ) : (
+    //       "—"
+    //     );
+    //   },
+    // },
+
     {
       header: "Enrolled At",
       accessor: (row) =>
@@ -98,12 +103,19 @@ const EnrolledStudentList = () => {
       accessor: (row) => (
         <div className="flex gap-2">
           {/* View Button */}
-          <button
+          {/* <button
             onClick={() => {
               setSelectedEnrollment(row);
               setModalType("details");
               setIsModalOpen(true);
             }}
+            className="text-white font-medium bg-blue-500 px-4 py-2 rounded-md"
+          >
+            View
+          </button> */}
+
+          <button
+            onClick={() => navigate(`/admin/enrollments/${row.enrollment._id}`)}
             className="text-white font-medium bg-blue-500 px-4 py-2 rounded-md"
           >
             View
@@ -213,28 +225,29 @@ const EnrolledStudentList = () => {
       );
     }
 
-    if (modalType === "batches") {
-      return (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-green-700">
-            Enrolled Batches
-          </h3>
-          {enrollment.enrolledBatches?.length > 0 ? (
-            <ul className="list-disc pl-5 space-y-1 text-gray-700">
-              {enrollment.enrolledBatches.map((b, i) => (
-                <li key={i} className="font-medium">
-                  {b.batchName}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500">No batches assigned.</p>
-          )}
-        </div>
-      );
-    }
+    // if (modalType === "batches") {
+    //   return (
+    //     <div className="space-y-3">
+    //       <h3 className="text-lg font-semibold text-green-700">
+    //         Enrolled Batches
+    //       </h3>
+    //       {enrollment.enrolledBatches?.length > 0 ? (
+    //         <ul className="list-disc pl-5 space-y-1 text-gray-700">
+    //           {enrollment.enrolledBatches.map((b, i) => (
+    //             <li key={i} className="font-medium">
+    //               {b.batchName}
+    //             </li>
+    //           ))}
+    //         </ul>
+    //       ) : (
+    //         <p className="text-gray-500">No batches assigned.</p>
+    //       )}
+    //     </div>
+    //   );
+    // }
 
     // Default: Full details
+
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -299,7 +312,7 @@ const EnrolledStudentList = () => {
       </div>
 
       {/* ✅ Modal */}
-      <Modal
+      {/* <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         header={
@@ -307,6 +320,18 @@ const EnrolledStudentList = () => {
             ? "Courses Enrolled"
             : modalType === "batches"
             ? "Assigned Batches"
+            : selectedEnrollment?.student?.fullName || "Enrollment Details"
+        }
+      >
+        {renderModalContent()}
+      </Modal> */}
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        header={
+          modalType === "courses"
+            ? "Courses Enrolled"
             : selectedEnrollment?.student?.fullName || "Enrollment Details"
         }
       >

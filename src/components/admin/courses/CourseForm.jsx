@@ -3,9 +3,17 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
-import apiClient from "../../../api/axiosConfig.js";
+import {
+  createCourse,
+  fetchCourseById,
+  updateCourse,
+} from "../../../api/courses.js";
 import { useAuth } from "../../../contexts/AuthContext.jsx";
-import { fetchAllTrainers } from "../../../pages/admin/trainer-management/trainerApi.js";
+import Dropdown from "../../form/Dropdown.jsx";
+import DynamicInputFields from "../../form/DynamicInputFields.jsx";
+import InputField from "../../form/InputField.jsx";
+import TextAreaField from "../../form/TextAreaField.jsx";
+import ToggleSwitch from "../../form/ToggleSwitch.jsx";
 
 const CourseForm = () => {
   const [editCourseData, setEditCourseData] = useState(null);
@@ -40,25 +48,8 @@ const CourseForm = () => {
       },
     ],
     fees: "", // 🟢 Added fees field
-
     durationValue: "", // number part
     durationUnit: "days", // default unit
-    // instructor: "",
-    //    features: {
-
-    //   certificate: false,
-
-    //   codingExercises: false,
-
-    //   recordedLectures: false,
-
-    // },
-
-    // fees: "",
-
-    // trainer: [], // store trainer IDs
-
-    // isActive: true,
   };
 
   const getInitialValues = () => {
@@ -108,7 +99,6 @@ const CourseForm = () => {
   const CourseSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     description: Yup.string().required("Description is required"),
-    // duration: Yup.string().required("Duration is required"),
     rating: Yup.number().min(0).max(5).required("Rating is required"),
     enrolledCount: Yup.number().min(0).required("Enrolled count is required"),
     overview: Yup.string().required("Overview is required"),
@@ -127,23 +117,8 @@ const CourseForm = () => {
       })
     ),
     isActive: Yup.boolean(),
-    instructor: Yup.string(),
-    // fees: Yup.string().required("Fees are required"),
-    // trainer: Yup.array().min(1, "Please select at least one trainer"),
+    // instructor: Yup.string(),
   });
-
-  // 🟢 Fetch Trainers
-  useEffect(() => {
-    const getTrainers = async () => {
-      try {
-        const data = await fetchAllTrainers();
-        setTrainers(data);
-      } catch (err) {
-        console.error("Failed to fetch trainers:", err);
-      }
-    };
-    getTrainers();
-  }, []);
 
   // 🟢 Fetch course if editing
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -159,41 +134,37 @@ const CourseForm = () => {
       };
 
       if (id && editCourseData) {
-        await apiClient.put(`/api/courses/${id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Use updateCourse API
+        await updateCourse(id, payload);
+
         Swal.fire({
           icon: "success",
           title: "Updated!",
           text: "Course updated successfully!",
         });
-        // setSuccess("Course updated successfully!");
       } else {
-        await apiClient.post("/api/courses", payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Use createCourse API
+        await createCourse(payload);
 
         Swal.fire({
           icon: "success",
           title: "Created!",
           text: "Course created successfully!",
         });
-        // setSuccess("Course created successfully!");
       }
 
       resetForm();
       navigate("/admin/manage-courses");
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "Operation failed."
-      );
+      const errorMsg =
+        err?.message || err?.response?.data?.message || "Operation failed.";
 
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: err.response?.data?.message || err.message || "Operation failed.",
+        text: errorMsg,
       });
-      // setError(err.response?.data?.message || err.message || "Operation failed.");
+      console.error("Error submitting course:", err);
     }
 
     setIsLoading(false);
@@ -203,33 +174,25 @@ const CourseForm = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       if (!id) return;
+
       try {
-        const res = await apiClient.get(`/api/courses/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setEditCourseData(res.data.data);
+        const courseData = await fetchCourseById(id); // use the API helper
+        setEditCourseData(courseData);
       } catch (err) {
         setError("Failed to load course for editing.");
-        console.error(err);
+        console.error("Error fetching course:", err);
       }
     };
 
     fetchCourse();
-  }, [id, token]);
+  }, [id]);
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-white shadow-xl rounded-xl border-2 border-blue-700 border-opacity-80">
       <div className="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
         <h2 className="text-2xl font-bold text-gray-900">
-          {id ? "Edit Course" : "Create New Course"}
+          {id ? "Edit Training Program" : "Create New Training Program"}
         </h2>
-        {/* <button
-        type="button"
-        onClick={() => navigate("/admin/courses")}
-        className="px-5 py-2 bg-gray-400 text-white font-medium rounded-lg hover:bg-gray-500 transition"
-      >
-        Cancel
-      </button> */}
       </div>
 
       {error && (
@@ -250,7 +213,9 @@ const CourseForm = () => {
         validationSchema={CourseSchema}
         onSubmit={handleSubmit}
       >
-        {({ values, isSubmitting }) => (
+        {(
+          formik // ✅ Added formik parameter here
+        ) => (
           <Form className="space-y-10">
             {/* BASIC INFO */}
             <section className="space-y-6 bg-blue-50 p-6 rounded-lg">
@@ -259,94 +224,47 @@ const CourseForm = () => {
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Title <span className="text-red-500">*</span>
-                  </label>
-                  <Field
-                    name="title"
-                    className="block w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                  />
-                  <ErrorMessage
-                    name="title"
-                    component="div"
-                    className="text-xs text-red-500 mt-1"
-                  />
-                </div>
-
-                {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Duration <span className="text-red-500">*</span>
-                </label>
-                <Field
-                  name="duration"
-                  className="block w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                {/* Option 1: Use InputField component with formik prop */}
+                <InputField
+                  label="Title  "
+                  name="title"
+                  formik={formik} // ✅ Now formik is defined
                 />
-                <ErrorMessage
-                  name="duration"
-                  component="div"
-                  className="text-xs text-red-500 mt-1"
-                />
-              </div> */}
 
                 <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Duration Value <span className="text-red-500">*</span>
-                    </label>
-                    <Field
-                      type="number"
-                      name="durationValue"
-                      className="block w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                      min={1}
-                    />
-                    <ErrorMessage
-                      name="durationValue"
-                      component="div"
-                      className="text-xs text-red-500 mt-1"
-                    />
-                  </div>
+                  {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+                  {/* Duration Value */}
+                  <InputField
+                    label="Duration Value  "
+                    name="durationValue"
+                    type="number"
+                    formik={formik} // ✅ Now formik is defined
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Duration Unit <span className="text-red-500">*</span>
-                    </label>
-                    <Field
-                      as="select"
-                      name="durationUnit"
-                      className="block w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                    >
-                      <option value="days">Days</option>
-                      <option value="months">Months</option>
-                      <option value="years">Years</option>
-                    </Field>
-                    <ErrorMessage
-                      name="durationUnit"
-                      component="div"
-                      className="text-xs text-red-500 mt-1"
-                    />
-                  </div>
+                  {/* Duration Unit */}
+                  <Dropdown
+                    label="Duration Unit  "
+                    name="durationUnit"
+                    options={[
+                      { _id: "days", title: "Days" },
+                      { _id: "months", title: "Months" },
+                      { _id: "years", title: "Years" },
+                    ]}
+                    formik={formik}
+                  />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <Field
-                  as="textarea"
-                  name="description"
-                  rows="4"
-                  className="w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-                />
-                <ErrorMessage
-                  name="description"
-                  component="div"
-                  className="text-xs text-red-500 mt-1"
-                />
+                {/* </div> */}
               </div>
+              <TextAreaField
+                label="Description"
+                name="description"
+                rows={4}
+                formik={formik}
+              />
             </section>
 
+            {/* Rest of your form sections remain the same */}
             {/* DETAILS */}
             <section className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
@@ -354,82 +272,53 @@ const CourseForm = () => {
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Rating <span className="text-red-500">*</span>
-                  </label>
-                  <Field
-                    type="number"
-                    name="rating"
-                    className="w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300"
-                  />
-                  <ErrorMessage
-                    name="rating"
-                    component="div"
-                    className="text-xs text-red-500 mt-1"
-                  />
-                </div>
+                {/* Rating */}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Enrolled Count <span className="text-red-500">*</span>
-                  </label>
-                  <Field
-                    type="number"
-                    name="enrolledCount"
-                    className="w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300"
-                  />
-                  <ErrorMessage
-                    name="enrolledCount"
-                    component="div"
-                    className="text-xs text-red-500 mt-1"
-                  />
-                </div>
+                <InputField
+                  label="Rating  "
+                  name="rating"
+                  type="number"
+                  formik={formik} // ✅ Now formik is defined
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fees ($) <span className="text-red-500">*</span>
-                  </label>
-                  <Field
-                    type="number"
-                    name="fees"
-                    className="w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300"
-                  />
-                  <ErrorMessage
-                    name="fees"
-                    component="div"
-                    className="text-xs text-red-500 mt-1"
-                  />
-                </div>
+                {/* Enrolled Count */}
+                <InputField
+                  label="Enrolled Count  "
+                  name="enrolledCount"
+                  type="number"
+                  formik={formik} // ✅ Now formik is defined
+                />
 
-                <div className="flex items-center mt-6">
-                  <Field
-                    type="checkbox"
-                    name="isActive"
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 font-medium">
-                    Is Course Active
-                  </span>
+                {/* Fees */}
+                <InputField
+                  label="Fees ($)  "
+                  name="fees"
+                  type="number"
+                  formik={formik}
+                />
+
+                <div className="mt-6">
+                  <Field name="isActive">
+                    {({ field, form }) => (
+                      <ToggleSwitch
+                        label="Is Course Active"
+                        name={field.name}
+                        checked={field.value}
+                        onChange={() =>
+                          form.setFieldValue(field.name, !field.value)
+                        }
+                      />
+                    )}
+                  </Field>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Overview <span className="text-red-500">*</span>
-                </label>
-                <Field
-                  as="textarea"
-                  name="overview"
-                  rows="4"
-                  className="w-full px-3 py-2 border border-blue-400 rounded-md focus:ring-2 focus:ring-blue-300"
-                />
-                <ErrorMessage
-                  name="overview"
-                  component="div"
-                  className="text-xs text-red-500 mt-1"
-                />
-              </div>
+              <TextAreaField
+                label="Overview"
+                name="overview"
+                rows={4}
+                formik={formik}
+              />
             </section>
 
             {/* LEARNING OUTCOMES */}
@@ -437,94 +326,68 @@ const CourseForm = () => {
               <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
                 Learning Outcomes
               </h3>
-              <FieldArray name="learningOutcomes">
-                {({ push, remove }) => (
-                  <div className="space-y-2">
-                    {values.learningOutcomes.map((_, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Field
-                          name={`learningOutcomes[${idx}]`}
-                          className="flex-1 px-3 py-2 border border-blue-400 rounded-md"
-                        />
-                        <button
-                          type="button"
-                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                          onClick={() => remove(idx)}
-                          disabled={values.learningOutcomes.length === 1}
-                        >
-                          -
-                        </button>
-                        {idx === values.learningOutcomes.length - 1 && (
-                          <button
-                            type="button"
-                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                            onClick={() => push("")}
-                          >
-                            +
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </FieldArray>
+
+              <DynamicInputFields
+                formik={formik}
+                name="learningOutcomes"
+                label="Learning Outcomes"
+              />
             </section>
 
             {/* BENEFITS */}
-            <section className="space-y-6">
+            <section className="space-y-6 bg-blue-50 p-6 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
                 Benefits
               </h3>
-              <FieldArray name="benefits">
-                {({ push, remove }) => (
-                  <div className="space-y-2">
-                    {values.benefits.map((_, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Field
-                          name={`benefits[${idx}]`}
-                          className="flex-1 px-3 py-2 border border-blue-400 rounded-md"
-                        />
-                        <button
-                          type="button"
-                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                          onClick={() => remove(idx)}
-                          disabled={values.benefits.length === 1}
-                        >
-                          -
-                        </button>
-                        {idx === values.benefits.length - 1 && (
-                          <button
-                            type="button"
-                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                            onClick={() => push("")}
-                          >
-                            +
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </FieldArray>
+
+              <DynamicInputFields
+                formik={formik}
+                name="benefits"
+                label="Benefits"
+              />
             </section>
 
             {/* FEATURES */}
-            <section className="space-y-6 bg-blue-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+            <section className="space-y-6 bg-blue-50 p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
                 Features
               </h3>
-              <div className="flex flex-wrap gap-6">
-                <label className="inline-flex items-center">
-                  <Field type="checkbox" name="features.certificate" />
-                  <span className="ml-2 text-gray-700">Certificate</span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Certificate */}
+                <label className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer border border-gray-200">
+                  <Field
+                    type="checkbox"
+                    name="features.certificate"
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="ml-3 font-medium text-gray-700">
+                    Certificate
+                  </span>
                 </label>
-                <label className="inline-flex items-center">
-                  <Field type="checkbox" name="features.codingExercises" />
-                  <span className="ml-2 text-gray-700">Coding Exercises</span>
+
+                {/* Coding Exercises */}
+                <label className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer border border-gray-200">
+                  <Field
+                    type="checkbox"
+                    name="features.codingExercises"
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="ml-3 font-medium text-gray-700">
+                    Coding Exercises
+                  </span>
                 </label>
-                <label className="inline-flex items-center">
-                  <Field type="checkbox" name="features.recordedLectures" />
-                  <span className="ml-2 text-gray-700">Recorded Lectures</span>
+
+                {/* Recorded Lectures */}
+                <label className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer border border-gray-200">
+                  <Field
+                    type="checkbox"
+                    name="features.recordedLectures"
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="ml-3 font-medium text-gray-700">
+                    Recorded Lectures
+                  </span>
                 </label>
               </div>
             </section>
@@ -534,14 +397,16 @@ const CourseForm = () => {
               <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
                 Key Features
               </h3>
+
               <FieldArray name="keyFeatures">
                 {({ push, remove }) => (
                   <div className="space-y-6">
-                    {values.keyFeatures.map((feature, idx) => (
+                    {formik.values.keyFeatures.map((feature, idx) => (
                       <div
                         key={idx}
                         className="p-5 border border-blue-400 rounded-lg bg-white shadow-sm"
                       >
+                        {/* Header */}
                         <div className="flex justify-between items-center mb-3">
                           <h4 className="font-semibold text-blue-700">
                             Feature {idx + 1}
@@ -550,12 +415,13 @@ const CourseForm = () => {
                             type="button"
                             className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                             onClick={() => remove(idx)}
-                            disabled={values.keyFeatures.length === 1}
+                            disabled={formik.values.keyFeatures.length === 1}
                           >
                             Remove
                           </button>
                         </div>
 
+                        {/* Title */}
                         <div className="mb-3">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Title
@@ -563,6 +429,17 @@ const CourseForm = () => {
                           <Field
                             name={`keyFeatures[${idx}].title`}
                             className="w-full px-3 py-2 border border-blue-400 rounded-md"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                // Add a new feature when pressing Enter on title
+                                push({
+                                  title: "",
+                                  description: "",
+                                  subPoints: [""],
+                                });
+                              }
+                            }}
                           />
                           <ErrorMessage
                             name={`keyFeatures[${idx}].title`}
@@ -571,6 +448,7 @@ const CourseForm = () => {
                           />
                         </div>
 
+                        {/* Description */}
                         <div className="mb-3">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Description
@@ -580,9 +458,21 @@ const CourseForm = () => {
                             name={`keyFeatures[${idx}].description`}
                             rows="2"
                             className="w-full px-3 py-2 border border-blue-400 rounded-md"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                // Add a new feature when pressing Enter in description
+                                push({
+                                  title: "",
+                                  description: "",
+                                  subPoints: [""],
+                                });
+                              }
+                            }}
                           />
                         </div>
 
+                        {/* Sub Points */}
                         <div>
                           <label className="block mb-1 font-medium text-gray-700">
                             Sub Points
@@ -595,6 +485,13 @@ const CourseForm = () => {
                                     <Field
                                       name={`keyFeatures[${idx}].subPoints[${spIdx}]`}
                                       className="flex-1 px-3 py-2 border border-blue-400 rounded-md"
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          e.preventDefault();
+                                          // Add new subpoint on Enter
+                                          pushSP("");
+                                        }
+                                      }}
                                     />
                                     <button
                                       type="button"
@@ -621,6 +518,8 @@ const CourseForm = () => {
                         </div>
                       </div>
                     ))}
+
+                    {/* Add New Key Feature */}
                     <button
                       type="button"
                       className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
@@ -641,19 +540,12 @@ const CourseForm = () => {
 
             {/* SUBMIT BUTTONS */}
             <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-              {/* <button
-              type="button"
-              onClick={() => navigate("/admin/courses")}
-              className="px-6 py-3 bg-gray-400 hover:bg-gray-500 text-white rounded-lg"
-            >
-              Cancel
-            </button> */}
               <button
                 type="submit"
-                disabled={isSubmitting || isLoading}
+                disabled={formik.isSubmitting || isLoading}
                 className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg transition disabled:opacity-50"
               >
-                {editCourseData ? "Update Course" : "Create Course"}
+                {editCourseData ? "Update Training Program" : "Create Training Program"}
               </button>
             </div>
           </Form>
