@@ -72,6 +72,19 @@ export const getAllCourses = async () => {
   return res.data.data;
 };
 
+
+
+// Clone a course (Admin)
+export const cloneCourse = async (id) => {
+  try {
+    const response = await apiClient.post(`/api/courses/${id}/clone`, {});
+    return response.data;
+  } catch (error) {
+    console.error(`Error cloning course ${id}:`, error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};
+
 // --- START: NAYE FUNCTIONS CONTENT ADD KARNE KE LIYE ---
 
 /**

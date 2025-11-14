@@ -6,6 +6,7 @@ import apiClient from "../../../api/axiosConfig";
 import { useAuth } from "../../../contexts/AuthContext";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
+import { cloneCourse, deleteCourse, fetchCourseById, getAllCourses } from "../../../api/courses";
 
 const CourseTable = () => {
   const { token } = useAuth();
@@ -21,19 +22,37 @@ const CourseTable = () => {
 
   const navigate = useNavigate();
 
+  // const fetchCourses = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await apiClient.get("/api/courses/all", {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     const courseList = Array.isArray(res.data.data) ? res.data.data : [];
+  //     setCourses(courseList);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError("Failed to fetch courses.");
+  //   }
+  //   setLoading(false);
+  // };
+
+  // Fetch courses
   const fetchCourses = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get("/api/courses/all", {
-        headers: { Authorization: `Bearer ${token}` },
+      const data = await getAllCourses(); // API helper
+      setCourses(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to load courses",
+        text: "Please try again later",
       });
-      const courseList = Array.isArray(res.data.data) ? res.data.data : [];
-      setCourses(courseList);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch courses.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -41,46 +60,66 @@ const CourseTable = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this course?")) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this course?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return; // user cancelled
+
     setDeletingId(id);
     try {
-      await apiClient.delete(`/api/courses/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await deleteCourse(id); // using your API helper
       setCourses((prev) => prev.filter((course) => course._id !== id));
+
+      Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: "Course deleted successfully.",
+        confirmButtonColor: "#28a745",
+      });
     } catch (err) {
-      alert(
-        err.response?.data?.message || err.message || "Failed to delete course."
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Deletion Failed",
+        text: err.message || "Failed to delete course.",
+        confirmButtonColor: "#d33",
+      });
+    } finally {
+      setDeletingId(null);
     }
-    setDeletingId(null);
   };
 
   // Fetch course by ID and open modal
-  const handleViewClick = async (id) => {
-    setModalLoading(true);
-    setIsModalOpen(true);
 
-    try {
-      const { data } = await apiClient.get(`/api/courses/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (data.success) {
-        setModalCourseData(data.data);
-      } else {
-        setModalCourseData(null);
-        alert("Failed to fetch course details");
-      }
-    } catch (err) {
-      console.error(err);
-      setModalCourseData(null);
-      alert("Error fetching course details");
-    } finally {
-      setModalLoading(false);
-    }
-  };
+const handleViewClick = async (id) => {
+  setModalLoading(true);
+  setIsModalOpen(true);
+
+  try {
+    const courseData = await fetchCourseById(id); // ✅ use helper API
+    setModalCourseData(courseData); // directly set the returned data
+  } catch (err) {
+    console.error(err);
+    setModalCourseData(null);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: err.message || "Failed to fetch course details",
+    });
+  } finally {
+    setModalLoading(false);
+  }
+};
 
   // Clone course function
+  // 3️⃣ Use it in handleClone
   const handleClone = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -93,11 +132,7 @@ const CourseTable = () => {
 
     if (result.isConfirmed) {
       try {
-        const { data } = await apiClient.post(
-          `/api/courses/${id}/clone`,
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const data = await cloneCourse(id);
 
         if (data.success) {
           Swal.fire({
@@ -105,7 +140,7 @@ const CourseTable = () => {
             title: "Cloned!",
             text: data.message || "Course cloned successfully.",
           });
-          fetchCourses(); // Refresh the table
+          fetchCourses(); // ✅ Works now because it's in scope
         } else {
           Swal.fire({
             icon: "error",
@@ -117,7 +152,7 @@ const CourseTable = () => {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: err.response?.data?.message || "Please Try Again !!",
+          text: err.message || "Please Try Again !!",
         });
       }
     }
@@ -234,143 +269,18 @@ const CourseTable = () => {
       <div className="text-center p-4 text-red-600 font-semibold">{error}</div>
     );
 
-  // return (
-  //   <div className="space-y-4">
-  //     <button
-  //       onClick={() => navigate("/admin/add-courses")}
-  //       className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-  //     >
-  //       + Create New Course
-  //     </button>
-
-  //     <ScrollableTable
-  //       columns={columns}
-  //       data={courses}
-  //       maxHeight="600px"
-  //       emptyMessage="No courses found"
-  //     />
-
-  //     {/* Modal */}
-  //     <Modal
-  //       isOpen={isModalOpen}
-  //       onClose={() => setIsModalOpen(false)}
-  //       header={modalCourseData ? modalCourseData.title : "Loading..."}
-  //     >
-  //       {modalLoading ? (
-  //         <p>Loading...</p>
-  //       ) : modalCourseData ? (
-  //         <div className="space-y-4 text-gray-700">
-  //           <p>
-  //             <strong>Description:</strong> {modalCourseData.description}
-  //           </p>
-  //           <p>
-  //             <strong>Overview:</strong> {modalCourseData.overview}
-  //           </p>
-
-  //           <div>
-  //             <strong>Learning Outcomes:</strong>
-  //             <ul className="list-disc ml-5">
-  //               {modalCourseData.learningOutcomes?.map((item, idx) => (
-  //                 <li key={idx}>{item}</li>
-  //               ))}
-  //             </ul>
-  //           </div>
-
-  //           <div>
-  //             <strong>Benefits:</strong>
-  //             <ul className="list-disc ml-5">
-  //               {modalCourseData.benefits?.map((item, idx) => (
-  //                 <li key={idx}>{item}</li>
-  //               ))}
-  //             </ul>
-  //           </div>
-
-  //           <div>
-  //             <strong>Key Features:</strong>
-  //             <ul className="list-disc ml-5">
-  //               {modalCourseData.keyFeatures?.map((feature) => (
-  //                 <li key={feature._id}>
-  //                   <strong>{feature.title}:</strong> {feature.description}
-  //                   {feature.subPoints?.length > 0 && (
-  //                     <ul className="list-decimal ml-5">
-  //                       {feature.subPoints.map((sub, i) => (
-  //                         <li key={i}>{sub}</li>
-  //                       ))}
-  //                     </ul>
-  //                   )}
-  //                 </li>
-  //               ))}
-  //             </ul>
-  //           </div>
-
-  //           {modalCourseData.trainer?.length > 0 && (
-  //             <div>
-  //               <strong>Trainer Info:</strong>
-  //               {modalCourseData.trainer.map((t) => (
-  //                 <div key={t._id} className="border p-2 rounded mb-2">
-  //                   <p>
-  //                     <strong>Name:</strong> {t.fullName}
-  //                   </p>
-  //                   <p>
-  //                     <strong>Title:</strong> {t.title}
-  //                   </p>
-  //                   <p>
-  //                     <strong>Qualification:</strong> {t.highestQualification}
-  //                   </p>
-  //                   <p>
-  //                     <strong>College:</strong> {t.collegeName}
-  //                   </p>
-  //                   <p>
-  //                     <strong>Total Experience:</strong> {t.totalExperience}
-  //                   </p>
-  //                   <p>
-  //                     <strong>Available Timing:</strong> {t.availableTiming}
-  //                   </p>
-  //                   <p>
-  //                     <strong>LinkedIn:</strong>{" "}
-  //                     <a
-  //                       href={t.linkedinProfile?.trim()}
-  //                       target="_blank"
-  //                       className="text-blue-600 underline"
-  //                     >
-  //                       {t.linkedinProfile?.trim()}
-  //                     </a>
-  //                   </p>
-  //                 </div>
-  //               ))}
-  //             </div>
-  //           )}
-
-  //           <p>
-  //             <strong>Rating:</strong> {modalCourseData.rating}
-  //           </p>
-  //           <p>
-  //             <strong>Enrolled Count:</strong> {modalCourseData.enrolledCount}
-  //           </p>
-  //           <p>
-  //             <strong>Status:</strong>{" "}
-  //             {modalCourseData.isActive ? "Active" : "Inactive"}
-  //           </p>
-  //         </div>
-  //       ) : (
-  //         <p>No data found.</p>
-  //       )}
-  //     </Modal>
-  //   </div>
-  // );
-
   return (
     <div className="space-y-6">
       {/* ✅ Header Section */}
       <div className="flex justify-between items-center bg-white shadow-md px-6 py-4 rounded-md">
         <h2 className="text-2xl font-bold text-gray-700 tracking-wide">
-          Manage Courses
+          Manage Training Program
         </h2>
         <button
           onClick={() => navigate("/admin/add-courses")}
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-all duration-200"
         >
-          + Create New Course
+          + Create New Training Program
         </button>
       </div>
 
@@ -380,7 +290,7 @@ const CourseTable = () => {
           columns={columns}
           data={courses}
           maxHeight="600px"
-          emptyMessage="No courses found"
+          emptyMessage="No Training Program found"
         />
       </div>
 

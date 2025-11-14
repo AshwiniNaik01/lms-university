@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   FaBookOpen,
@@ -13,11 +12,19 @@ import {
   FaTasks,
   FaUserCog,
   FaUserTie,
-  FaVideo
+  FaVideo,
+  FaGraduationCap,
+  FaCalendarAlt,
+  FaFileAlt,
 } from "react-icons/fa";
-import { MdOutlineClass, MdOutlineDashboard } from "react-icons/md";
+import {
+  MdOutlineClass,
+  MdOutlineDashboard,
+  MdOutlineMeetingRoom,
+} from "react-icons/md";
 import { RiBook2Line, RiFolderSettingsLine } from "react-icons/ri";
 import { NavLink, useNavigate } from "react-router-dom";
+// import {   MdOutlineMeetingRoom } from "react-icons/md";
 
 /* 
 ---------------------------------------------
@@ -27,6 +34,7 @@ This design keeps the sidebar dynamic,
 making it easy to expand without touching component logic.
 ---------------------------------------------
 */
+
 const menuItems = [
   {
     label: "Dashboard",
@@ -48,22 +56,18 @@ const menuItems = [
     icon: <RiBook2Line />,
     children: [
       {
-        label: "Courses",
+        label: "Training Program Management",
         icon: <FaFolderOpen />,
         children: [
-          { label: "Add Courses", icon: <FaRegFileAlt />, path: "/admin/add-courses" },
-          {
-            label: "Manage Courses",
-            icon: <RiFolderSettingsLine />,
-            path: "/admin/manage-courses",
-          },
+          { label: "Add Training Program", icon: <FaRegFileAlt />, path: "/admin/add-courses" },
+          { label: "Manage Training Program", icon: <RiFolderSettingsLine />, path: "/admin/manage-courses" },
         ],
       },
       {
         label: "Recordings",
         icon: <FaVideo />,
         children: [
-          { label: "Add Recording", icon: <FaRegFileAlt />, path: "/admin/add-course-videos" },
+          { label: "Add Recording", icon: <FaFileAlt />, path: "/admin/add-course-videos" },
           { label: "Manage Recording", icon: <FaLayerGroup />, path: "/admin/manage-course-videos" },
         ],
       },
@@ -72,31 +76,23 @@ const menuItems = [
         icon: <FaBookOpen />, 
         children: [
           { label: "Add Curriculum", icon: <FaRegFileAlt />, path: "/admin/add-curriculum" },
-          {
-            label: "Manage Curriculum",
-            icon: <FaLayerGroup />,
-            path: "/admin/manage-curriculum",
-          },
+          { label: "Manage Curriculum", icon: <FaLayerGroup />, path: "/admin/manage-curriculum" },
         ],
       },
       {
         label: "Batches",
         icon: <MdOutlineClass />, 
         children: [
-          { label: "Add Batch", icon: <FaRegFileAlt />, path: "/admin/add-batch" },
+          { label: "Add Batch", icon: <FaGraduationCap />, path: "/admin/add-batch" },
           { label: "Manage Batches", icon: <FaLayerGroup />, path: "/admin/manage-batches" },
         ],
       },
       {
-        label: "Assignments",
+        label: "Assignment Management",
         icon: <FaTasks />, 
         children: [
-          { label: "Add Assignments", icon: <FaRegFileAlt />, path: "/admin/add-assignment" },
-          {
-            label: "Manage Assignments",
-            icon: <FaLayerGroup />,
-            path: "/admin/manage-assignments",
-          },
+          { label: "Add Assignment", icon: <FaFileAlt />, path: "/admin/add-assignment" },
+          { label: "Manage Assignments", icon: <FaLayerGroup />, path: "/admin/manage-assignments" },
         ],
       },
       {
@@ -107,44 +103,218 @@ const menuItems = [
           { label: "Manage Study Material", icon: <FaLayerGroup />, path: "/admin/manage-notes" },
         ],
       },
-       {
+      {
         label: "Enroll Student",
-        icon: <FaTasks />, 
+        icon: <FaClipboardList />, 
         children: [
           { label: "Enroll Student", icon: <FaRegFileAlt />, path: "/admin/enroll-student" },
-          {
-            label: "Enrolled Student List",
-            icon: <FaLayerGroup />,
-            path: "/admin/enrolled-student-list",
-          },
+          { label: "Enrolled Student List", icon: <FaLayerGroup />, path: "/admin/enrolled-student-list" },
         ],
       },
-        {
+      {
         label: "Meeting Management",
-        icon: <FaVideo />,
+        icon: <MdOutlineMeetingRoom />,
         children: [
           { label: "Add Meeting", icon: <FaRegFileAlt />, path: "/admin/add-meeting" },
-          { label: "Meeting", icon: <FaLayerGroup />, path: "/admin/manage-meeting" },
+          { label: "Manage Meeting", icon: <FaCalendarAlt />, path: "/admin/manage-meeting" },
         ],
       },
     ],
   },
-  // {
-  //   label: "Enrollment Overview",
-  //   path: "/admin/enrollments",
-  //   icon: <FaClipboardList />, 
-  // },
+  {
+    label: "Assessment Tests",
+    icon: <FaTasks />, 
+    children: [
+      { label: "Add Test", icon: <FaRegFileAlt />, path: "/admin/add-test" },
+      { label: "Manage Test", icon: <FaLayerGroup />, path: "/admin/manage-test" },
+    ],
+  },
   {
     label: "Trainer Management",
     path: "/admin/trainer-management",
     icon: <FaUserTie />, 
   },
-  // {
-  //   label: "Logout",
-  //   path: "/login",
-  //   icon: <FaSignOutAlt />, 
-  // },
 ];
+
+// const menuItems = [
+//   {
+//     label: "Dashboard",
+//     path: "/admin/dashboard",
+//     icon: <MdOutlineDashboard />,
+//   },
+//   {
+//     label: "User Management",
+//     path: "/admin/users",
+//     icon: <FaUserCog />,
+//   },
+//   {
+//     label: "Sessions - Upskilling",
+//     path: "/admin/book-session",
+//     icon: <FaChalkboardTeacher />,
+//   },
+//   {
+//     label: "Course Management",
+//     icon: <RiBook2Line />,
+//     children: [
+//       {
+//         label: "Training Program Management",
+//         icon: <FaFolderOpen />,
+//         children: [
+//           {
+//             label: "Add Training Program",
+//             icon: <FaRegFileAlt />,
+//             path: "/admin/add-courses",
+//           },
+//           {
+//             label: "Manage Training Program",
+//             icon: <RiFolderSettingsLine />,
+//             path: "/admin/manage-courses",
+//           },
+//         ],
+//       },
+//       {
+//         label: "Recordings",
+//         icon: <FaVideo />,
+//         children: [
+//           {
+//             label: "Add Recording",
+//             icon: <FaRegFileAlt />,
+//             path: "/admin/add-course-videos",
+//           },
+//           {
+//             label: "Manage Recording",
+//             icon: <FaLayerGroup />,
+//             path: "/admin/manage-course-videos",
+//           },
+//         ],
+//       },
+//       {
+//         label: "Curriculum",
+//         icon: <FaBookOpen />,
+//         children: [
+//           {
+//             label: "Add Curriculum",
+//             icon: <FaRegFileAlt />,
+//             path: "/admin/add-curriculum",
+//           },
+//           {
+//             label: "Manage Curriculum",
+//             icon: <FaLayerGroup />,
+//             path: "/admin/manage-curriculum",
+//           },
+//         ],
+//       },
+//       {
+//         label: "Batches",
+//         icon: <MdOutlineClass />,
+//         children: [
+//           {
+//             label: "Add Batch",
+//             icon: <FaRegFileAlt />,
+//             path: "/admin/add-batch",
+//           },
+//           {
+//             label: "Manage Batches",
+//             icon: <FaLayerGroup />,
+//             path: "/admin/manage-batches",
+//           },
+//         ],
+//       },
+//       {
+//         label: "Assignment Management",
+//         icon: <FaTasks />,
+//         children: [
+//           {
+//             label: "Add Assignment",
+//             icon: <FaRegFileAlt />,
+//             path: "/admin/add-assignment",
+//           },
+//           {
+//             label: "Manage Assignments",
+//             icon: <FaLayerGroup />,
+//             path: "/admin/manage-assignments",
+//           },
+//         ],
+//       },
+//       {
+//         label: "Study Material",
+//         icon: <FaStickyNote />,
+//         children: [
+//           {
+//             label: "Add Study Material",
+//             icon: <FaRegFileAlt />,
+//             path: "/admin/add-notes",
+//           },
+//           {
+//             label: "Manage Study Material",
+//             icon: <FaLayerGroup />,
+//             path: "/admin/manage-notes",
+//           },
+//         ],
+//       },
+//       {
+//         label: "Enroll Student",
+//         icon: <FaTasks />,
+//         children: [
+//           {
+//             label: "Enroll Student",
+//             icon: <FaRegFileAlt />,
+//             path: "/admin/enroll-student",
+//           },
+//           {
+//             label: "Enrolled Student List",
+//             icon: <FaLayerGroup />,
+//             path: "/admin/enrolled-student-list",
+//           },
+//         ],
+//       },
+
+//       {
+//         label: "Meeting Management",
+//         icon: <FaVideo />,
+//         children: [
+//           {
+//             label: "Add Meeting",
+//             icon: <FaRegFileAlt />,
+//             path: "/admin/add-meeting",
+//           },
+//           {
+//             label: "Meeting",
+//             icon: <FaLayerGroup />,
+//             path: "/admin/manage-meeting",
+//           },
+//         ],
+//       },
+//     ],
+//   },
+//   // {
+//   //   label: "Enrollment Overview",
+//   //   path: "/admin/enrollments",
+//   //   icon: <FaClipboardList />,
+//   // },
+//   {
+//     label: "Assessment Tests",
+//     icon: <FaTasks />,
+//     children: [
+//       { label: "Add Test", icon: <FaRegFileAlt />, path: "/admin/add-test" },
+//       {
+//         label: "Manage Test",
+//         icon: <FaLayerGroup />,
+//         path: "/admin/manage-test",
+//       },
+//     ],
+//   },
+//   {
+//     label: "Trainer Management",
+//     path: "/admin/trainer-management",
+//     icon: <FaUserTie />,
+//   },
+//   // {
+//   //   label: "Logout",
+//   //   path: "/login",
+//   //   icon: <FaSignOutAlt />,
+//   // },
+// ];
 
 /* 
 ---------------------------------------------
@@ -246,9 +416,7 @@ const AdminSidebar = () => {
   // Toggle nested menu expand/collapse
   const toggleSubmenu = (label) => {
     setExpandedMenus((prev) =>
-      prev.includes(label)
-        ? prev.filter((l) => l !== label)
-        : [...prev, label]
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
     );
   };
 
@@ -264,35 +432,35 @@ const AdminSidebar = () => {
   };
 
   return (
-  <aside className="fixed left-0 w-72 h-screen bg-gradient-to-b from-white to-indigo-50 border-r border-gray-200 shadow-md flex flex-col">
-  {/* --- Sidebar Header --- */}
-  <div className="px-6 py-5 border-b bg-white sticky top-0 z-10 shadow-sm">
-    <h2 className="text-2xl font-extrabold text-indigo-600 tracking-tight">
-      Admin Panel
-    </h2>
-    <p className="text-sm text-gray-500 mt-1">
-      Manage courses, users, and content
-    </p>
-  </div>
+    <aside className="fixed left-0 w-72 h-screen bg-gradient-to-b from-white to-indigo-50 border-r border-gray-200 shadow-md flex flex-col">
+      {/* --- Sidebar Header --- */}
+      <div className="px-6 py-5 border-b bg-white sticky top-0 z-10 shadow-sm">
+        <h2 className="text-2xl font-extrabold text-indigo-600 tracking-tight">
+          Admin Panel
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Manage courses, users, and content
+        </p>
+      </div>
 
-  {/* --- Scrollable Navigation --- */}
-  <div
-  className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-100"
-  style={{ maxHeight: 500 }}
->
-  {/* <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-100"> */}
-    {menuItems.map((item, index) => (
-      <SidebarMenuItem
-        key={index}
-        item={item}
-        expandedMenus={expandedMenus}
-        toggleSubmenu={toggleSubmenu}
-      />
-    ))}
-  </div>
+      {/* --- Scrollable Navigation --- */}
+      <div
+        className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-100"
+        style={{ maxHeight: 500 }}
+      >
+        {/* <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-100"> */}
+        {menuItems.map((item, index) => (
+          <SidebarMenuItem
+            key={index}
+            item={item}
+            expandedMenus={expandedMenus}
+            toggleSubmenu={toggleSubmenu}
+          />
+        ))}
+      </div>
 
-  {/* --- Footer / Logout Section --- */}
-  {/* <div className="px-6 py-4 border-t bg-white sticky bottom-0 z-10">
+      {/* --- Footer / Logout Section --- */}
+      {/* <div className="px-6 py-4 border-t bg-white sticky bottom-0 z-10">
     <button
       onClick={handleLogout}
       className="w-full flex items-center gap-2 py-2.5 rounded-lg text-red-600 hover:bg-red-50 font-medium transition"
@@ -301,8 +469,7 @@ const AdminSidebar = () => {
       Logout
     </button>
   </div> */}
-</aside>
-
+    </aside>
   );
 };
 

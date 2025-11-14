@@ -42,7 +42,7 @@ export const DIR = {
 
   // 📘 Course Materials
   COURSE_NOTES: BASE_URL + "/uploads/course-notes/",
-  ASSIGNMENT_FILES: BASE_URL + "/uploads/assignments/",
+  ASSIGNMENT_FILES: BASE_URL + "/uploads/assignment-submissions/",
 
   // 📊 Test Materials
   TEST_EXCEL: BASE_URL + "/uploads/test-excel/",

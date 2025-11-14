@@ -35,15 +35,25 @@ const SessionCategoryForm = lazy(() =>
   import("./components/upSkill_sessions/SessionCategoryForm.jsx")
 );
 // import AddMeetingForm from "./components/admin/meeting/AddMeetingForm.jsx";
-const AddMeetingForm = lazy(() => import("./components/admin/meeting/AddMeetingForm.jsx"));
+const AddMeetingForm = lazy(() =>
+  import("./components/admin/meeting/AddMeetingForm.jsx")
+);
 // import ManageMeeting from "./components/admin/meeting/ManageMeeting.jsx";
-const ManageMeeting = lazy(() => import("./components/admin/meeting/ManageMeeting.jsx"));
+const ManageMeeting = lazy(() =>
+  import("./components/admin/meeting/ManageMeeting.jsx")
+);
 // import Attendance from "./components/admin/meeting/Attendance.jsx";
-const Attendance = lazy(() => import("./components/admin/meeting/Attendance.jsx"));
+const Attendance = lazy(() =>
+  import("./components/admin/meeting/Attendance.jsx")
+);
 // import EnrollStudentForm from "./components/admin/enrollStudent/EnrollStudentForm.jsx";
-const EnrollStudentForm = lazy(() => import("./components/admin/enrollStudent/EnrollStudentForm.jsx"));
+const EnrollStudentForm = lazy(() =>
+  import("./components/admin/enrollStudent/EnrollStudentForm.jsx")
+);
 // import EnrolledStudentList from "./components/admin/enrollStudent/EnrolledStudentList.jsx";
-const EnrolledStudentList = lazy(() => import("./components/admin/enrollStudent/EnrolledStudentList.jsx"));
+const EnrolledStudentList = lazy(() =>
+  import("./components/admin/enrollStudent/EnrolledStudentList.jsx")
+);
 // import BranchListPage from "./pages/BranchListPage.jsx";
 const BranchListPage = lazy(() => import("./pages/BranchListPage.jsx"));
 // import CourseListPage from "./pages/CourseListPage.jsx";
@@ -53,6 +63,11 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 // import LoginPage from "./pages/LoginPage.jsx";
 const LoginPage = lazy(() => import("./pages/LoginPage.jsx"));
 import NotFoundPage from "./pages/NotFoundPage.jsx";
+import AddTest from "./components/admin/test/AddTest.jsx";
+import ManageTest from "./components/admin/test/ManageTest.jsx";
+import ViewTestQuestions from "./components/admin/test/ViewTestQuestions.jsx";
+import EnrolledCoursesPage from "./components/admin/enrollStudent/EnrolledCoursesPage.jsx";
+import EnrollmentDetails from "./components/admin/enrollStudent/EnrollmentDetails.jsx";
 // const NotFoundPage = lazy(() => import("./pages/NotFoundPage.jsx"));
 // import ResultDetailPage from "./pages/ResultDetailPage.jsx";
 const ResultDetailPage = lazy(() => import("./pages/ResultDetailPage.jsx"));
@@ -362,13 +377,33 @@ function App() {
                     element={<Attendance />}
                   />
                   <Route path="add-notes" element={<AddNotes />} />
+                  <Route path="add-test" element={<AddTest />} />
+                  <Route path="manage-test" element={<ManageTest />} />
+                  <Route
+                    path="view-excel/:testId"
+                    element={<ViewTestQuestions />}
+                  />
                   <Route path="manage-notes" element={<ManageNotes />} />
                   {/* Notes */}
                   {/* <Route path="add-notes" element={<AddNotes />} /> */}
                   <Route path="edit-note/:noteId" element={<AddNotes />} />
-                  <Route path="enroll-student" element={<EnrollStudentForm />} />
-                  <Route path="enrolled-student-list" element={<EnrolledStudentList />} />
-                     <Route path="enroll-student/:enrollmentId" element={<EnrollStudentForm />} />
+                  <Route
+                    path="enroll-student"
+                    element={<EnrollStudentForm />}
+                  />
+                  <Route
+                    path="enrolled-student-list"
+                    element={<EnrolledStudentList />}
+                  />
+                  <Route
+                    path="enroll-student/:enrollmentId"
+                    element={<EnrollStudentForm />}
+                  />
+                  <Route
+                    path="enrollments/:enrollmentId/courses"
+                    element={<EnrolledCoursesPage />}
+                  />
+                  <Route path="enrollments/:id" element={<EnrollmentDetails />} />
                   {/* <Route path="manage-notes" element={<ManageNotes />} /> */}
                 </Route>
               </Route>
