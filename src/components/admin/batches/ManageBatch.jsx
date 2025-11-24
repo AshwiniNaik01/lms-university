@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import apiClient from "../../../api/axiosConfig";
 import {
+  deleteBatch,
   fetchActiveBatchById,
   fetchAllBatches,
   fetchBatchesByCourseId,
@@ -54,11 +54,11 @@ const ManageBatch = () => {
         setNoBatchesMessage("");
       } else {
         setBatches([]);
-        setNoBatchesMessage("No batches found for this course");
+        setNoBatchesMessage("No batches found for this Training Program");
         Swal.fire({
           icon: "info",
           title: "No Batches Found",
-          text: "No batches found for this selected course.",
+          text: "No batches found for this selected Training Program.",
           confirmButtonColor: "#3085d6",
         });
       }
@@ -81,11 +81,11 @@ const ManageBatch = () => {
       setCourses(coursesData || []); // set state in main page
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || "Failed to fetch courses";
+        err.response?.data?.message || "Failed to fetch Training Programs";
 
       Swal.fire({
         icon: "error",
-        title: "Error Fetching Courses",
+        title: "Error Fetching Training Mangaements",
         text: errorMessage,
         confirmButtonColor: "#d33",
       });
@@ -107,14 +107,13 @@ const ManageBatch = () => {
     if (!confirmation.isConfirmed) return;
 
     try {
-      await apiClient.delete(`/api/batches/${id}`);
+      await deleteBatch(id);
       fetchBatches();
 
       Swal.fire({
         icon: "success",
         title: "Deleted!",
         text: "Batch has been deleted successfully.",
-        confirmButtonColor: "#3085d6",
         timer: 1800,
         showConfirmButton: false,
       });
@@ -126,7 +125,6 @@ const ManageBatch = () => {
         icon: "error",
         title: "Delete Failed",
         text: errorMessage,
-        confirmButtonColor: "#d33",
       });
     }
   };
@@ -142,7 +140,7 @@ const ManageBatch = () => {
         err.response?.data?.message || "Failed to fetch batch details";
 
       Swal.fire({
-        icon: "error",
+        icon: "warning",
         title: "Error Fetching Details",
         text: errorMessage,
         confirmButtonColor: "#d33",
@@ -223,14 +221,14 @@ const ManageBatch = () => {
       <div className="flex justify-end mb-6">
         <div className="flex items-center gap-3">
           <label className="font-semibold text-gray-700">
-            Filter by Course:
+            Filter by Training Program:
           </label>
           <select
             value={selectedCourseId}
             onChange={handleCourseFilterChange}
             className="p-2 border rounded-md border-gray-300"
           >
-            <option value="all">All Courses</option>
+            <option value="all">All Training Programs</option>
             {courses.map((course) => (
               <option key={course._id} value={course._id}>
                 {course.title}
@@ -276,7 +274,7 @@ const ManageBatch = () => {
 
             <div>
               <p className="text-gray-600">
-                <strong>Courses:</strong>{" "}
+                <strong>Training Programs:</strong>{" "}
                 {selectedBatch.coursesAssigned
                   ?.map((c) => c?.title)
                   .join(", ") || "-"}

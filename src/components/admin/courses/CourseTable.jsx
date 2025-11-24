@@ -1,12 +1,27 @@
 import { useEffect, useState } from "react";
-import { FaClone, FaEdit, FaEye, FaPlus, FaTrash } from "react-icons/fa";
+import {
+  FaClone,
+  FaEdit,
+  FaEye,
+  FaFileAlt,
+  FaFolderPlus,
+  FaListAlt,
+  FaStickyNote,
+  FaTasks,
+  FaTrash,
+  FaVideo,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import apiClient from "../../../api/axiosConfig";
+import {
+  cloneCourse,
+  deleteCourse,
+  fetchCourseById,
+  getAllCourses,
+} from "../../../api/courses";
 import { useAuth } from "../../../contexts/AuthContext";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
-import { cloneCourse, deleteCourse, fetchCourseById, getAllCourses } from "../../../api/courses";
 
 const CourseTable = () => {
   const { token } = useAuth();
@@ -19,23 +34,7 @@ const CourseTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalCourseData, setModalCourseData] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
-
   const navigate = useNavigate();
-
-  // const fetchCourses = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await apiClient.get("/api/courses/all", {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-  //     const courseList = Array.isArray(res.data.data) ? res.data.data : [];
-  //     setCourses(courseList);
-  //   } catch (err) {
-  //     console.error(err);
-  //     setError("Failed to fetch courses.");
-  //   }
-  //   setLoading(false);
-  // };
 
   // Fetch courses
   const fetchCourses = async () => {
@@ -44,10 +43,10 @@ const CourseTable = () => {
       const data = await getAllCourses(); // API helper
       setCourses(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching courses:", error);
+      console.error("Error fetching training program:", error);
       Swal.fire({
         icon: "error",
-        title: "Failed to load courses",
+        title: "Failed to load training program",
         text: "Please try again later",
       });
     } finally {
@@ -62,7 +61,7 @@ const CourseTable = () => {
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "Do you really want to delete this course?",
+      text: "Do you really want to delete this Training Program?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -71,24 +70,24 @@ const CourseTable = () => {
       cancelButtonText: "Cancel",
     });
 
-    if (!result.isConfirmed) return; // user cancelled
+    if (!result.isConfirmed) return;
 
     setDeletingId(id);
     try {
-      await deleteCourse(id); // using your API helper
+      await deleteCourse(id);
       setCourses((prev) => prev.filter((course) => course._id !== id));
 
       Swal.fire({
         icon: "success",
         title: "Deleted!",
-        text: "Course deleted successfully.",
+        text: "Training Program deleted successfully.",
         confirmButtonColor: "#28a745",
       });
     } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Deletion Failed",
-        text: err.message || "Failed to delete course.",
+        text: err.message || "Failed to delete training program.",
         confirmButtonColor: "#d33",
       });
     } finally {
@@ -97,33 +96,32 @@ const CourseTable = () => {
   };
 
   // Fetch course by ID and open modal
+  const handleViewClick = async (id) => {
+    setModalLoading(true);
+    setIsModalOpen(true);
 
-const handleViewClick = async (id) => {
-  setModalLoading(true);
-  setIsModalOpen(true);
-
-  try {
-    const courseData = await fetchCourseById(id); // ✅ use helper API
-    setModalCourseData(courseData); // directly set the returned data
-  } catch (err) {
-    console.error(err);
-    setModalCourseData(null);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: err.message || "Failed to fetch course details",
-    });
-  } finally {
-    setModalLoading(false);
-  }
-};
+    try {
+      const courseData = await fetchCourseById(id);
+      setModalCourseData(courseData);
+    } catch (err) {
+      console.error(err);
+      setModalCourseData(null);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.message || "Failed to fetch training program details",
+      });
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   // Clone course function
   // 3️⃣ Use it in handleClone
   const handleClone = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "Do you want to clone this course?",
+      text: "Do you want to clone this Training Program?",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Yes, clone it!",
@@ -138,14 +136,14 @@ const handleViewClick = async (id) => {
           Swal.fire({
             icon: "success",
             title: "Cloned!",
-            text: data.message || "Course cloned successfully.",
+            text: data.message || "Training Program cloned successfully.",
           });
-          fetchCourses(); // ✅ Works now because it's in scope
+          fetchCourses();
         } else {
           Swal.fire({
             icon: "error",
             title: "Failed",
-            text: data.message || "Failed to clone course.",
+            text: data.message || "Failed to clone Training Program.",
           });
         }
       } catch (err) {
@@ -158,51 +156,6 @@ const handleViewClick = async (id) => {
     }
   };
 
-  // const columns = [
-  //   { header: "Title", accessor: "title" },
-  //   { header: "Duration", accessor: "duration" },
-  //   {
-  //     header: "Actions",
-  //     accessor: (row) => (
-  //       <div className="flex gap-2">
-  //         <button
-  //           onClick={() => handleViewClick(row._id)}
-  //           className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-  //         >
-  //           View
-  //         </button>
-  //         <button
-  //           onClick={() => navigate(`/admin/courses/edit/${row._id}`)}
-  //           className="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
-  //         >
-  //           Edit
-  //         </button>
-  //         <button
-  //           onClick={() => handleDelete(row._id)}
-  //           disabled={deletingId === row._id}
-  //           className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-  //         >
-  //           {deletingId === row._id ? "Deleting..." : "Delete"}
-  //         </button>
-  //         <button
-  //           onClick={() =>
-  //             navigate(`/admin/add-curriculum?type=phase&courseId=${row._id}`)
-  //           }
-  //           className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-  //         >
-  //           Add Curriculum
-  //         </button>
-  //         <button
-  //           onClick={() => handleClone(row._id)}
-  //           className="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
-  //         >
-  //           Clone
-  //         </button>
-  //       </div>
-  //     ),
-  //   },
-  // ];
-
   const columns = [
     { header: "Title", accessor: "title" },
     { header: "Duration", accessor: "duration" },
@@ -214,7 +167,7 @@ const handleViewClick = async (id) => {
           <button
             onClick={() => handleViewClick(row._id)}
             title="View"
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
           >
             <FaEye size={16} />
           </button>
@@ -223,19 +176,9 @@ const handleViewClick = async (id) => {
           <button
             onClick={() => navigate(`/admin/courses/edit/${row._id}`)}
             title="Edit"
-            className="p-2 bg-yellow-400 text-white rounded hover:bg-yellow-500"
+            className="p-2 bg-amber-400 text-white rounded hover:bg-amber-500"
           >
             <FaEdit size={16} />
-          </button>
-
-          {/* Delete */}
-          <button
-            onClick={() => handleDelete(row._id)}
-            disabled={deletingId === row._id}
-            title="Delete"
-            className="p-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-          >
-            <FaTrash size={16} />
           </button>
 
           {/* Add Curriculum */}
@@ -244,18 +187,79 @@ const handleViewClick = async (id) => {
               navigate(`/admin/add-curriculum?type=phase&courseId=${row._id}`)
             }
             title="Add Curriculum"
-            className="p-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="p-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
           >
-            <FaPlus size={16} />
+            <FaFolderPlus size={16} />
           </button>
 
           {/* Clone */}
           <button
             onClick={() => handleClone(row._id)}
             title="Clone"
-            className="p-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+            className="p-2 bg-violet-600 text-white rounded hover:bg-violet-700"
           >
             <FaClone size={16} />
+          </button>
+
+          {/* Add Recording */}
+          <button
+            onClick={() =>
+              navigate(`/admin/add-course-videos?courseId=${row._id}`)
+            }
+            title="Add Recording"
+            className="p-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+          >
+            <FaVideo size={16} />
+          </button>
+
+          {/* Manage Curriculum */}
+          <button
+            onClick={() =>
+              navigate(`/admin/manage-curriculum?courseId=${row._id}`)
+            }
+            title="Manage Curriculum"
+            className="p-2  bg-teal-600 text-white rounded hover:bg-teal-700"
+          >
+            <FaListAlt size={16} />
+          </button>
+
+          {/* Add Assignment */}
+          <button
+            onClick={() =>
+              navigate(`/admin/add-assignment?courseId=${row._id}`)
+            }
+            title="Add Assignment"
+            className="p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          >
+            <FaTasks size={16} />
+          </button>
+
+          {/* Add Notes */}
+          <button
+            onClick={() => navigate(`/admin/add-notes?courseId=${row._id}`)}
+            title="Add Reference Material Repository"
+            className="p-2 bg-fuchsia-600 text-white rounded hover:bg-fuchsia-700"
+          >
+            <FaStickyNote size={16} />
+          </button>
+
+          {/* Add Test */}
+          <button
+            onClick={() => navigate(`/admin/add-test?courseId=${row._id}`)}
+            title="Add Assessment Test"
+            className="p-2 bg-cyan-600 text-white rounded hover:bg-cyan-700"
+          >
+            <FaFileAlt size={16} />
+          </button>
+
+          {/* Delete */}
+          <button
+            onClick={() => handleDelete(row._id)}
+            disabled={deletingId === row._id}
+            title="Delete"
+            className="p-2 bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-50"
+          >
+            <FaTrash size={16} />
           </button>
         </div>
       ),

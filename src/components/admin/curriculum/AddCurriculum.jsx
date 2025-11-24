@@ -59,7 +59,7 @@ export default function AddCurriculum() {
   // Log which type of curriculum item is being added based on URL query params
   useEffect(() => {
     if (courseId) {
-      console.log("Adding Topics for Course ID:", courseId);
+      console.log("Adding Topics for Training ID:", courseId);
     } else if (phaseId) {
       console.log("Adding Sub-Topics for Topic ID:", phaseId);
     } else if (weekId) {
@@ -213,7 +213,7 @@ export default function AddCurriculum() {
     }),
     onSubmit: async (values, { resetForm }) => {
       if (!values.course) {
-        showToast("Please select a course first", "error");
+        showToast("Please select a Training Program first", "error");
         return;
       }
 
@@ -259,7 +259,7 @@ export default function AddCurriculum() {
     }),
     onSubmit: async (values, { resetForm }) => {
       if (!values.course || !values.phase) {
-        showToast("Please select a course and phase first", "error");
+        showToast("Please select a Training Program and phase first", "error");
         return;
       }
 
@@ -315,7 +315,7 @@ export default function AddCurriculum() {
     }),
     onSubmit: async (values, { resetForm }) => {
       if (!values.course || !values.week) {
-        showToast("Please select a course and week first", "error");
+        showToast("Please select a Training Program and week first", "error");
         return;
       }
 
@@ -567,7 +567,7 @@ export default function AddCurriculum() {
                 {/* Course Select */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Select Course
+                    Select Training Program
                   </label>
                   <select
                     name="course"
@@ -584,7 +584,7 @@ export default function AddCurriculum() {
                     onBlur={phaseFormik.handleBlur}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                   >
-                    <option value="">Choose a Course</option>
+                    <option value="">Choose a Training Program</option>
                     {availableCourses.map((course) => (
                       <option key={course._id} value={course._id}>
                         {course.title}

@@ -15,15 +15,20 @@ import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import PDFUploadField from "../../form/PDFUploadField";
 import TextAreaField from "../../form/TextAreaField";
+import { useCourseParam } from "../../hooks/useCourseParam";
 
 export default function AddAssignment() {
   const { assignmentId } = useParams();
   const navigate = useNavigate();
 
   const [availableCourses, setAvailableCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState("");
+
   const [availableChapters, setAvailableChapters] = useState([]);
   const [loading, setLoading] = useState(false);
   const [existingFile, setExistingFile] = useState("");
+  const [selectedCourseFromParam, , isCoursePreselected] =
+    useCourseParam(availableCourses);
 
   // Fetch all courses on mount
   useEffect(() => {
@@ -32,11 +37,20 @@ export default function AddAssignment() {
         const res = await getAllCourses();
         setAvailableCourses(res);
       } catch (err) {
-        console.error("Error fetching courses:", err);
+        console.error("Error fetching training program:", err);
       }
     };
     fetchCourses();
   }, []);
+
+  // ✅ Whenever courses or selectedCourseFromParam change, set selected course
+  useEffect(() => {
+    if (selectedCourseFromParam && availableCourses.length > 0) {
+      setSelectedCourse(selectedCourseFromParam);
+      formik.setFieldValue("course", selectedCourseFromParam); // Update Formik value
+      // fetchChapters could also be called here if you want to prefetch chapters
+    }
+  }, [selectedCourseFromParam, availableCourses]);
 
   // Formik setup
   const formik = useFormik({
@@ -49,7 +63,7 @@ export default function AddAssignment() {
       fileUrl: null,
     },
     validationSchema: Yup.object({
-      course: Yup.string().required("Course is required"),
+      course: Yup.string().required("Training Program is required"),
       chapter: Yup.string().required("Chapter is required"),
       title: Yup.string().required("Title is required"),
       description: Yup.string().required("Description is required"),
@@ -112,7 +126,7 @@ export default function AddAssignment() {
         const res = await getChaptersByCourse(courseId);
         setAvailableChapters(res.data || []);
       } catch (err) {
-        console.error("Error fetching chapters for course:", err);
+        console.error("Error fetching chapters for training program:", err);
         setAvailableChapters([]);
       }
     };
@@ -198,10 +212,17 @@ export default function AddAssignment() {
           />
 
           <Dropdown
-            label="Course"
+            label="Training Program"
             name="course"
             options={availableCourses}
             formik={formik}
+            value={selectedCourse} // Controlled value
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedCourse(value); // Update local state
+              formik.setFieldValue("course", value); // Update Formik value
+            }}
+            disabled={isCoursePreselected} // Optional: disable if course comes from URL param
           />
 
           {/* Chapter */}

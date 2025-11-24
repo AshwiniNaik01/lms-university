@@ -52,7 +52,7 @@ const menuItems = [
     icon: <FaChalkboardTeacher />,
   },
   {
-    label: "Course Management",
+    label: "Training Management",
     icon: <RiBook2Line />,
     children: [
       {
@@ -96,11 +96,11 @@ const menuItems = [
         ],
       },
       {
-        label: "Study Material",
+        label: "Reference Materials Repository",
         icon: <FaStickyNote />, 
         children: [
-          { label: "Add Study Material", icon: <FaRegFileAlt />, path: "/admin/add-notes" },
-          { label: "Manage Study Material", icon: <FaLayerGroup />, path: "/admin/manage-notes" },
+          { label: "Add Reference Material Repository", icon: <FaRegFileAlt />, path: "/admin/add-notes" },
+          { label: "Manage Reference Material Repository", icon: <FaLayerGroup />, path: "/admin/manage-notes" },
         ],
       },
       {
@@ -136,195 +136,6 @@ const menuItems = [
   },
 ];
 
-// const menuItems = [
-//   {
-//     label: "Dashboard",
-//     path: "/admin/dashboard",
-//     icon: <MdOutlineDashboard />,
-//   },
-//   {
-//     label: "User Management",
-//     path: "/admin/users",
-//     icon: <FaUserCog />,
-//   },
-//   {
-//     label: "Sessions - Upskilling",
-//     path: "/admin/book-session",
-//     icon: <FaChalkboardTeacher />,
-//   },
-//   {
-//     label: "Course Management",
-//     icon: <RiBook2Line />,
-//     children: [
-//       {
-//         label: "Training Program Management",
-//         icon: <FaFolderOpen />,
-//         children: [
-//           {
-//             label: "Add Training Program",
-//             icon: <FaRegFileAlt />,
-//             path: "/admin/add-courses",
-//           },
-//           {
-//             label: "Manage Training Program",
-//             icon: <RiFolderSettingsLine />,
-//             path: "/admin/manage-courses",
-//           },
-//         ],
-//       },
-//       {
-//         label: "Recordings",
-//         icon: <FaVideo />,
-//         children: [
-//           {
-//             label: "Add Recording",
-//             icon: <FaRegFileAlt />,
-//             path: "/admin/add-course-videos",
-//           },
-//           {
-//             label: "Manage Recording",
-//             icon: <FaLayerGroup />,
-//             path: "/admin/manage-course-videos",
-//           },
-//         ],
-//       },
-//       {
-//         label: "Curriculum",
-//         icon: <FaBookOpen />,
-//         children: [
-//           {
-//             label: "Add Curriculum",
-//             icon: <FaRegFileAlt />,
-//             path: "/admin/add-curriculum",
-//           },
-//           {
-//             label: "Manage Curriculum",
-//             icon: <FaLayerGroup />,
-//             path: "/admin/manage-curriculum",
-//           },
-//         ],
-//       },
-//       {
-//         label: "Batches",
-//         icon: <MdOutlineClass />,
-//         children: [
-//           {
-//             label: "Add Batch",
-//             icon: <FaRegFileAlt />,
-//             path: "/admin/add-batch",
-//           },
-//           {
-//             label: "Manage Batches",
-//             icon: <FaLayerGroup />,
-//             path: "/admin/manage-batches",
-//           },
-//         ],
-//       },
-//       {
-//         label: "Assignment Management",
-//         icon: <FaTasks />,
-//         children: [
-//           {
-//             label: "Add Assignment",
-//             icon: <FaRegFileAlt />,
-//             path: "/admin/add-assignment",
-//           },
-//           {
-//             label: "Manage Assignments",
-//             icon: <FaLayerGroup />,
-//             path: "/admin/manage-assignments",
-//           },
-//         ],
-//       },
-//       {
-//         label: "Study Material",
-//         icon: <FaStickyNote />,
-//         children: [
-//           {
-//             label: "Add Study Material",
-//             icon: <FaRegFileAlt />,
-//             path: "/admin/add-notes",
-//           },
-//           {
-//             label: "Manage Study Material",
-//             icon: <FaLayerGroup />,
-//             path: "/admin/manage-notes",
-//           },
-//         ],
-//       },
-//       {
-//         label: "Enroll Student",
-//         icon: <FaTasks />,
-//         children: [
-//           {
-//             label: "Enroll Student",
-//             icon: <FaRegFileAlt />,
-//             path: "/admin/enroll-student",
-//           },
-//           {
-//             label: "Enrolled Student List",
-//             icon: <FaLayerGroup />,
-//             path: "/admin/enrolled-student-list",
-//           },
-//         ],
-//       },
-
-//       {
-//         label: "Meeting Management",
-//         icon: <FaVideo />,
-//         children: [
-//           {
-//             label: "Add Meeting",
-//             icon: <FaRegFileAlt />,
-//             path: "/admin/add-meeting",
-//           },
-//           {
-//             label: "Meeting",
-//             icon: <FaLayerGroup />,
-//             path: "/admin/manage-meeting",
-//           },
-//         ],
-//       },
-//     ],
-//   },
-//   // {
-//   //   label: "Enrollment Overview",
-//   //   path: "/admin/enrollments",
-//   //   icon: <FaClipboardList />,
-//   // },
-//   {
-//     label: "Assessment Tests",
-//     icon: <FaTasks />,
-//     children: [
-//       { label: "Add Test", icon: <FaRegFileAlt />, path: "/admin/add-test" },
-//       {
-//         label: "Manage Test",
-//         icon: <FaLayerGroup />,
-//         path: "/admin/manage-test",
-//       },
-//     ],
-//   },
-//   {
-//     label: "Trainer Management",
-//     path: "/admin/trainer-management",
-//     icon: <FaUserTie />,
-//   },
-//   // {
-//   //   label: "Logout",
-//   //   path: "/login",
-//   //   icon: <FaSignOutAlt />,
-//   // },
-// ];
-
-/* 
----------------------------------------------
-📌 SidebarMenuItem Component
----------------------------------------------
-- Handles both single links and nested menus recursively.
-- `expandedMenus` tracks which menus are open.
-- Uses indentation (via `level`) for nested visual hierarchy.
----------------------------------------------
-*/
 /* 
 ---------------------------------------------
 📌 SidebarMenuItem Component
@@ -439,7 +250,7 @@ const AdminSidebar = () => {
           Admin Panel
         </h2>
         <p className="text-sm text-gray-500 mt-1">
-          Manage courses, users, and content
+          Manage training, users, and content
         </p>
       </div>
 

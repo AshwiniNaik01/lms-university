@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../../api/axiosConfig";
 import { fetchCourseById, getAllCourses } from "../../../api/courses";
+import { useCourseParam } from "../../hooks/useCourseParam";
 
 // Enhanced Modal Component
 const Modal = ({ title, values, onSave, onClose, type = "edit" }) => {
@@ -207,6 +208,10 @@ const ManageCurriculum = () => {
   const [modal, setModal] = useState(null);
   const navigate = useNavigate();
 
+   // ✅ Use custom hook to get preselected course from URL
+  const [selectedCourseFromParam, , isCoursePreselected] = useCourseParam(courses);
+  
+
   const showToast = (msg, type = "success") => {
     setToast({ message: msg, type });
     setTimeout(() => setToast(null), 3000);
@@ -219,12 +224,20 @@ const ManageCurriculum = () => {
         const coursesData = await getAllCourses();
         setCourses(coursesData || []);
       } catch (error) {
-        showToast("❌ Failed to load courses", "error");
+        showToast("❌ Failed to load training program", "error");
       }
     };
 
     fetchCourses();
   }, []);
+
+   // ✅ Whenever courses or selectedCourseFromParam change, set selected course
+  useEffect(() => {
+    if (selectedCourseFromParam && courses.length > 0) {
+      setSelectedCourse(selectedCourseFromParam);
+      fetchPhases(selectedCourseFromParam);
+    }
+  }, [selectedCourseFromParam, courses]);
 
   // Fetch Phases for selected course
   const fetchPhases = async (courseId) => {
@@ -393,23 +406,47 @@ const ManageCurriculum = () => {
         </div>
 
         {/* Course Selector */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-2">
+        {/* <div className="bg-white rounded-lg shadow-lg p-6 mb-2">
           <label className="block text-lg font-semibold text-gray-700 mb-3">
-            🎯 Select Course
+            🎯 Select Training Program
           </label>
           <select
             value={selectedCourse}
             onChange={handleCourseChange}
             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
           >
-            <option value="">-- Choose a Course --</option>
+            <option value="">-- Choose a Training Program --</option>
             {courses.map((course) => (
               <option key={course._id} value={course._id}>
                 {course.title}
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
+
+        <div
+  className={`bg-white rounded-lg shadow-lg p-6 mb-2 ${
+    isCoursePreselected ? "opacity-50 pointer-events-none" : ""
+  }`}
+>
+  <label className="block text-lg font-semibold text-gray-700 mb-3">
+    🎯 Select Training Program
+  </label>
+  <select
+    value={selectedCourse}
+    onChange={handleCourseChange}
+    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+    disabled={isCoursePreselected} // disables the dropdown
+  >
+    <option value="">-- Choose a Training Program --</option>
+    {courses.map((course) => (
+      <option key={course._id} value={course._id}>
+        {course.title}
+      </option>
+    ))}
+  </select>
+</div>
+
 
         {/* Loading State */}
         {loading && (
@@ -703,7 +740,7 @@ const ManageCurriculum = () => {
               No Curriculum Found
             </h3>
             <p className="text-gray-500 mb-6">
-              This course doesn't have any curriculum yet.
+              This training program doesn't have any curriculum yet.
             </p>
             <button
               onClick={() => navigate(`/admin/add-curriculum?courseId=${selectedCourse}`)}
@@ -719,10 +756,10 @@ const ManageCurriculum = () => {
           <div className="text-center py-20 bg-white rounded-2xl shadow-lg">
             <div className="text-6xl mb-4">🎯</div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Select a Course
+              Select a Training Program
             </h3>
             <p className="text-gray-500">
-              Choose a course from the dropdown above to manage its curriculum.
+              Choose a training program from the dropdown above to manage its curriculum.
             </p>
           </div>
         )}

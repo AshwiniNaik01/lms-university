@@ -66,7 +66,7 @@ const EnrollmentDetails = () => {
   // Tab navigation
   const tabs = [
     { id: "overview", label: "Overview", icon: FiBarChart2 },
-    { id: "courses", label: "Courses", icon: FiBook },
+    { id: "courses", label: "Training Program", icon: FiBook },
     { id: "batches", label: "Batches", icon: FiCalendar },
     { id: "attendance", label: "Attendance", icon: FiCheckCircle },
     { id: "assignments", label: "Assignments", icon: FiFileText },
@@ -186,7 +186,7 @@ const EnrollmentDetails = () => {
             <p className="text-2xl font-bold text-gray-900">
               {enrollment.enrolledCourses.length}
             </p>
-            <p className="text-sm text-gray-600">Courses</p>
+            <p className="text-sm text-gray-600">Training</p>
           </div>
 
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">

@@ -14,6 +14,7 @@ import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import TextAreaField from "../../form/TextAreaField";
 import VideoUploadField from "../../form/VideoUploadField";
+import { useCourseParam } from "../../hooks/useCourseParam";
 
 // import { getAllCourses } from "../helpers/courseHelpers"; // adjust path as needed
 
@@ -42,7 +43,7 @@ export default function AddLectures() {
       status: "pending",
     },
     validationSchema: Yup.object({
-      course: Yup.string().required("Course is required"),
+      course: Yup.string().required("Training Program is required"),
       chapter: Yup.string().required("Chapter is required"),
       title: Yup.string().required("Title is required"),
       description: Yup.string().required("Description is required"),
@@ -139,6 +140,16 @@ export default function AddLectures() {
     fetchData();
   }, []);
 
+// Use custom hook to get preselected course from URL query param
+const [selectedCourseFromParam, setSelectedCourseFromParam, isCoursePreselected] = useCourseParam(availableCourses);
+
+// Whenever availableCourses change, set Formik value if hook returned a course
+useEffect(() => {
+  if (selectedCourseFromParam) {
+    formik.setFieldValue("course", selectedCourseFromParam);
+  }
+}, [selectedCourseFromParam]);
+
   // ✅ Fetch chapters whenever the selected course changes
   useEffect(() => {
     const fetchChaptersByCourse = async (courseId) => {
@@ -154,7 +165,7 @@ export default function AddLectures() {
           setAvailableChapters([]);
         }
       } catch (err) {
-        console.error("Error fetching chapters for course:", err);
+        console.error("Error fetching chapters for training program:", err);
         setAvailableChapters([]);
       }
     };
@@ -265,8 +276,8 @@ export default function AddLectures() {
         {/* Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Course Dropdown */}
-          <Dropdown
-            label="Course"
+          {/* <Dropdown
+            label="Training Program"
             name="course"
             options={availableCourses}
             formik={formik}
@@ -274,7 +285,21 @@ export default function AddLectures() {
               formik.setFieldValue("course", value);
               formik.setFieldValue("chapter", "");
             }}
-          />
+          /> */}
+
+
+          <Dropdown
+  label="Training Program"
+  name="course"
+  options={availableCourses}
+  formik={formik}
+  onChange={(value) => {
+    formik.setFieldValue("course", value);
+    formik.setFieldValue("chapter", "");
+  }}
+  disabled={isCoursePreselected} // ✅ Disable if preselected from URL
+/>
+
 
           {/* Chapter Dropdown */}
           <Dropdown
@@ -286,80 +311,9 @@ export default function AddLectures() {
 
           <InputField label="Title" name="title" type="text" formik={formik} />
 
-          {/* <InputField
-            label="Duration (minutes)"
-            name="duration"
-            type="number"
-            formik={formik}
-          /> */}
+         
 
-          {/* Type */}
-          {/* <div>
-            <label className="block font-medium mb-1 text-gray-700">Type</label>
-            <select
-              name="type"
-              value={formik.values.type}
-              onChange={(e) => {
-                formik.setFieldValue("type", e.target.value);
-                formik.setFieldValue("contentUrl", null);
-              }}
-              className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="">Select Type</option>
-              <option value="mp4">MP4</option>
-              <option value="youtube">YouTube URL</option>
-            </select>
-          </div>
-
-          {/* Conditional Upload or YouTube Field */}
-          {/* {formik.values.type === "mp4" && (
-            <div>
-              <label className="block font-medium mb-1 text-gray-700">
-                Lecture Video (.mp4)
-              </label>
-              <input
-                type="file"
-                accept="video/mp4"
-                onChange={(e) =>
-                  formik.setFieldValue("contentUrl", e.currentTarget.files[0])
-                }
-                className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-          )} */}
-
-          {/* {formik.values.type === "youtube" && (
-            <div>
-              <label className="block font-medium mb-1 text-gray-700">
-                YouTube URL
-              </label>
-              <input
-                type="url"
-                name="contentUrl"
-                value={formik.values.contentUrl || ""}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                placeholder="https://youtube.com/..."
-                className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              {formik.touched.contentUrl && formik.errors.contentUrl && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.contentUrl}
-                </p>
-              )}
-            </div>
-          )} */}
-
-          {/* Trainer */}
-          {/* <MultiSelectDropdown
-            label="Trainer"
-            name="trainer"
-            formik={formik}
-            options={availableTrainers}
-            getOptionValue={(option) => option._id}
-            getOptionLabel={(option) => option.fullName}
-          /> */}
-
+         
           {/* Batch Dropdown */}
           {/* <MultiSelectDropdown
             label="Batch"

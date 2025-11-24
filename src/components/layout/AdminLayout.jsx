@@ -23,7 +23,7 @@ const AdminLayout = () => {
 
       {/* =================== Scrollable Main Section =================== */}
       <main
-        className="flex-1 ml-67 bg-blue-50 max-h-[600px] overflow-y-auto p-6 transition-all duration-300">
+        className="flex-1 ml-67 bg-blue-50 max-h-[600px] overflow-y-auto p-4 transition-all duration-300">
         {/* 
           <Outlet /> dynamically renders the nested route component.
           Example: AddNotes, ManageLectures, etc.

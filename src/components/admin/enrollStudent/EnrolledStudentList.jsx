@@ -49,7 +49,7 @@ const EnrolledStudentList = () => {
     // },
 
     {
-      header: "Courses",
+      header: "Training Program",
       accessor: (row) => {
         const count = row.enrollment?.enrolledCourses?.length || 0;
         return count > 0 ? (
@@ -64,7 +64,7 @@ const EnrolledStudentList = () => {
               });
             }}
           >
-            {count} {count === 1 ? "Course" : "Courses"}
+            {count} {count === 1 ? "Training" : "Trainings"}
           </button>
         ) : (
           "—"
@@ -208,7 +208,7 @@ const EnrolledStudentList = () => {
       return (
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-blue-700">
-            Enrolled Courses
+            Enrolled Training
           </h3>
           {enrollment.enrolledCourses?.length > 0 ? (
             <ul className="list-disc pl-5 space-y-1 text-gray-700">
@@ -219,7 +219,7 @@ const EnrolledStudentList = () => {
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500">No courses enrolled.</p>
+            <p className="text-gray-500">No training enrolled.</p>
           )}
         </div>
       );
@@ -331,7 +331,7 @@ const EnrolledStudentList = () => {
         onClose={() => setIsModalOpen(false)}
         header={
           modalType === "courses"
-            ? "Courses Enrolled"
+            ? "Training Enrolled"
             : selectedEnrollment?.student?.fullName || "Enrollment Details"
         }
       >

@@ -53,7 +53,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
 
   const validationSchema = Yup.object({
     title: Yup.string().required("Test Title is required"),
-    courseId: Yup.string().required("Course is required"),
+    courseId: Yup.string().required("Training Program is required"),
     // phaseId: Yup.string().required("Phase is required"),
     // weekId: Yup.string().required("Week is required"),
     //    chapterId: Yup.string()
@@ -81,10 +81,10 @@ const AddTest = ({ onClose, onTestAdded }) => {
 
         setCourses(data || []);
       } catch (error) {
-        console.error("Error fetching courses:", error);
+        console.error("Error fetching training program:", error);
         Swal.fire({
           icon: "error",
-          title: "Failed to load courses",
+          title: "Failed to load Training Program",
           text: "Please try again later",
         });
       }
@@ -437,7 +437,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
                 htmlFor="courseId"
                 className="block text-sm font-medium text-gray-700"
               >
-                Course
+                Training Program
               </label>
 
               <Field
@@ -457,7 +457,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
                 }
                 focus:ring-2 focus:ring-opacity-50 shadow-sm`}
               >
-                <option value="">Select Course</option>
+                <option value="">Select Training</option>
                 {courses.map((course) => (
                   <option key={course._id} value={course._id}>
                     {course.title}

@@ -50,6 +50,9 @@ export const DIR = {
   // 🎓 Lecture Videos
   LECTURE_CONTENT: BASE_URL + "/uploads/lectures/",
 
+   // 🗂 Training Program Plan (📄 NEW)
+  TRAINING_PLAN: BASE_URL + "/uploads/course/training-plan/",
+
   // 📅 Events
   EVENT_BANNER: BASE_URL + "/uploads/events/banner/",
   EVENT_GALLERY_IMAGE: BASE_URL + "/uploads/events/gallery/",

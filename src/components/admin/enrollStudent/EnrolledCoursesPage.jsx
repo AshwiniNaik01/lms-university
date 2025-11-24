@@ -18,11 +18,11 @@ const EnrolledCoursesPage = () => {
       </button>
 
       {/* Page Title */}
-      <h1 className="text-3xl font-bold mb-6">Enrolled Courses</h1>
+      <h1 className="text-3xl font-bold mb-6">Enrolled Training Programs</h1>
 
       {/* Courses Grid */}
       {courses.length === 0 ? (
-        <p className="text-gray-500">No courses enrolled.</p>
+        <p className="text-gray-500">No Training enrolled.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {courses.map((course, i) => (

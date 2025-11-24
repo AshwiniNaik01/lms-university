@@ -68,6 +68,7 @@ import ManageTest from "./components/admin/test/ManageTest.jsx";
 import ViewTestQuestions from "./components/admin/test/ViewTestQuestions.jsx";
 import EnrolledCoursesPage from "./components/admin/enrollStudent/EnrolledCoursesPage.jsx";
 import EnrollmentDetails from "./components/admin/enrollStudent/EnrollmentDetails.jsx";
+import UploadEnrollmentExcel from "./components/admin/enrollStudent/UploadEnrollmentExcel.jsx";
 // const NotFoundPage = lazy(() => import("./pages/NotFoundPage.jsx"));
 // import ResultDetailPage from "./pages/ResultDetailPage.jsx";
 const ResultDetailPage = lazy(() => import("./pages/ResultDetailPage.jsx"));
@@ -403,7 +404,14 @@ function App() {
                     path="enrollments/:enrollmentId/courses"
                     element={<EnrolledCoursesPage />}
                   />
-                  <Route path="enrollments/:id" element={<EnrollmentDetails />} />
+                  <Route
+                    path="enrollments/:id"
+                    element={<EnrollmentDetails />}
+                  />
+                  <Route
+                    path="/admin/enrollments/upload-excel"
+                    element={<UploadEnrollmentExcel />}
+                  />
                   {/* <Route path="manage-notes" element={<ManageNotes />} /> */}
                 </Route>
               </Route>

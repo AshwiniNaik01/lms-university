@@ -68,11 +68,23 @@ const AddBatch = ({ onBatchSaved }) => {
         getAllCourses(),
         fetchAllTrainers(),
       ]);
+
       setCourses(coursesData || []);
       setTrainers(trainersData || []);
     } catch (err) {
       console.error("Error fetching courses/trainers:", err);
-      Swal.fire("Error", "Failed to fetch courses or trainers.", "error");
+
+      // Check if the error response has the same structure
+      const errorMessage =
+        err.response?.data?.message ||
+        "Failed to fetch Training Program or Trainers.";
+
+      Swal.fire({
+        icon: "warning",
+        title: "Warning",
+        text: errorMessage,
+        confirmButtonText: "OK",
+      });
     }
   };
 
@@ -262,7 +274,7 @@ const AddBatch = ({ onBatchSaved }) => {
             {/* Courses & Trainers */}
             {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
             <MultiSelectDropdown
-              label="Assign Course(s)"
+              label="Assign Training Program(s)"
               name="coursesAssigned"
               options={courses}
               formik={{

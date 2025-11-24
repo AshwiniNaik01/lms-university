@@ -38,6 +38,12 @@ const dashboardCards = [
     link: "/admin/manage-test",
     icon: <FaFileAlt />,
   },
+   {
+    title: "Reference Materials Repository",
+    desc: "Create, manage, and evaluate reference materials.",
+    link: "/admin/manage-notes",
+    icon: <FaFileAlt />,
+  },
   {
     title: "Attendance Tracker",
     desc: "Monitor and manage student attendance across all sessions.",
@@ -66,7 +72,7 @@ const dashboardCards = [
 
 const AdminDashboardPage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-100 via-blue-200 to-pink-100  p-6">
+    <div className="min-h-screen bg-gradient-to-r from-blue-100 via-blue-200 to-pink-100 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Page Header */}
         <header className="mb-12 text-center">

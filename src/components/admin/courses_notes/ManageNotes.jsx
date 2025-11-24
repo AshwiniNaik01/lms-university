@@ -188,7 +188,7 @@ const ManageNotes = () => {
           {/* Optional inline preview */}
           <iframe
             src={DIR.COURSE_NOTES + selectedNote.file}
-            title="Course Note PDF"
+            title="Training Note PDF"
             className="w-full h-64 mt-2 border rounded shadow-sm"
           ></iframe>
         </div>

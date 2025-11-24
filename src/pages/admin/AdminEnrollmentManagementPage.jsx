@@ -124,7 +124,7 @@ const AdminEnrollmentManagementPage = () => {
 
   const columns = [
     {
-      header: "Course Title",
+      header: "Training Title",
       accessor: (row) =>
         row.enrollment.enrolledCourses?.map((c) => c.title).join(", ") || "N/A",
     },

@@ -13,15 +13,19 @@ import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import PDFUploadField from "../../form/PDFUploadField";
 import TextAreaField from "../../form/TextAreaField";
+import { useCourseParam } from "../../hooks/useCourseParam";
 
 export default function AddNotes() {
   const { noteId } = useParams();
   const navigate = useNavigate();
 
   const [availableCourses, setAvailableCourses] = useState([]);
+    const [selectedCourse, setSelectedCourse] = useState("");
   const [availableChapters, setAvailableChapters] = useState([]);
   const [loading, setLoading] = useState(false);
   const [existingFile, setExistingFile] = useState(null);
+  const [selectedCourseFromParam, , isCoursePreselected] = useCourseParam(availableCourses);
+
 
   // ✅ Fetch all courses on mount
   useEffect(() => {
@@ -30,11 +34,20 @@ export default function AddNotes() {
         const courses = await getAllCourses();
         setAvailableCourses(courses);
       } catch (err) {
-        console.error("Failed to load courses:", err);
+        console.error("Failed to load training program:", err);
       }
     };
     fetchCourses();
   }, []);
+
+// ✅ Whenever courses or selectedCourseFromParam change, set selected course
+useEffect(() => {
+  if (selectedCourseFromParam && availableCourses.length > 0) {
+    setSelectedCourse(selectedCourseFromParam);
+    formik.setFieldValue("course", selectedCourseFromParam); // Update Formik value
+    // fetchChapters could also be called here if you want to prefetch chapters
+  }
+}, [selectedCourseFromParam, availableCourses]);
 
   // ✅ Formik setup
   const formik = useFormik({
@@ -47,7 +60,7 @@ export default function AddNotes() {
       file: null,
     },
     validationSchema: Yup.object({
-      course: Yup.string().required("Course is required"),
+      course: Yup.string().required("Training Program is required"),
       chapter: Yup.string().required("Chapter is required"),
       title: Yup.string().required("Title is required"),
       content: Yup.string().required("Content is required"),
@@ -94,7 +107,7 @@ export default function AddNotes() {
         const res = await apiClient.get(`/api/chapters/course/${courseId}`);
         setAvailableChapters(res.data?.data || []);
       } catch (err) {
-        console.error("Failed to load chapters for course:", err);
+        console.error("Failed to load chapters for training program:", err);
         setAvailableChapters([]);
       }
     };
@@ -168,12 +181,28 @@ export default function AddNotes() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Course Dropdown */}
-          <Dropdown
-            label="Course"
+          {/* <Dropdown
+            label="Training Program"
             name="course"
             options={availableCourses}
             formik={formik}
-          />
+          /> */}
+
+
+          <Dropdown
+  label="Training Program"
+  name="course"
+  options={availableCourses}
+  formik={formik}
+  value={selectedCourse} // Controlled value
+  onChange={(e) => {
+    const value = e.target.value;
+    setSelectedCourse(value);          // Update local state
+    formik.setFieldValue("course", value); // Update Formik value
+  }}
+  disabled={isCoursePreselected} // Disable if course comes from URL param
+/>
+
 
           {/* Chapter Dropdown */}
           <Dropdown

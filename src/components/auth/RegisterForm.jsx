@@ -280,12 +280,12 @@ const RegisterForm = () => {
                 Start Your Learning Journey
               </h2>
               <p className="text-blue-100 text-lg mb-8">
-                Join thousands mastering new skills with interactive courses
+                Join thousands mastering new skills with interactive training program
               </p>
             </div>
 
             <div className="space-y-4">
-              <Feature icon="⚡" title="Interactive Courses" desc="Learn by doing with projects" />
+              <Feature icon="⚡" title="Interactive Training Program" desc="Learn by doing with projects" />
               <Feature icon="👥" title="Expert Community" desc="Connect with mentors" />
               <Feature icon="📊" title="Progress Tracking" desc="Monitor your journey" />
             </div>
