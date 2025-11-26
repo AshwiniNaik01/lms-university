@@ -209,7 +209,7 @@ const CourseForm = () => {
   // Handle form submission
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
    
-     const { rolePermissions } = useSelector((state) => state.permissions);
+    //  const { rolePermissions } = useSelector((state) => state.permissions);
 
     
     setError("");
@@ -272,9 +272,9 @@ const CourseForm = () => {
 
       resetForm();
 
-      if(canPerformAction(rolePermissions, "course", "read")){
+      // if(canPerformAction(rolePermissions, "course", "read")){
       navigate("/manage-courses");
-      }
+      // }
     } catch (err) {
       const errorMsg =
         err?.message || err?.response?.data?.message || "Operation failed.";

@@ -98,7 +98,7 @@ const AddMeetingForm = () => {
     }
 
     apiClient
-      .get(`/api/batches/${formik.values.course}`)
+      .get(`/api/batches/course/${formik.values.course}`)
       .then((res) => {
         if (res.data.success && res.data.data.length > 0) {
           setBatches(res.data.data);
