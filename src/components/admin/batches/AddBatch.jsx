@@ -8,6 +8,8 @@ import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import TextAreaField from "../../form/TextAreaField";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const AddBatch = ({ onBatchSaved }) => {
   const { id } = useParams();
@@ -17,6 +19,7 @@ const AddBatch = ({ onBatchSaved }) => {
   const [courses, setCourses] = useState([]);
   const [trainers, setTrainers] = useState([]);
   const [loading, setLoading] = useState(false);
+    const { rolePermissions } = useSelector((state) => state.permissions);
 
   const [formData, setFormData] = useState({
     batchName: "",
@@ -179,6 +182,7 @@ const AddBatch = ({ onBatchSaved }) => {
         });
       }
 
+      // Reset form
       setFormData({
         batchName: "",
         startTime: "",
@@ -191,8 +195,16 @@ const AddBatch = ({ onBatchSaved }) => {
       });
       setSelectedBatchId(null);
 
-      if (onBatchSaved) onBatchSaved();
+      // if (onBatchSaved) onBatchSaved();
+      // navigate("/manage-batches");
+
+      // Conditionally navigate if user has read permission
+    if (canPerformAction(rolePermissions, "batch", "read")) {
       navigate("/manage-batches");
+    } else if (onBatchSaved) {
+      // Optional: trigger callback if needed
+      onBatchSaved();
+    }
     } catch (err) {
       console.error(
         "Error submitting batch:",
@@ -227,12 +239,14 @@ const AddBatch = ({ onBatchSaved }) => {
           <h3 className="text-3xl font-bold text-blue-700 underline">
             {selectedBatchId ? "Update Batch" : "Add Batch"}
           </h3>
+          {canPerformAction(rolePermissions, "batch", "read") && (
           <button
             onClick={() => navigate("/manage-batches")}
             className="text-md bg-[rgba(14,85,200,0.83)] hover:bg-blue-700 px-4 py-2 rounded-md font-bold text-white transition"
           >
             ← Manage Batches
           </button>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">

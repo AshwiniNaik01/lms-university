@@ -126,7 +126,7 @@ export default function AddCurriculum() {
       setLoading(true);
       try {
         // Fetch the phase by ID
-        const phaseResp = await apiClient.get(`/api/phases/p1/${phaseId}`);
+        const phaseResp = await apiClient.get(`/api/phases/${phaseId}`);
         const phaseData = phaseResp.data?.data || phaseResp.data;
 
         if (phaseData?._id) {
@@ -159,7 +159,7 @@ export default function AddCurriculum() {
       setLoading(true);
       try {
         // Fetch phases for the selected course
-        const phasesResp = await apiClient.get(`/api/phases/${courseId}`);
+        const phasesResp = await apiClient.get(`/api/phases/course/${courseId}`);
         setAvailablePhases(phasesResp.data?.data || []);
 
         // Fetch weeks for the selected course
@@ -228,7 +228,7 @@ export default function AddCurriculum() {
         dispatch(setSelectedCourseId(newPhase.course));
 
         const phasesResp = await apiClient.get(
-          `/api/phases/${newPhase.course}`
+          `/api/phases/course/${newPhase.course}`
         );
         setAvailablePhases(phasesResp.data?.data || []);
 

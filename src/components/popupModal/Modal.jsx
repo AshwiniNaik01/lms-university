@@ -89,7 +89,7 @@ const Modal = ({
       </div>
 
       {/* Animation styles */}
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;

@@ -427,21 +427,21 @@ const menuItems = [
       {
         label: "Batches",
         icon: <MdOutlineClass />,
-        module: "batches",
+        module: "batch",
         children: [
           {
             label: "Add Batch",
             icon: <FaGraduationCap />,
             path: "/add-batch",
             action: "create",
-            module: "batches",
+            module: "batch",
           },
           {
             label: "Manage Batches",
             icon: <FaLayerGroup />,
             path: "/manage-batches",
             action: "read",
-            module: "batches",
+            module: "batch",
           },
         ],
       },

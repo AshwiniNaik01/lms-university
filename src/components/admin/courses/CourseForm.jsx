@@ -211,23 +211,6 @@ const CourseForm = () => {
    
      const { rolePermissions } = useSelector((state) => state.permissions);
 
-  // Check if the user has permission to create or update
-  const hasPermission = canPerformAction(
-    rolePermissions,
-    "assignment",
-    id && editCourseData ? "update" : "create"
-  );
-
-  if (!hasPermission) {
-    Swal.fire({
-      icon: "error",
-      title: "Permission Denied",
-      text: "You do not have permission to perform this action.",
-    });
-    setSubmitting(false);
-    return;
-  }
-
     
     setError("");
     setSuccess("");
@@ -288,7 +271,10 @@ const CourseForm = () => {
       }
 
       resetForm();
+
+      if(canPerformAction(rolePermissions, "course", "read")){
       navigate("/manage-courses");
+      }
     } catch (err) {
       const errorMsg =
         err?.message || err?.response?.data?.message || "Operation failed.";

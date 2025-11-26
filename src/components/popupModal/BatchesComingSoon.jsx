@@ -79,7 +79,7 @@ const BatchesComingSoon = ({ course }) => {
         </div>
 
         {/* Custom Animation Styles */}
-        <style jsx="true">{`
+        {/* <style jsx="true">{`
           @keyframes fadeIn {
             from {
               opacity: 0;
@@ -109,7 +109,41 @@ const BatchesComingSoon = ({ course }) => {
           .animate-float {
             animation: float linear infinite;
           }
-        `}</style>
+        `}</style> */}
+
+
+        <style>{`
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-200px) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .animate-float {
+    animation: float linear infinite;
+  }
+`}</style>
+
       </Modal>
     </>
   );

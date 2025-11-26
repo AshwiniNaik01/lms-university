@@ -211,7 +211,8 @@ function App() {
                     </Route> */}
 
               {/* Shared Protected Routes for Student and Admin*/}
-              <Route element={<PrivateRoute roles={["student", "admin"]} />}>
+              {/* <Route element={<PrivateRoute roles={["student", "admin"]} />}> */}
+              <Route element={<PrivateRoute/>}>
                 <Route
                   path="/results/:resultId"
                   element={<ResultDetailPage />}
@@ -219,7 +220,8 @@ function App() {
               </Route>
 
               {/* Student Routes */}
-              <Route element={<PrivateRoute roles={["student"]} />}>
+              {/* <Route element={<PrivateRoute roles={["student"]} />}> */}
+              <Route element={<PrivateRoute/>}>
                 <Route
                   path="/student/dashboard"
                   element={<StudentDashboardPage />}
@@ -252,7 +254,8 @@ function App() {
             /> */}
               </Route>
 
-              <Route element={<PrivateRoute roles={["admin", "trainer"]} />}>
+              {/* <Route element={<PrivateRoute roles={["admin", "trainer"]} />}> */}
+              <Route element={<PrivateRoute/>}>
                 <Route path="/" element={<AdminLayout />}>
                   <Route path="dashboard" element={<AdminDashboardPage />} />
                   <Route path="users" element={<AdminUserManagementPage />} />
@@ -268,7 +271,6 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
                         requiredModule="course"
                         requiredAction="read"
                       />
@@ -280,13 +282,22 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
                         requiredModule="course"
                         requiredAction="create"
                       />
                     }
                   >
                     <Route path="add-courses" element={<CourseForm />} />
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="course"
+                        requiredAction="update"
+                      />
+                    }
+                  >
                     <Route path="courses/edit/:id" element={<CourseForm />} />
                   </Route>
                   {/* <Route path="courses/edit/:id" element={<CourseForm />} /> */}
@@ -324,40 +335,77 @@ function App() {
                   />
                   <Route
                     element={
-                      <PrivateRoute
-                        roles={["admin", "trainer"]}
+                      <PrivateRoute 
                         requiredModule="lecture"
                         requiredAction="create"
                       />
                     }
                   >
                     <Route path="add-course-videos" element={<AddLectures />} />
+                    
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute 
+                        requiredModule="lecture"
+                        requiredAction="update"
+                      />
+                    }
+                  >
                     <Route
                       path="edit-lecture/:lectureId"
                       element={<AddLectures />}
                     />
                   </Route>
                   {/* <Route path="add-course-videos" element={<AddLectures />} /> */}
+
+                   <Route
+                    element={
+                      <PrivateRoute 
+                        requiredModule="lecture"
+                        requiredAction="read"
+                      />
+                    }
+                  >
                   <Route
                     path="manage-course-videos"
                     element={<ManageLectures />}
                   />
+                  </Route>
                   {/* Edit Lecture Route */}
                   {/* <Route
                     path="edit-lecture/:lectureId"
                     element={<AddLectures />}
                   /> */}
+                   <Route
+                    element={
+                      <PrivateRoute 
+                        requiredModule="curriculum"
+                        requiredAction="create"
+                      />
+                    }
+                  >
                   <Route path="add-curriculum" element={<AddCurriculum />} />
+                  </Route>
                   <Route path="profile" element={<ProfilePage />} />
+                    <Route
+                    element={
+                      <PrivateRoute 
+                        requiredModule="curriculum"
+                        requiredAction="read"
+                      />
+                    }
+                  >
                   <Route
                     path="manage-curriculum"
                     element={<ManageCurriculum />}
                   />
+                  </Route>
 
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
                         requiredModule="batch"
                         requiredAction="read"
                       />
@@ -369,21 +417,29 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
                         requiredModule="batch"
                         requiredAction="create"
                       />
                     }
                   >
                     <Route path="add-batch" element={<AddBatch />} />
-                    <Route path="add-batch/:id" element={<AddBatch />} />{" "}
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="batch"
+                        requiredAction="update"
+                      />
+                    }
+                  >
+                    <Route path="add-batch/:id" element={<AddBatch />} />
                   </Route>
                   {/* For editing */}
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
-                        requiredModule="Assignment"
+                        requiredModule="assignment"
                         requiredAction="create"
                       />
                     }
@@ -394,8 +450,7 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
-                        requiredModule="Assignment"
+                        requiredModule="assignment"
                         requiredAction="update"
                       />
                     }
@@ -417,8 +472,7 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
-                        requiredModule="Assignment"
+                        requiredModule="assignment"
                         requiredAction="read"
                       />
                     }
@@ -434,8 +488,7 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
-                        requiredModule="attendance"
+                        requiredModule="Attendance"
                         requiredAction="create"
                       />
                     }
@@ -448,7 +501,6 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
                         requiredModule="notes"
                         requiredAction="create"
                       />
@@ -460,7 +512,6 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
                         requiredModule="notes"
                         requiredAction="read"
                       />
@@ -481,7 +532,6 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
                         requiredModule="enrollment"
                         requiredAction="create"
                       />
@@ -523,7 +573,6 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        roles={["admin", "trainer"]}
                         requiredModule="enrollment"
                         requiredAction="read"
                       />

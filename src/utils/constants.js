@@ -66,4 +66,7 @@ export const DIR = {
 
   // 🏢 Sponsorship
   SPONSOR_LOGO: BASE_URL + "/uploads/sponsorship/logo/",
+
+  // Logo
+  LOGO: BASE_URL +"/uploads/contact/company-logo/"
 };
