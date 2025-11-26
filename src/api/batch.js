@@ -80,7 +80,7 @@ export const updateBatch = async (id, batchData) => {
 // Fetch batches by course ID
 export const fetchBatchesByCourseId = async (courseId) => {
   try {
-    const res = await apiClient.get(`/api/batches/${courseId}`);
+    const res = await apiClient.get(`/api/batches/course/${courseId}`);
     if (res.data && res.data.success) {
       return res.data.data || [];
     } else {
