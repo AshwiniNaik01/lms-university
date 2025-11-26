@@ -40,7 +40,7 @@ export const createPhase = async (phaseData) => {
  */
 // Phases API
 export const getPhasesByCourse = async (courseId) => {
-  const response = await apiClient.get(`/api/phases/${courseId}`);
+  const response = await apiClient.get(`/api/phases/course/${courseId}`);
   return response.data?.data || [];
 };
 

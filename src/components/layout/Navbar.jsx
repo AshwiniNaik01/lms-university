@@ -3,6 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../public/images/codedrift-main-logo.png";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { STUDENT_PORTAL_URL } from "../../utils/constants.js";
+import { useEffect, useState } from "react";
+import { DIR } from "../../utils/constants.js";
+import apiClient from "../../api/axiosConfig.js";
 
 const Navbar = () => {
   const { currentUser, logout, isAdmin, isTrainer } = useAuth();
@@ -10,6 +13,21 @@ const Navbar = () => {
   const studentId = Cookies.get("studentId");
   const isLocal = import.meta.env.VITE_ENV === "development";
   const courseUrl = `${STUDENT_PORTAL_URL}courses`;
+  const [contactInfo, setContactInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const res = await apiClient.get("/api/contactinfo");
+        const data = res.data?.data?.[0];
+        if (data) setContactInfo(data);
+      } catch (err) {
+        console.error("Failed to load contact info:", err);
+      }
+    };
+
+    fetchContactInfo();
+  }, []);
 
   // const handleLogout = () => {
   //   logout();
@@ -28,21 +46,20 @@ const Navbar = () => {
   //   }
   // };
 
-
   const handleLogout = () => {
-  // 1️⃣ Clear cookies & reset auth state
-  logout(); // clears cookies and sets currentUser to null
+    // 1️⃣ Clear cookies & reset auth state
+    logout(); // clears cookies and sets currentUser to null
 
-  // 2️⃣ Redirect based on previous role
-  // Note: currentUser is still available in closure here
-  if (currentUser?.user?.role === "student") {
-    // Student → redirect to external portal
-    window.location.href = STUDENT_PORTAL_URL;
-  } else {
-    // Admin/Trainer → navigate inside app
-    navigate("/login");
-  }
-};
+    // 2️⃣ Redirect based on previous role
+    // Note: currentUser is still available in closure here
+    if (currentUser?.user?.role === "student") {
+      // Student → redirect to external portal
+      window.location.href = STUDENT_PORTAL_URL;
+    } else {
+      // Admin/Trainer → navigate inside app
+      navigate("/login");
+    }
+  };
 
   // const handleLogout = () => {
   //   logout();
@@ -58,13 +75,22 @@ const Navbar = () => {
     <nav className="relative w-full h-16 shadow-md overflow-hidden font-sans">
       {/* Left Side */}
       <div className="absolute top-0 left-0 w-[70%] h-full z-10 flex items-center space-x-6 px-6 py-2">
-        <img
+        {/* <img
           src={logo}
           alt="Code Drift Logo"
           className="h-13 w-auto object-contain"
+        /> */}
+
+        <img
+          src={
+            contactInfo?.logo ? `${DIR.LOGO}${contactInfo.logo}` : logo // fallback to default logo
+          }
+          alt={contactInfo?.companyName || "Code Drift Logo"}
+          className="h-13 w-auto object-contain"
         />
+
         <Link className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5ec2f4] via-[#485DAC] to-[#E9577C]">
-          Code Drift's Falcon
+          {contactInfo?.companyName || "Code Drift's Falcon"}
         </Link>
       </div>
 
@@ -81,10 +107,7 @@ const Navbar = () => {
             {/* Admin links */}
             {isAdmin && (
               <>
-                <Link
-                  to="/dashboard"
-                  className="hover:underline text-white"
-                >
+                <Link to="/dashboard" className="hover:underline text-white">
                   Admin Dashboard
                 </Link>
                 <Link to="/profile" className="hover:underline text-white">

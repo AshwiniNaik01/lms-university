@@ -11,6 +11,10 @@ import {
 import { getAllCourses } from "../../../api/courses";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
+// import { canPerformAction } from "../../../utils/permissionUtils";
+
 
 const ManageBatch = () => {
   const [batches, setBatches] = useState([]);
@@ -19,6 +23,7 @@ const ManageBatch = () => {
   const [noBatchesMessage, setNoBatchesMessage] = useState("");
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { rolePermissions } = useSelector((state) => state.permissions);
   const navigate = useNavigate();
 
   // -------------------- Fetch All Batches --------------------
@@ -188,18 +193,23 @@ const ManageBatch = () => {
           >
             View
           </button>
+          {canPerformAction(rolePermissions, "batch", "update") && (
           <button
             onClick={() => handleEdit(row._id)}
             className="px-2 py-1 rounded-md bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
           >
             Edit
           </button>
+          )}
+
+          {canPerformAction(rolePermissions, "batch", "delete") && (
           <button
             onClick={() => handleDelete(row._id)}
             className="px-2 py-1 rounded-md bg-red-500 text-white hover:bg-red-600 text-sm"
           >
             Delete
           </button>
+          )}
         </div>
       ),
     },
@@ -209,12 +219,14 @@ const ManageBatch = () => {
     <div className="p-8 font-sans bg-white min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-semibold text-gray-800">Manage Batches</h2>
+         {canPerformAction(rolePermissions, "batch", "create") && (
         <button
           onClick={() => navigate("/add-batch")}
           className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 py-2 rounded-lg transition"
         >
           + Add Batch
         </button>
+         )}
       </div>
 
       {/* ---------- Filter Section ---------- */}

@@ -9,13 +9,15 @@ import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const ManageLectures = () => {
   const navigate = useNavigate();
   const [lectures, setLectures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const { rolePermissions } = useSelector((state) => state.permissions);
   const [selectedLecture, setSelectedLecture] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -89,18 +91,22 @@ const ManageLectures = () => {
           >
             View
           </button>
+           {canPerformAction(rolePermissions, "lecture", "update") && (
           <button
             onClick={() => handleEdit(row._id)}
             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
             Edit
           </button>
+           )}
+            {canPerformAction(rolePermissions, "lecture", "delete") && (
           <button
             onClick={() => handleDelete(row._id)}
             className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
           >
             Delete
           </button>
+            )}
         </div>
       ),
     },
@@ -111,12 +117,14 @@ const ManageLectures = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-700">Manage Lectures</h2>
+           {canPerformAction(rolePermissions, "lecture", "create") && (
           <button
             onClick={() => navigate("/add-course-videos")}
             className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
           >
             + Add Lecture
           </button>
+           )}
         </div>
 
         <ScrollableTable columns={columns} data={lectures} maxHeight="600px" />

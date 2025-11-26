@@ -112,7 +112,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
       if (!selectedCourseId) return; // use state that updates when user selects a course
 
       try {
-        const response = await apiClient.get(`/api/phases/${selectedCourseId}`);
+        const response = await apiClient.get(`/api/phases/course/${selectedCourseId}`);
         setPhases(response.data?.data || []);
       } catch (error) {
         console.error("Error fetching phases:", error);
