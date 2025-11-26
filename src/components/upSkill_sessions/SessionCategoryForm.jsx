@@ -178,7 +178,7 @@ const upSkillOptions = [
 
 // New:
 const handleManage = (category) => {
-  navigate(`/admin/session-category/${category.slug}/${category._id}/list`);
+  navigate(`/session-category/${category.slug}/${category._id}/list`);
 };
 
 
@@ -261,7 +261,7 @@ const handleManage = (category) => {
             data-tooltip-content={`Add ${row.slug}`}
             className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition"
             onClick={() =>
-              navigate(`/admin/session-category/${row.slug}/${row._id}/manage`)
+              navigate(`/session-category/${row.slug}/${row._id}/manage`)
             }
           >
             <Plus size={18} />

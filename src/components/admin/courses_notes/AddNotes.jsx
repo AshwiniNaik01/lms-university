@@ -81,7 +81,7 @@ useEffect(() => {
         }
 
         resetForm();
-        navigate("/admin/manage-notes");
+        navigate("/manage-notes");
       } catch (error) {
         console.error(error);
         Swal.fire(
@@ -148,12 +148,12 @@ useEffect(() => {
           if (note.file) setExistingFile(note.file);
         } else {
           Swal.fire("Not Found", "Note not found.", "warning");
-          navigate("/admin/manage-notes");
+          navigate("/manage-notes");
         }
       } catch (err) {
         console.error(err);
         Swal.fire("Error", "Failed to fetch note details.", "error");
-        navigate("/admin/manage-notes");
+        navigate("/manage-notes");
       } finally {
         setLoading(false);
       }

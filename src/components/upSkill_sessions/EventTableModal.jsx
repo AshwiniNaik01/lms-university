@@ -320,7 +320,7 @@ const EventTableModal = ({ isOpen, onClose, categoryId, categorySlug }) => {
           <button
             onClick={() =>
               navigate(
-                `/admin/${activeType}/${categoryId}/manage?type=edit&id=${row._id}`
+                `/${activeType}/${categoryId}/manage?type=edit&id=${row._id}`
               )
             }
             className="text-blue-600 hover:bg-blue-100 p-2 rounded transition"

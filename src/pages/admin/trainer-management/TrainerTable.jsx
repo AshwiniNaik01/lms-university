@@ -207,7 +207,7 @@ const TrainerTable = () => {
             </button>
 
             <button
-              onClick={() => navigate(`/admin/trainers/update/${row._id}`)}
+              onClick={() => navigate(`/trainers/update/${row._id}`)}
               className="p-2 rounded-full bg-yellow-50 hover:bg-yellow-100 text-yellow-600 transition-colors duration-200"
               title="Edit Trainer"
             >

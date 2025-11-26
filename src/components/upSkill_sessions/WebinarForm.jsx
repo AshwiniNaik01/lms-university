@@ -153,7 +153,7 @@ const WebinarForm = () => {
             text: "Webinar updated successfully!",
             icon: "success",
             confirmButtonText: "OK",
-          }).then(() => navigate("/admin/book-session"));
+          }).then(() => navigate("/book-session"));
         } else {
           await createWebinar(formData);
           Swal.fire({
@@ -163,7 +163,7 @@ const WebinarForm = () => {
             confirmButtonText: "OK",
           }).then(() => {
             resetForm();
-            navigate("/admin/book-session");
+            navigate("/book-session");
           });
         }
       } catch (err) {

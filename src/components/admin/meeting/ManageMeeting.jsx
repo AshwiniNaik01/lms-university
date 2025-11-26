@@ -1,204 +1,3 @@
-
-
-// import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import Swal from "sweetalert2";
-// import apiClient from "../../../api/axiosConfig";
-// import Dropdown from "../../form/Dropdown";
-// import Modal from "../../popupModal/Modal";
-// import ScrollableTable from "../../table/ScrollableTable";
-
-// // import Dropdown from "./Dropdown";
-// // import ScrollableTable from "./ScrollableTable";
-// // import Modal from "./Modal";
-
-// const ManageMeeting = () => {
-//   const [batches, setBatches] = useState([]);
-//   const [selectedBatch, setSelectedBatch] = useState("");
-//   const [meetings, setMeetings] = useState([]);
-//   const [selectedMeeting, setSelectedMeeting] = useState(null);
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const navigate = useNavigate();
-
-//   // Fetch batches for dropdown
-//   useEffect(() => {
-//     apiClient
-//       .get("/api/batches/all")
-//       .then((res) => {
-//         console.log("Batches API response:", res.data);
-//         const batchesArray = Array.isArray(res.data.data) ? res.data.data : [];
-//         const formattedBatches = batchesArray.map((batch) => ({
-//           _id: batch._id,
-//           name: batch.batchName,
-//         }));
-//         setBatches(formattedBatches);
-//       })
-//       .catch((err) => console.error("Error fetching batches:", err));
-//   }, []);
-
-//   // Fetch meetings for selected batch
-//   useEffect(() => {
-//     if (!selectedBatch) {
-//       setMeetings([]);
-//       return;
-//     }
-
-//     apiClient
-//       .get(`/api/meetings/batch/${selectedBatch}`)
-//       .then((res) => {
-//         console.log("Meetings API response:", res.data);
-//         const meetingsArray = Array.isArray(res.data.data) ? res.data.data : [];
-//         setMeetings(meetingsArray);
-//       })
-//       .catch((err) => console.error("Error fetching meetings:", err));
-//   }, [selectedBatch]);
-
-//   // Handle "View" button click
-//   const handleView = (meeting) => {
-//     setSelectedMeeting(meeting);
-//     setIsModalOpen(true);
-//   };
-
-//   // Handle "Attendance" navigation
-//   // const handleAttendance = (meeting) => {
-//   //   navigate(`/admin/attendance/${meeting._id}`, {
-//   //     state: { meeting },
-//   //   });
-//   // };
-
-// const handleAttendance = (meeting) => {
-//   if (meeting.attendanceStatus === "Attendance already marked") {
-//     Swal.fire({
-//       icon: "info",
-//       title: "Attendance Already Done",
-//       text: "You have already marked attendance for this meeting.",
-//       confirmButtonText: "OK",
-//     });
-//   } else {
-//     navigate(`/admin/attendance/${meeting._id}`, {
-//       state: { meeting },
-//     });
-//   }
-// };
-
-
-//   const columns = [
-//     { header: "Title", accessor: "title" },
-//     { header: "Platform", accessor: "platform" },
-//     {
-//       header: "Start Time",
-//       accessor: (row) => new Date(row.startTime).toLocaleString(),
-//     },
-//     {
-//       header: "End Time",
-//       accessor: (row) => new Date(row.endTime).toLocaleString(),
-//     },
-//     {
-//       header: "Trainer",
-//       accessor: (row) => row.trainerDetails?.fullName || "-",
-//     },
-//     {
-//       header: "Actions",
-//       accessor: (row) => (
-//         <div className="flex items-center gap-3">
-//           <button
-//             onClick={() => handleView(row)}
-//             className="px-3 py-1.5 bg-indigo-500 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-indigo-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-//           >
-//             View
-//           </button>
-//           <button
-//             onClick={() => handleAttendance(row)}
-//             className="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-green-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-300"
-//           >
-//             Attendance
-//           </button>
-//         </div>
-//       ),
-//     },
-//   ];
-
-//   return (
-//     <div className="p-4">
-//       <h2 className="text-2xl font-bold mb-4">Manage Meetings</h2>
-
-//       {/* Batch Dropdown */}
-//       <Dropdown
-//         label="Batch"
-//         name="batch"
-//         options={batches}
-//         formik={{
-//           values: { batch: selectedBatch },
-//           setFieldValue: (_, value) => setSelectedBatch(value),
-//           touched: {},
-//           errors: {},
-//         }}
-//       />
-
-//       {/* Meetings Table */}
-//    <div className="mt-6">
-//   <ScrollableTable
-//     columns={columns}
-//     data={meetings}
-//     maxHeight="500px"
-//     emptyMessage="Please select the batch"
-//   />
-// </div>
-
-//       {/* View Meeting Modal */}
-//       <Modal
-//         isOpen={isModalOpen}
-//         onClose={() => setIsModalOpen(false)}
-//         header="Meeting Details"
-//       >
-//         {selectedMeeting ? (
-//           <div className="space-y-4">
-//             <div>
-//               <h3 className="text-lg font-semibold text-indigo-700">
-//                 {selectedMeeting.title}
-//               </h3>
-//               <p className="text-gray-600">{selectedMeeting.description}</p>
-//             </div>
-
-//             <div className="grid grid-cols-2 gap-4 text-sm">
-//               <div>
-//                 <span className="font-medium text-gray-700">Platform:</span>{" "}
-//                 {selectedMeeting.platform || "-"}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">Trainer:</span>{" "}
-//                 {selectedMeeting.trainerDetails?.fullName || "-"}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">Start Time:</span>{" "}
-//                 {new Date(selectedMeeting.startTime).toLocaleString()}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">End Time:</span>{" "}
-//                 {new Date(selectedMeeting.endTime).toLocaleString()}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">Batch:</span>{" "}
-//                 {selectedMeeting.batchDetails?.batchName || "-"}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">Meeting ID:</span>{" "}
-//                 {selectedMeeting.meetingId}
-//               </div>
-//             </div>
-//           </div>
-//         ) : (
-//           <p className="text-gray-600">No meeting selected.</p>
-//         )}
-//       </Modal>
-//     </div>
-//   );
-// };
-
-// export default ManageMeeting;
-
-
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -206,277 +5,6 @@ import apiClient from "../../../api/axiosConfig";
 import Dropdown from "../../form/Dropdown";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
-
-// const ManageMeeting = () => {
-//   const [batches, setBatches] = useState([]);
-//   const [selectedBatch, setSelectedBatch] = useState("");
-//   const [meetings, setMeetings] = useState([]);
-//   const [selectedMeeting, setSelectedMeeting] = useState(null);
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false); // 🆕 NEW
-//   const [attendanceData, setAttendanceData] = useState(null); // 🆕 NEW
-//   const navigate = useNavigate();
-
-//   // Fetch batches for dropdown
-//   useEffect(() => {
-//     apiClient
-//       .get("/api/batches/all")
-//       .then((res) => {
-//         const batchesArray = Array.isArray(res.data.data) ? res.data.data : [];
-//         const formattedBatches = batchesArray.map((batch) => ({
-//           _id: batch._id,
-//           name: batch.batchName,
-//         }));
-//         setBatches(formattedBatches);
-//       })
-//       .catch((err) => console.error("Error fetching batches:", err));
-//   }, []);
-
-//   // Fetch meetings for selected batch
-//   useEffect(() => {
-//     if (!selectedBatch) {
-//       setMeetings([]);
-//       return;
-//     }
-
-//     apiClient
-//       .get(`/api/meetings/batch/${selectedBatch}`)
-//       .then((res) => {
-//         const meetingsArray = Array.isArray(res.data.data) ? res.data.data : [];
-//         setMeetings(meetingsArray);
-//       })
-//       .catch((err) => console.error("Error fetching meetings:", err));
-//   }, [selectedBatch]);
-
-//   // Handle "View" button click
-//   const handleView = (meeting) => {
-//     setSelectedMeeting(meeting);
-//     setIsModalOpen(true);
-//   };
-
-//   // Handle "Attendance" navigation
-//   const handleAttendance = (meeting) => {
-//     if (meeting.attendanceStatus === "Attendance already marked") {
-//       Swal.fire({
-//         icon: "info",
-//         title: "Attendance Already Done",
-//         text: "You have already marked attendance for this meeting.",
-//         confirmButtonText: "OK",
-//       });
-//     } else {
-//       navigate(`/admin/attendance/${meeting._id}`, {
-//         state: { meeting },
-//       });
-//     }
-//   };
-
-//   // 🆕 Handle "View Attendance List"
-//   const handleViewAttendance = async (meeting) => {
-//   try {
-//     const res = await apiClient.get(`/api/attendance/meeting/${meeting._id}`);
-//     if (res.data.success) {
-//       setAttendanceData(res.data.data);
-//       setAttendanceModalOpen(true);
-//     } else {
-//       Swal.fire("Info", "No attendance records found for this meeting.", "info");
-//     }
-//   } catch (err) {
-//     console.error(err);
-//     Swal.fire("Error", "Failed to fetch attendance data.", "error");
-//   }
-// };
-
-
-//   // 🧾 Columns for meetings table
-//   const columns = [
-//     { header: "Title", accessor: "title" },
-//     { header: "Platform", accessor: "platform" },
-//     {
-//       header: "Start Time",
-//       accessor: (row) => new Date(row.startTime).toLocaleString(),
-//     },
-//     {
-//       header: "End Time",
-//       accessor: (row) => new Date(row.endTime).toLocaleString(),
-//     },
-//     {
-//       header: "Trainer",
-//       accessor: (row) => row.trainerDetails?.fullName || "-",
-//     },
-//     {
-//       header: "Actions",
-//       accessor: (row) => (
-//         <div className="flex items-center gap-3">
-//           <button
-//             onClick={() => handleView(row)}
-//             className="px-3 py-1.5 bg-indigo-500 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-indigo-600 transition-all"
-//           >
-//             View
-//           </button>
-//           <button
-//             onClick={() => handleAttendance(row)}
-//             className="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-green-600 transition-all"
-//           >
-//             Attendance
-//           </button>
-
-//           {/* 🆕 NEW BUTTON */}
-//           <button
-//             onClick={() => handleViewAttendance(row)}
-//             className="px-3 py-1.5 bg-purple-500 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-purple-600 transition-all"
-//           >
-//             View Attendance
-//           </button>
-//         </div>
-//       ),
-//     },
-//   ];
-
-//   return (
-//     <div className="p-4">
-//       <h2 className="text-2xl font-bold mb-4">Manage Meetings</h2>
-
-//       {/* Batch Dropdown */}
-//       <Dropdown
-//         label="Batch"
-//         name="batch"
-//         options={batches}
-//         formik={{
-//           values: { batch: selectedBatch },
-//           setFieldValue: (_, value) => setSelectedBatch(value),
-//           touched: {},
-//           errors: {},
-//         }}
-//       />
-
-//       {/* Meetings Table */}
-//       <div className="mt-6">
-//         <ScrollableTable
-//           columns={columns}
-//           data={meetings}
-//           maxHeight="500px"
-//           emptyMessage="Please select the batch"
-//         />
-//       </div>
-
-//       {/* View Meeting Modal */}
-//       <Modal
-//         isOpen={isModalOpen}
-//         onClose={() => setIsModalOpen(false)}
-//         header="Meeting Details"
-//       >
-//         {selectedMeeting ? (
-//           <div className="space-y-4">
-//             <div>
-//               <h3 className="text-lg font-semibold text-indigo-700">
-//                 {selectedMeeting.title}
-//               </h3>
-//               <p className="text-gray-600">{selectedMeeting.description}</p>
-//             </div>
-
-//             <div className="grid grid-cols-2 gap-4 text-sm">
-//               <div>
-//                 <span className="font-medium text-gray-700">Platform:</span>{" "}
-//                 {selectedMeeting.platform || "-"}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">Trainer:</span>{" "}
-//                 {selectedMeeting.trainerDetails?.fullName || "-"}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">Start Time:</span>{" "}
-//                 {new Date(selectedMeeting.startTime).toLocaleString()}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">End Time:</span>{" "}
-//                 {new Date(selectedMeeting.endTime).toLocaleString()}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">Batch:</span>{" "}
-//                 {selectedMeeting.batchDetails?.batchName || "-"}
-//               </div>
-//               <div>
-//                 <span className="font-medium text-gray-700">Meeting ID:</span>{" "}
-//                 {selectedMeeting.meetingId}
-//               </div>
-//             </div>
-//           </div>
-//         ) : (
-//           <p className="text-gray-600">No meeting selected.</p>
-//         )}
-//       </Modal>
-
-//       {/* 🆕 Attendance List Modal */}
-//       <Modal
-//         isOpen={attendanceModalOpen}
-//         onClose={() => setAttendanceModalOpen(false)}
-//         header="Attendance Details"
-//       >
-//         {attendanceData ? (
-//           <div className="space-y-5">
-//             {/* Summary */}
-//             <div className="flex justify-around text-center font-semibold">
-//               <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-sm">
-//                 Present: {attendanceData.presentCount || 0}
-//               </div>
-//               <div className="bg-red-100 text-red-800 px-4 py-2 rounded-lg shadow-sm">
-//                 Absent: {attendanceData.absentCount || 0}
-//               </div>
-//             </div>
-
-//             {/* Table */}
-//             <div className="mt-4 border rounded-lg overflow-hidden shadow-sm">
-//               <table className="w-full text-sm">
-//                 <thead className="bg-indigo-50 text-indigo-900">
-//                   <tr>
-//                     <th className="px-4 py-2 text-left">Student Name</th>
-//                     <th className="px-4 py-2 text-left">Email</th>
-//                     <th className="px-4 py-2 text-left">Status</th>
-//                   </tr>
-//                 </thead>
-//                 <tbody>
-//                   {attendanceData.students?.length ? (
-//                     attendanceData.students.map((s, idx) => (
-//                       <tr
-//                         key={idx}
-//                         className="border-b last:border-none hover:bg-indigo-50"
-//                       >
-//                         <td className="px-4 py-2">{s.fullName}</td>
-//                         <td className="px-4 py-2">{s.email}</td>
-//                         <td
-//                           className={`px-4 py-2 font-medium ${
-//                             s.status === "Present"
-//                               ? "text-green-600"
-//                               : "text-red-600"
-//                           }`}
-//                         >
-//                           {s.status}
-//                         </td>
-//                       </tr>
-//                     ))
-//                   ) : (
-//                     <tr>
-//                       <td
-//                         colSpan="3"
-//                         className="text-center py-4 text-gray-500 italic"
-//                       >
-//                         No attendance data available.
-//                       </td>
-//                     </tr>
-//                   )}
-//                 </tbody>
-//               </table>
-//             </div>
-//           </div>
-//         ) : (
-//           <p className="text-gray-500">Loading attendance data...</p>
-//         )}
-//       </Modal>
-//     </div>
-//   );
-// };
-
-
 
 const ManageMeeting = () => {
   const [batches, setBatches] = useState([]);
@@ -539,66 +67,68 @@ const ManageMeeting = () => {
         confirmButtonText: "OK",
       });
     } else {
-      navigate(`/admin/attendance/${meeting._id}`, { state: { meeting } });
+      navigate(`/attendance/${meeting._id}`, { state: { meeting } });
     }
   };
 
   // 🧩 View attendance data (popup modal)
-// 🧩 View attendance data (popup modal)
-const handleViewAttendance = async (meeting) => {
-  try {
-    setLoadingAttendance(true); // start loading
-    const res = await apiClient.get(`/api/attendance/meeting/${meeting._id}`);
+  // 🧩 View attendance data (popup modal)
+  const handleViewAttendance = async (meeting) => {
+    try {
+      setLoadingAttendance(true); // start loading
+      const res = await apiClient.get(`/api/attendance/meeting/${meeting._id}`);
 
-    if (res.data.success && res.data.data?.record) {
-      const record = res.data.data.record;
+      if (res.data.success && res.data.data?.record) {
+        const record = res.data.data.record;
 
-      // Calculate counts in case API doesn't provide correct ones
-      const students = record.attendees?.map(a => ({
-        fullName: a.studentDetails?.fullName || "-",
-        email: a.studentDetails?.email || "-",
-        mobileNo: a.studentDetails?.mobileNo || "-",
-        program: a.studentDetails?.selectedProgram || "-",
-        status: a.present ? "Present" : "Absent",
-      })) || [];
+        // Calculate counts in case API doesn't provide correct ones
+        const students =
+          record.attendees?.map((a) => ({
+            fullName: a.studentDetails?.fullName || "-",
+            email: a.studentDetails?.email || "-",
+            mobileNo: a.studentDetails?.mobileNo || "-",
+            program: a.studentDetails?.selectedProgram || "-",
+            status: a.present ? "Present" : "Absent",
+          })) || [];
 
-      const presentCount = students.filter(s => s.status === "Present").length;
-      const absentCount = students.filter(s => s.status === "Absent").length;
+        const presentCount = students.filter(
+          (s) => s.status === "Present"
+        ).length;
+        const absentCount = students.filter(
+          (s) => s.status === "Absent"
+        ).length;
 
-      const formattedData = {
-        presentCount,
-        absentCount,
-        students,
-      };
+        const formattedData = {
+          presentCount,
+          absentCount,
+          students,
+        };
 
-      setAttendanceData(formattedData);
-      setAttendanceModalOpen(true);
-    } else {
+        setAttendanceData(formattedData);
+        setAttendanceModalOpen(true);
+      } else {
+        const message =
+          res.data.message || "No attendance records found for this meeting.";
+        Swal.fire("Info", message, "info");
+        setAttendanceData(null);
 
-       const message = res.data.message || "No attendance records found for this meeting.";
-      Swal.fire("Info", message, "info");
-      setAttendanceData(null);
-    
-      // Swal.fire("Info", "No attendance records found for this meeting.", "info");
-      // setAttendanceData(null);
-    }
-  } catch (err) {
-
+        // Swal.fire("Info", "No attendance records found for this meeting.", "info");
+        // setAttendanceData(null);
+      }
+    } catch (err) {
       console.error(err);
-    // If backend provides a message in error response
-    const message = err.response?.data?.message || "Failed to fetch attendance data.";
-    Swal.fire("Warning", message, "warning");
-    setAttendanceData(null);
-    // console.error(err);
-    // Swal.fire("Error", "Failed to fetch attendance data.", "error");
-    // setAttendanceData(null);
-  } finally {
-    setLoadingAttendance(false); // stop loading
-  }
-};
-
-
-
+      // If backend provides a message in error response
+      const message =
+        err.response?.data?.message || "Failed to fetch attendance data.";
+      Swal.fire("Warning", message, "warning");
+      setAttendanceData(null);
+      // console.error(err);
+      // Swal.fire("Error", "Failed to fetch attendance data.", "error");
+      // setAttendanceData(null);
+    } finally {
+      setLoadingAttendance(false); // stop loading
+    }
+  };
 
   // 🧾 Columns for meetings table
   const columns = [
@@ -725,7 +255,9 @@ const handleViewAttendance = async (meeting) => {
         header="Attendance Details"
       >
         {loadingAttendance ? (
-          <p className="text-gray-500 text-center py-4">Loading attendance...</p>
+          <p className="text-gray-500 text-center py-4">
+            Loading attendance...
+          </p>
         ) : attendanceData ? (
           <div className="space-y-5">
             {/* Summary Counts */}
@@ -739,42 +271,48 @@ const handleViewAttendance = async (meeting) => {
             </div>
 
             {/* Students Table */}
-           {/* Students Table */}
-<div className="mt-4 border rounded-lg overflow-hidden shadow-sm">
-  <table className="w-full text-sm">
-    <thead className="bg-indigo-50 text-indigo-900">
-      <tr>
-        <th className="px-4 py-2 text-left">Student Name</th>
-        <th className="px-4 py-2 text-left">Email</th>
-        <th className="px-4 py-2 text-left">Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {attendanceData.students?.length ? (
-        attendanceData.students.map((s, idx) => (
-          <tr key={idx} className="border-b last:border-none hover:bg-indigo-50">
-            <td className="px-4 py-2">{s.fullName}</td>
-            <td className="px-4 py-2">{s.email}</td>
-            <td
-              className={`px-4 py-2 font-medium ${
-                s.status === "Present" ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {s.status}
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr>
-          <td colSpan="3" className="text-center py-4 text-gray-500 italic">
-            No attendance data available.
-          </td>
-        </tr>
-      )}
-    </tbody>
-  </table>
-</div>
-
+            <div className="mt-4 border rounded-lg overflow-hidden shadow-sm">
+              <table className="w-full text-sm">
+                <thead className="bg-indigo-50 text-indigo-900">
+                  <tr>
+                    <th className="px-4 py-2 text-left">Student Name</th>
+                    <th className="px-4 py-2 text-left">Email</th>
+                    <th className="px-4 py-2 text-left">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attendanceData.students?.length ? (
+                    attendanceData.students.map((s, idx) => (
+                      <tr
+                        key={idx}
+                        className="border-b last:border-none hover:bg-indigo-50"
+                      >
+                        <td className="px-4 py-2">{s.fullName}</td>
+                        <td className="px-4 py-2">{s.email}</td>
+                        <td
+                          className={`px-4 py-2 font-medium ${
+                            s.status === "Present"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {s.status}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="3"
+                        className="text-center py-4 text-gray-500 italic"
+                      >
+                        No attendance data available.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         ) : (
           <p className="text-gray-500 text-center">No data to display.</p>
@@ -783,6 +321,5 @@ const handleViewAttendance = async (meeting) => {
     </div>
   );
 };
-
 
 export default ManageMeeting;

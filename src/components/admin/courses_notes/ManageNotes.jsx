@@ -36,7 +36,7 @@ const ManageNotes = () => {
 
   // Navigate to edit page
   const handleEdit = (id) => {
-    navigate(`/admin/edit-note/${id}`);
+    navigate(`/edit-note/${id}`);
   };
 
   // Delete note with SweetAlert2
@@ -121,7 +121,7 @@ const ManageNotes = () => {
       <div className="flex justify-between items-center px-8 py-2 bg-white shadow-md z-10">
         <h2 className="text-2xl font-bold text-gray-700">Manage Study Material</h2>
         <button
-          onClick={() => navigate("/admin/add-notes")}
+          onClick={() => navigate("/add-notes")}
           className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
         >
           + Add Study Material

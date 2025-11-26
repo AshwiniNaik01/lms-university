@@ -45,7 +45,7 @@ const ManageLectures = () => {
   };
 
   const handleEdit = (lectureId) => {
-    navigate(`/admin/edit-lecture/${lectureId}`);
+    navigate(`/edit-lecture/${lectureId}`);
   };
 
   const handleDelete = async (lectureId) => {
@@ -112,7 +112,7 @@ const ManageLectures = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-700">Manage Lectures</h2>
           <button
-            onClick={() => navigate("/admin/add-course-videos")}
+            onClick={() => navigate("/add-course-videos")}
             className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
           >
             + Add Lecture

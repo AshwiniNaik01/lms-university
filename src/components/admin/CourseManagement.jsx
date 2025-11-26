@@ -675,7 +675,7 @@ const CourseManagement = () => {
                         </button>
                         <button
                           onClick={() =>
-                            navigate(`/admin/course/${course._id}/content`)
+                            navigate(`/course/${course._id}/content`)
                           }
                           className="text-indigo-600 hover:text-indigo-800"
                         >

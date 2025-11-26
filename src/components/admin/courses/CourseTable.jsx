@@ -20,8 +20,11 @@ import {
   getAllCourses,
 } from "../../../api/courses";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useSelector } from "react-redux";
+// import { canPerformAction } from "../../../utils/permissions";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const CourseTable = () => {
   const { token } = useAuth();
@@ -29,6 +32,7 @@ const CourseTable = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+  const { rolePermissions } = useSelector((state) => state.permissions);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,6 +63,15 @@ const CourseTable = () => {
   }, []);
 
   const handleDelete = async (id) => {
+  if (!canPerformAction(rolePermissions, "course", "delete")) {
+      Swal.fire({
+        icon: "error",
+        title: "Permission Denied",
+        text: "You do not have permission to delete this Training Program.",
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: "Are you sure?",
       text: "Do you really want to delete this Training Program?",
@@ -119,6 +132,15 @@ const CourseTable = () => {
   // Clone course function
   // 3️⃣ Use it in handleClone
   const handleClone = async (id) => {
+      if (!canPerformAction(rolePermissions, "course", "create")) {
+      Swal.fire({
+        icon: "error",
+        title: "Permission Denied",
+        text: "You do not have permission to clone this Training Program.",
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: "Are you sure?",
       text: "Do you want to clone this Training Program?",
@@ -173,18 +195,20 @@ const CourseTable = () => {
           </button>
 
           {/* Edit */}
+           {canPerformAction(rolePermissions, "course", "update") && (
           <button
-            onClick={() => navigate(`/admin/courses/edit/${row._id}`)}
+            onClick={() => navigate(`/courses/edit/${row._id}`)}
             title="Edit"
             className="p-2 bg-amber-400 text-white rounded hover:bg-amber-500"
           >
             <FaEdit size={16} />
           </button>
+           )}
 
           {/* Add Curriculum */}
           <button
             onClick={() =>
-              navigate(`/admin/add-curriculum?type=phase&courseId=${row._id}`)
+              navigate(`/add-curriculum?type=phase&courseId=${row._id}`)
             }
             title="Add Curriculum"
             className="p-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
@@ -193,6 +217,7 @@ const CourseTable = () => {
           </button>
 
           {/* Clone */}
+           {canPerformAction(rolePermissions, "course", "create") && (
           <button
             onClick={() => handleClone(row._id)}
             title="Clone"
@@ -200,11 +225,12 @@ const CourseTable = () => {
           >
             <FaClone size={16} />
           </button>
+           )}
 
           {/* Add Recording */}
           <button
             onClick={() =>
-              navigate(`/admin/add-course-videos?courseId=${row._id}`)
+              navigate(`/add-course-videos?courseId=${row._id}`)
             }
             title="Add Recording"
             className="p-2 bg-orange-600 text-white rounded hover:bg-orange-700"
@@ -215,7 +241,7 @@ const CourseTable = () => {
           {/* Manage Curriculum */}
           <button
             onClick={() =>
-              navigate(`/admin/manage-curriculum?courseId=${row._id}`)
+              navigate(`/manage-curriculum?courseId=${row._id}`)
             }
             title="Manage Curriculum"
             className="p-2  bg-teal-600 text-white rounded hover:bg-teal-700"
@@ -226,7 +252,7 @@ const CourseTable = () => {
           {/* Add Assignment */}
           <button
             onClick={() =>
-              navigate(`/admin/add-assignment?courseId=${row._id}`)
+              navigate(`/add-assignment?courseId=${row._id}`)
             }
             title="Add Assignment"
             className="p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
@@ -236,7 +262,7 @@ const CourseTable = () => {
 
           {/* Add Notes */}
           <button
-            onClick={() => navigate(`/admin/add-notes?courseId=${row._id}`)}
+            onClick={() => navigate(`/add-notes?courseId=${row._id}`)}
             title="Add Reference Material Repository"
             className="p-2 bg-fuchsia-600 text-white rounded hover:bg-fuchsia-700"
           >
@@ -245,7 +271,7 @@ const CourseTable = () => {
 
           {/* Add Test */}
           <button
-            onClick={() => navigate(`/admin/add-test?courseId=${row._id}`)}
+            onClick={() => navigate(`/add-test?courseId=${row._id}`)}
             title="Add Assessment Test"
             className="p-2 bg-cyan-600 text-white rounded hover:bg-cyan-700"
           >
@@ -253,6 +279,7 @@ const CourseTable = () => {
           </button>
 
           {/* Delete */}
+          {canPerformAction(rolePermissions, "course", "delete") && (
           <button
             onClick={() => handleDelete(row._id)}
             disabled={deletingId === row._id}
@@ -261,6 +288,7 @@ const CourseTable = () => {
           >
             <FaTrash size={16} />
           </button>
+          )}
         </div>
       ),
     },
@@ -281,7 +309,7 @@ const CourseTable = () => {
           Manage Training Program
         </h2>
         <button
-          onClick={() => navigate("/admin/add-courses")}
+          onClick={() => navigate("/add-courses")}
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-all duration-200"
         >
           + Create New Training Program

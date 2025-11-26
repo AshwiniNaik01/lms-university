@@ -26,7 +26,7 @@ const columns = [
       <div className="flex gap-2">
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all"
-          onClick={() => navigate(`/admin/view-excel/${row._id}`)}
+          onClick={() => navigate(`/view-excel/${row._id}`)}
         >
           📂 View
         </button>
@@ -108,7 +108,7 @@ const fetchTests = async () => {
       <h2 className="text-3xl font-bold text-gray-800">All Tests 📘</h2>
       <button
         className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition-all"
-        onClick={() => navigate("/admin/add-test")}
+        onClick={() => navigate("/add-test")}
       >
         + Add New Assessment Test
       </button>

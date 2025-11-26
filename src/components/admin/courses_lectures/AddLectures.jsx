@@ -86,7 +86,7 @@ export default function AddLectures() {
             confirmButtonColor: "#0e55c8",
           }).then(() => {
             resetForm();
-            navigate("/admin/manage-course-videos");
+            navigate("/manage-course-videos");
           });
         } else {
           await apiClient.post("/api/lectures", formData, {
@@ -100,12 +100,12 @@ export default function AddLectures() {
             confirmButtonColor: "#0e55c8",
           }).then(() => {
             resetForm();
-            navigate("/admin/manage-course-videos");
+            navigate("/manage-course-videos");
           });
         }
 
         resetForm();
-        navigate("/admin/manage-course-videos");
+        navigate("/manage-course-videos");
       } catch (error) {
         console.error(error);
         alert(
@@ -246,12 +246,12 @@ useEffect(() => {
           });
         } else {
           alert("Lecture not found");
-          navigate("/admin/manage-course-videos");
+          navigate("/manage-course-videos");
         }
       } catch (err) {
         console.error(err);
         alert("Failed to fetch lecture");
-        navigate("/admin/manage-course-videos");
+        navigate("/manage-course-videos");
       } finally {
         setLoading(false);
       }

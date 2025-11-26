@@ -5,7 +5,7 @@ import apiClient from "./axiosConfig";
  * @returns {Promise<Object>}
  */
 export const createAssignment = async (formData) => {
-  const res = await apiClient.post("/api/assignments", formData, {
+  const res = await apiClient.post("/api/assignments/create", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;

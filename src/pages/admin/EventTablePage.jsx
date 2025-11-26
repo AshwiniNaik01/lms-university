@@ -67,7 +67,7 @@ const EventTablePage = ({ isOpen, onClose, onEdit }) => {
         <div className="flex gap-3">
           <button
             onClick={() =>
-              navigate(`/admin/session-category/${row.category?._id}/manage`)
+              navigate(`/session-category/${row.category?._id}/manage`)
             }
             className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center gap-1"
           >

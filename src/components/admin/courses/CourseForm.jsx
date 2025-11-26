@@ -18,6 +18,11 @@ import MultiSelectDropdown from "../../form/MultiSelectDropdown.jsx";
 import TextAreaField from "../../form/TextAreaField.jsx";
 import ToggleSwitch from "../../form/ToggleSwitch.jsx";
 import { FaUpload } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils.js";
+
+// import { canPerformAction } from "../../../utils/permissions"; // your helper
+
 
 const CourseForm = () => {
   const [editCourseData, setEditCourseData] = useState(null);
@@ -29,6 +34,8 @@ const CourseForm = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams();
+  // const { rolePermissions } = useSelector((state) => state.permissions);
+
 
   // Initial Form Values
   const initialValues = {
@@ -201,6 +208,27 @@ const CourseForm = () => {
 
   // Handle form submission
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+   
+     const { rolePermissions } = useSelector((state) => state.permissions);
+
+  // Check if the user has permission to create or update
+  const hasPermission = canPerformAction(
+    rolePermissions,
+    "assignment",
+    id && editCourseData ? "update" : "create"
+  );
+
+  if (!hasPermission) {
+    Swal.fire({
+      icon: "error",
+      title: "Permission Denied",
+      text: "You do not have permission to perform this action.",
+    });
+    setSubmitting(false);
+    return;
+  }
+
+    
     setError("");
     setSuccess("");
     setIsLoading(true);
@@ -260,7 +288,7 @@ const CourseForm = () => {
       }
 
       resetForm();
-      navigate("/admin/manage-courses");
+      navigate("/manage-courses");
     } catch (err) {
       const errorMsg =
         err?.message || err?.response?.data?.message || "Operation failed.";

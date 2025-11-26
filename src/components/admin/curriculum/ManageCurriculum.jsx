@@ -641,7 +641,7 @@ const ManageCurriculum = () => {
   <button
     onClick={() =>
       navigate(
-        `/admin/add-curriculum?type=chapter&weekId=${week._id}&courseId=${selectedCourse}`
+        `/add-curriculum?type=chapter&weekId=${week._id}&courseId=${selectedCourse}`
       )
     }
     className="bg-amber-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-amber-600 transition-all flex items-center gap-2"
@@ -661,7 +661,7 @@ const ManageCurriculum = () => {
                                 </p>
                                 <button
                                   onClick={() =>
-                                    navigate(`/admin/add-curriculum?weekId=${week._id}`)
+                                    navigate(`/add-curriculum?weekId=${week._id}`)
                                   }
                                   className="bg-amber-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-amber-600 transition-all flex items-center gap-2 mx-auto"
                                 >
@@ -691,7 +691,7 @@ const ManageCurriculum = () => {
   <button
     onClick={() =>
       navigate(
-        `/admin/add-curriculum?type=week&phaseId=${phase._id}&courseId=${selectedCourse}`
+        `/add-curriculum?type=week&phaseId=${phase._id}&courseId=${selectedCourse}`
       )
     }
     className="bg-green-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-600 transition-all flex items-center gap-2"
@@ -721,7 +721,7 @@ const ManageCurriculum = () => {
             <div className="flex justify-center pt-6">
   <button
     onClick={() =>
-      navigate(`/admin/add-curriculum?type=phase&courseId=${selectedCourse}`)
+      navigate(`/add-curriculum?type=phase&courseId=${selectedCourse}`)
     }
     className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl transition-all flex items-center gap-2 text-lg"
   >
@@ -743,7 +743,7 @@ const ManageCurriculum = () => {
               This training program doesn't have any curriculum yet.
             </p>
             <button
-              onClick={() => navigate(`/admin/add-curriculum?courseId=${selectedCourse}`)}
+              onClick={() => navigate(`/add-curriculum?courseId=${selectedCourse}`)}
               className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl transition-all"
             >
               🚀 Create Curriculum

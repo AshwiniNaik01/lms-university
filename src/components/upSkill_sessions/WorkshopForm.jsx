@@ -177,7 +177,7 @@ const WorkshopForm = () => {
           resetForm();
         }
 
-        navigate("/admin/book-session"); // ✅ Navigate after OK click
+        navigate("/book-session"); // ✅ Navigate after OK click
       } catch (error) {
         console.error("Error during submission:", error);
          // Show backend error in the form

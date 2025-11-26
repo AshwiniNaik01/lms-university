@@ -135,7 +135,7 @@ const EnrollStudentForm = () => {
 
         if (res.data.success) {
           Swal.fire("✅ Success", res.data.message, "success").then(() => {
-            navigate("/admin/enrolled-student-list");
+            navigate("/enrolled-student-list");
           });
 
           resetForm();
@@ -475,7 +475,7 @@ const EnrollStudentForm = () => {
           {/* Excel Upload Button */}
           <button
             type="button"
-            onClick={() => navigate("/admin/enrollments/upload-excel")}
+            onClick={() => navigate("/enrollments/upload-excel")}
             className="w-full md:w-auto px-6 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition font-semibold"
           >
             Upload Students via Excel/CSV

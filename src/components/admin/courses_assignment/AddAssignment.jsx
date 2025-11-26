@@ -16,6 +16,8 @@ import InputField from "../../form/InputField";
 import PDFUploadField from "../../form/PDFUploadField";
 import TextAreaField from "../../form/TextAreaField";
 import { useCourseParam } from "../../hooks/useCourseParam";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 export default function AddAssignment() {
   const { assignmentId } = useParams();
@@ -23,6 +25,7 @@ export default function AddAssignment() {
 
   const [availableCourses, setAvailableCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState("");
+  const rolePermissions = useSelector((state) => state.permissions.rolePermissions);
 
   const [availableChapters, setAvailableChapters] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -63,54 +66,107 @@ export default function AddAssignment() {
       fileUrl: null,
     },
     validationSchema: Yup.object({
-      course: Yup.string().required("Training Program is required"),
-      chapter: Yup.string().required("Chapter is required"),
-      title: Yup.string().required("Title is required"),
-      description: Yup.string().required("Description is required"),
-      deadline: Yup.string().required("Deadline is required"),
+      // course: Yup.string().required("Training Program is required"),
+      // chapter: Yup.string().required("Chapter is required"),
+      // title: Yup.string().required("Title is required"),
+      // description: Yup.string().required("Description is required"),
+      // deadline: Yup.string().required("Deadline is required"),
     }),
-    onSubmit: async (values, { resetForm }) => {
-      try {
-        const formData = new FormData();
-        Object.entries(values).forEach(([key, value]) => {
-          if (value) formData.append(key, value);
-        });
+    // onSubmit: async (values, { resetForm }) => {
+    //   try {
+    //     const formData = new FormData();
+    //     Object.entries(values).forEach(([key, value]) => {
+    //       if (value) formData.append(key, value);
+    //     });
 
-        if (assignmentId) {
-          const res = await updateAssignment(assignmentId, formData);
-          Swal.fire({
-            // toast: true,
-            // position: "top-end",
-            icon: "success",
-            title: res.message || "Assignment updated successfully!",
-            showConfirmButton: true,
-            // timer: 3000,
-            // timerProgressBar: true,
-          });
-        } else {
-          const res = await createAssignment(formData);
-          Swal.fire({
-            // toast: true,
-            // position: "top-end",
-            icon: "success",
-            title: res.message || "Assignment created successfully!",
-            showConfirmButton: true,
-            // timer: 3000,
-            // timerProgressBar: true,
-          });
-        }
+    //     if (assignmentId) {
+    //       const res = await updateAssignment(assignmentId, formData);
+    //       Swal.fire({
+    //         // toast: true,
+    //         // position: "top-end",
+    //         icon: "success",
+    //         title: res.message || "Assignment updated successfully!",
+    //         showConfirmButton: true,
+    //         // timer: 3000,
+    //         // timerProgressBar: true,
+    //       });
+    //     } else {
+    //       const res = await createAssignment(formData);
+    //       Swal.fire({
+    //         // toast: true,
+    //         // position: "top-end",
+    //         icon: "success",
+    //         title: res.message || "Assignment created successfully!",
+    //         showConfirmButton: true,
+    //         // timer: 3000,
+    //         // timerProgressBar: true,
+    //       });
+    //     }
 
-        resetForm();
-        navigate("/admin/manage-assignments");
-      } catch (err) {
-        Swal.fire({
-          icon: "error",
-          title: "Submission failed!",
-          text:
-            err.response?.data?.message || err.message || "Please Try Again !",
-        });
-      }
-    },
+    //     resetForm();
+    //     navigate("/manage-assignments");
+    //   } catch (err) {
+    //     Swal.fire({
+    //       icon: "error",
+    //       title: "Submission failed!",
+    //       text:
+    //         err.response?.data?.message || err.message || "Please Try Again !",
+    //     });
+    //   }
+    // },
+
+    
+onSubmit: async (values, { resetForm }) => {
+  try {
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      if (value) formData.append(key, value);
+    });
+
+    let res;
+
+    if (assignmentId) {
+      res = await updateAssignment(assignmentId, formData);
+      Swal.fire({
+        icon: "success",
+        title: res.message || "Assignment updated successfully!",
+        showConfirmButton: true,
+      });
+    } else {
+      res = await createAssignment(formData);
+      Swal.fire({
+        icon: "success",
+        title: res.message || "Assignment created successfully!",
+        showConfirmButton: true,
+      });
+    }
+
+    // ⛔ Permission Check BEFORE redirect
+    const hasReadPermission = canPerformAction(rolePermissions, "assignment", "read");
+
+    if (!hasReadPermission) {
+      Swal.fire({
+        icon: "warning",
+        title: "Assignment created successfully, but you don't have permission to view assignments.",
+        // text: "You will stay on this page.",
+      });
+
+      resetForm(); // optional
+      return; // ⛔ STOP - DO NOT NAVIGATE
+    }
+
+    // ✅ user has permission → navigate
+    resetForm();
+    navigate("/manage-assignments");
+
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Submission failed!",
+      text: err.response?.data?.message || err.message || "Please Try Again!",
+    });
+  }
+},
   });
 
   // Fetch chapters when course changes
@@ -165,7 +221,7 @@ export default function AddAssignment() {
             confirmButtonColor: "#0E55C8",
           });
 
-          navigate("/admin/manage-assignments");
+          navigate("/manage-assignments");
         }
       } catch (err) {
         console.error(err);
@@ -175,7 +231,7 @@ export default function AddAssignment() {
           text: err.response?.data?.message || "Failed to fetch assignment",
           confirmButtonColor: "#0E55C8",
         });
-        navigate("/admin/manage-assignments");
+        navigate("/manage-assignments");
       } finally {
         setLoading(false);
       }

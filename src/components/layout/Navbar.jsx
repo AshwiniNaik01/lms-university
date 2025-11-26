@@ -82,12 +82,12 @@ const Navbar = () => {
             {isAdmin && (
               <>
                 <Link
-                  to="/admin/dashboard"
+                  to="/dashboard"
                   className="hover:underline text-white"
                 >
                   Admin Dashboard
                 </Link>
-                <Link to="/admin/profile" className="hover:underline text-white">
+                <Link to="/profile" className="hover:underline text-white">
                   Admin Profile
                 </Link>
               </>

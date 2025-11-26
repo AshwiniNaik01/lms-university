@@ -149,7 +149,7 @@ const ManageBatch = () => {
   };
 
   // -------------------- Navigation Handler --------------------
-  const handleEdit = (batchId) => navigate(`/admin/add-batch/${batchId}`);
+  const handleEdit = (batchId) => navigate(`/add-batch/${batchId}`);
 
   // -------------------- Handle Course Filter --------------------
   const handleCourseFilterChange = (e) => {
@@ -210,7 +210,7 @@ const ManageBatch = () => {
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-semibold text-gray-800">Manage Batches</h2>
         <button
-          onClick={() => navigate("/admin/add-batch")}
+          onClick={() => navigate("/add-batch")}
           className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 py-2 rounded-lg transition"
         >
           + Add Batch

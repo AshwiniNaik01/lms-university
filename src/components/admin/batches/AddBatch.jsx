@@ -110,12 +110,12 @@ const AddBatch = ({ onBatchSaved }) => {
           setSelectedBatchId(id);
         } else {
           Swal.fire("Not Found", "Batch not found", "warning");
-          navigate("/admin/manage-batches");
+          navigate("/manage-batches");
         }
       } catch (err) {
         console.error(err);
         Swal.fire("Error", err.message || "Failed to fetch batch.", "error");
-        navigate("/admin/manage-batches");
+        navigate("/manage-batches");
       } finally {
         setLoading(false);
       }
@@ -192,7 +192,7 @@ const AddBatch = ({ onBatchSaved }) => {
       setSelectedBatchId(null);
 
       if (onBatchSaved) onBatchSaved();
-      navigate("/admin/manage-batches");
+      navigate("/manage-batches");
     } catch (err) {
       console.error(
         "Error submitting batch:",
@@ -228,7 +228,7 @@ const AddBatch = ({ onBatchSaved }) => {
             {selectedBatchId ? "Update Batch" : "Add Batch"}
           </h3>
           <button
-            onClick={() => navigate("/admin/manage-batches")}
+            onClick={() => navigate("/manage-batches")}
             className="text-md bg-[rgba(14,85,200,0.83)] hover:bg-blue-700 px-4 py-2 rounded-md font-bold text-white transition"
           >
             ← Manage Batches

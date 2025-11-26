@@ -179,7 +179,7 @@ const EventForm = () => {
           await updateEvent(eventId, formData);
           Swal.fire("Success", "Event updated successfully", "success").then(
             () => {
-              navigate("/admin/book-session");
+              navigate("/book-session");
             }
           );
         } else {
@@ -187,7 +187,7 @@ const EventForm = () => {
           Swal.fire("Success", "Event created successfully", "success").then(
             () => {
               formik.resetForm();
-              navigate("/admin/book-session");
+              navigate("/book-session");
             }
           );
         }

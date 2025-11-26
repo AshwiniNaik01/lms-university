@@ -57,7 +57,7 @@ const EnrolledStudentList = () => {
             className="text-blue-600 font-medium hover:underline"
             onClick={() => {
               // Navigate to course details page
-              navigate(`/admin/enrollments/${row.enrollment._id}/courses`, {
+              navigate(`/enrollments/${row.enrollment._id}/courses`, {
                 state: {
                   enrolledCourses: row.enrollment?.enrolledCourses || [],
                 },
@@ -115,7 +115,7 @@ const EnrolledStudentList = () => {
           </button> */}
 
           <button
-            onClick={() => navigate(`/admin/enrollments/${row.enrollment._id}`)}
+            onClick={() => navigate(`/enrollments/${row.enrollment._id}`)}
             className="text-white font-medium bg-blue-500 px-4 py-2 rounded-md"
           >
             View
@@ -124,7 +124,7 @@ const EnrolledStudentList = () => {
           {/* Edit Button */}
           <button
             onClick={() =>
-              navigate(`/admin/enroll-student/${row.enrollment._id}`)
+              navigate(`/enroll-student/${row.enrollment._id}`)
             }
             className="text-white font-medium bg-yellow-500 px-4 py-2 rounded-md"
           >
@@ -286,7 +286,7 @@ const EnrolledStudentList = () => {
           Manage Enrolled Student
         </h2>
         <button
-          onClick={() => navigate("/admin/enroll-student")}
+          onClick={() => navigate("/enroll-student")}
           className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
         >
           + Enroll New Student

@@ -99,7 +99,7 @@ const InternshipSessionForm = () => {
           resetForm();
         }
 
-        navigate("/admin/book-session");
+        navigate("/book-session");
       } catch (error) {
         console.error("❌ Error submitting internship session:", error);
         Swal.fire({

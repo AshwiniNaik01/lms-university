@@ -73,7 +73,7 @@ const CreateTestPage = () => {
             await apiClient.post('/api/tests', testData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            navigate('/admin/tests'); // Success ke baad test list par redirect
+            navigate('/tests'); // Success ke baad test list par redirect
         } catch (error) {
             setError(error.response?.data?.message || 'Failed to create test.');
             console.error('Error creating test:', error);

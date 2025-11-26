@@ -11,9 +11,11 @@ import { getAllCourses } from "../../../api/courses";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import RadioButtonGroup from "../../form/RadioButtonGroup";
+import { useCourseParam } from "../../hooks/useCourseParam";
 
 const AddTest = ({ onClose, onTestAdded }) => {
-  let fileRef = useRef();
+  const formikRef = useRef(null);
+  const fileRef = useRef();
   const navigate = useNavigate();
   const [fileName, setFileName] = useState("");
   const [selectedQuestions, setSelectedQuestions] = useState([]);
@@ -22,6 +24,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
   const [phases, setPhases] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [batches, setBatches] = useState([]);
+  // const [selectedCourseId, setSelectedCourseId] = useState(initialValues.courseId);
 
   const testLevelOptions = [
     { _id: "Beginner", title: "Beginner" },
@@ -47,9 +50,13 @@ const AddTest = ({ onClose, onTestAdded }) => {
     excelFile: null,
   };
 
-  const [selectedCourseId, setSelectedCourseId] = useState(
-    initialValues.courseId
-  );
+  // const [selectedCourseId, setSelectedCourseId] = useState(
+  //   initialValues.courseId
+  // );
+
+  // Load courses from API
+  const [selectedCourseId, setSelectedCourseId, isPreselected] =
+    useCourseParam(courses);
 
   const validationSchema = Yup.object({
     title: Yup.string().required("Test Title is required"),
@@ -92,6 +99,12 @@ const AddTest = ({ onClose, onTestAdded }) => {
 
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    if (isPreselected && selectedCourseId) {
+      formikRef.current?.setFieldValue("courseId", selectedCourseId);
+    }
+  }, [isPreselected, selectedCourseId]);
 
   // Fetch phases when course is selected
   useEffect(() => {
@@ -313,90 +326,91 @@ const AddTest = ({ onClose, onTestAdded }) => {
   // };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    if (!values.excelFile) {
-      Swal.fire({
-        icon: "warning",
-        title: "No File",
-        text: "Please upload an Excel file to create a test.",
-        confirmButtonColor: "#f0ad4e",
-      });
-      setSubmitting(false);
-      setLoading(false);
-      return;
-    }
+    try {
+      if (!values.excelFile) {
+        Swal.fire({
+          icon: "warning",
+          title: "No File",
+          text: "Please upload an Excel file to create a test.",
+          confirmButtonColor: "#f0ad4e",
+        });
+        setSubmitting(false);
+        setLoading(false);
+        return;
+      }
 
-    // Upload Excel file
-    const formData = new FormData();
-    formData.append("file", values.excelFile);
-    formData.append("title", values.title);
-    formData.append("testLevel", values.testLevel);
-    formData.append("courseId", values.courseId || "");
-    formData.append("chapterId", values.chapterId || "");
-    formData.append("batchId", values.batchId || "");
-    formData.append("phaseId", values.phaseId || "");
-    formData.append("totalMarks", values.totalMarks);
-    formData.append("minutes", values.minutes);
-    formData.append("seconds", values.seconds);
-    formData.append("userType", values.userType);
-    formData.append("reportType", values.reportType || "");
+      // Upload Excel file
+      const formData = new FormData();
+      formData.append("file", values.excelFile);
+      formData.append("title", values.title);
+      formData.append("testLevel", values.testLevel);
+      formData.append("courseId", values.courseId || "");
+      formData.append("chapterId", values.chapterId || "");
+      formData.append("batchId", values.batchId || "");
+      formData.append("phaseId", values.phaseId || "");
+      formData.append("totalMarks", values.totalMarks);
+      formData.append("minutes", values.minutes);
+      formData.append("seconds", values.seconds);
+      formData.append("userType", values.userType);
+      formData.append("reportType", values.reportType || "");
 
-    const response = await apiClient.post(
-      `/api/tests/upload-excel`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+      const response = await apiClient.post(
+        `/api/tests/upload-excel`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-    if (response.data.success) {
-      Swal.fire({
-        icon: "success",
-        title: "Test Created!",
-        text:
-          response.data.message ||
-          "Test created successfully via Excel upload!",
-        confirmButtonColor: "#28a745",
-      });
+      if (response.data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Test Created!",
+          text:
+            response.data.message ||
+            "Test created successfully via Excel upload!",
+          confirmButtonColor: "#28a745",
+        });
 
-      // Reset form
-      resetForm();
-      setFileName("");
-      setSelectedQuestions([]);
+        // Reset form
+        resetForm();
+        setFileName("");
+        setSelectedQuestions([]);
 
-      // Call parent callback if needed
-      onTestAdded?.();
-      onClose?.();
+        // Call parent callback if needed
+        onTestAdded?.();
+        onClose?.();
 
-      // Navigate to ManageTest page
-      navigate("/admin/manage-test");
-    } else {
+        // Navigate to ManageTest page
+        navigate("/manage-test");
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Creation Failed",
+          text:
+            response.data.message || "Failed to create test. Please try again.",
+          confirmButtonColor: "#d33",
+        });
+      }
+    } catch (error) {
+      console.error("Error creating test:", error);
       Swal.fire({
         icon: "error",
         title: "Creation Failed",
         text:
-          response.data.message || "Failed to create test. Please try again.",
+          error.response?.data?.message ||
+          "Failed to create test. Please try again.",
         confirmButtonColor: "#d33",
       });
+    } finally {
+      setSubmitting(false);
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error creating test:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Creation Failed",
-      text:
-        error.response?.data?.message ||
-        "Failed to create test. Please try again.",
-      confirmButtonColor: "#d33",
-    });
-  } finally {
-    setSubmitting(false);
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <Formik
+      innerRef={formikRef}
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
@@ -411,7 +425,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
           {/* Test Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField
-              label="Test Title   "
+              label="Test Title"
               name="title"
               type="text"
               formik={formik}
@@ -444,6 +458,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
                 as="select"
                 id="courseId"
                 name="courseId"
+                disabled={isPreselected} // ⬅️ disable if URL param is used
                 onChange={(e) => {
                   const value = e.target.value;
                   setSelectedCourseId(value);
@@ -503,19 +518,19 @@ const AddTest = ({ onClose, onTestAdded }) => {
           {/* Marks & Duration */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <InputField
-              label="Total Marks   "
+              label="Total Marks"
               name="totalMarks"
               type="number"
               formik={formik}
             />
             <InputField
-              label="Passing Marks *"
+              label="Passing Marks"
               name="passingMarks"
               type="number"
               formik={formik}
             />
             <InputField
-              label="Minutes   "
+              label="Minutes"
               name="minutes"
               type="number"
               formik={formik}

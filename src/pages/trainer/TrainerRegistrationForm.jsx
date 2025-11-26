@@ -134,7 +134,7 @@ const TrainerRegistrationForm = () => {
           alert("Trainer registered successfully");
         }
 
-        navigate("/admin/trainers");
+        navigate("/trainers");
       } catch (err) {
         alert(err.message || "Error saving trainer");
       } finally {

@@ -132,7 +132,7 @@ const SessionCategoryList = () => {
     }
 
     navigate(
-      `/admin/session-category/${category.slug}/${category._id}/manage?type=edit&id=${item._id}`
+      `/session-category/${category.slug}/${category._id}/manage?type=edit&id=${item._id}`
     );
   };
 

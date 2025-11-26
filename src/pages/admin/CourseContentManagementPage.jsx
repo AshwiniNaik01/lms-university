@@ -57,7 +57,7 @@ const CourseContentManagementPage = () => {
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <Link
-          to="/admin/courses"
+          to="/courses"
           className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium mb-6"
         >
           <HiArrowLeft className="w-5 h-5 mr-2" />
