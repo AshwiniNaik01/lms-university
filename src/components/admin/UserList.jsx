@@ -1,37 +1,58 @@
+
+
 import { useEffect, useState } from "react";
 import { fetchAllUsersAdmin } from "../../api/admin.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import ScrollableTable from "../table/ScrollableTable.jsx";
 
+/**
+ * UserList Component
+ * ------------------
+ * Displays all registered users for admin management.
+ * Fetches data from API and renders a professional, scrollable table.
+ *
+ * Features:
+ * - Loading state with animation
+ * - Error state handling
+ * - Scrollable table with sticky header
+ * - Responsive and modern UI
+ */
 const UserList = () => {
-  const [users, setUsers] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
+  const [users, setUsers] = useState([]); // Stores fetched users
+  const [error, setError] = useState(""); // Stores error messages
+  const [loading, setLoading] = useState(true); // Loading state
+  const { token } = useAuth(); // Auth token for API calls
 
-  // Fetch all users for admin side
+  /**
+   * Fetch all users from the admin API
+   */
+const loadUsers = async () => {
+  setLoading(true); // Start loading
+  try {
+    const fetchedUsers = await fetchAllUsersAdmin(token);
+    // Sort users by role alphabetically
+    const sortedUsers = (fetchedUsers || []).sort((a, b) =>
+      b.role.localeCompare(a.role)
+    );
+    setUsers(sortedUsers); // Update users state
+    setError(""); // Clear previous errors
+  } catch (err) {
+    setError("Failed to load users."); // Display error
+    console.error("Error fetching users:", err);
+  } finally {
+    setLoading(false); // Stop loading
+  }
+};
 
-  const loadUsers = async () => {
-    setLoading(true); // Start loading
-    try {
-      const fetchedUsers = await fetchAllUsersAdmin(token);
-      setUsers(fetchedUsers || []);
-      setError(""); // Clear any previous errors
-    } catch (err) {
-      setError("Failed to load users."); // Display error message
-      console.error("Error fetching users:", err);
-    }
-    setLoading(false); // Done loading
-  };
 
-  // triggers user data fetching whenever token changes
+  // Fetch users whenever the auth token changes
   useEffect(() => {
     if (token) {
       loadUsers();
     }
   }, [token]);
 
-  // Define table columns with headers and accessors for user data
+  // Define table columns
   const columns = [
     {
       header: "Name",
@@ -48,7 +69,7 @@ const UserList = () => {
     },
   ];
 
-  // Render loading state UI
+  // --- Loading State ---
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -57,33 +78,35 @@ const UserList = () => {
     );
   }
 
-  // Render error state UI
+  // --- Error State ---
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen ">
         <p className="text-lg text-red-500">{error}</p>
       </div>
     );
   }
 
+  // --- Main UI ---
   return (
-    <div className="max-h-[700px] p-8 bg-gradient-to-r from-pink-200 via-blue-300 to-blue-200">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <header className="relative z-50 flex items-center justify-between px-6 py-5 bg-white border-b border-indigo-200">
-          <h1 className="text-3xl font-extrabold text-indigo-900 tracking-wide">
+    <div className="max-h-screen p-2">
+      <div className="max-w-7xl mx-auto overflow-hidden">
+        {/* Header */}
+        <header className="fiexd px-6 py-5 bg-indigo-50 border-b border-indigo-200 flex items-center justify-between">
+          <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">
             User Management
           </h1>
+        
         </header>
 
-        {/* show message if no users, else show table */}
-        <div>
+        {/* Table / Empty State */}
+        <div className="p-2">
           {users.length === 0 ? (
-            <p className="text-center text-gray-500 py-12 text-lg italic">
+            <p className="text-center text-gray-500 italic text-lg py-12">
               No users found.
             </p>
           ) : (
-            <ScrollableTable columns={columns} data={users} maxHeight="600px" />
+            <ScrollableTable columns={columns} data={users} maxHeight="440px" />
           )}
         </div>
       </div>

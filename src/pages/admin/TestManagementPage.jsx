@@ -52,7 +52,7 @@ const TestManagementPage = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">🧪 Test Management</h1>
         <Link
-          to="/admin/tests/create"
+          to="/tests/create"
           className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2 rounded-lg shadow hover:from-indigo-600 hover:to-purple-700 transition"
         >
           ➕ Create New Test

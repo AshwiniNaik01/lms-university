@@ -7,16 +7,27 @@ import apiClient from "./axiosConfig";
 //     return response.data;
 // };
 
-export const fetchAllUsersAdmin = async (token) => {
-  const config = { headers: { Authorization: `Bearer ${token}` } };
-  const response = await apiClient.get(`/api/admin/users`, config);
 
-  // LOG the response to verify structure
-  console.log("Fetched users response:", response.data);
-
-  // If users are under a `data` field, return only that
-  return response.data.data || []; // <-- Adjust based on real structure
+export const fetchAllUsersAdmin = async () => {
+  try {
+    const response = await apiClient.get('/api/admin/users');
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
 };
+
+// export const fetchAllUsersAdmin = async (token) => {
+//   const config = { headers: { Authorization: `Bearer ${token}` } };
+//   const response = await apiClient.get(`/api/admin/users`, config);
+
+//   // LOG the response to verify structure
+//   console.log("Fetched users response:", response.data);
+
+//   // If users are under a `data` field, return only that
+//   return response.data.data || []; // <-- Adjust based on real structure
+// };
 
 export const fetchUserByIdAdmin = async (userId, token) => {
   const config = { headers: { Authorization: `Bearer ${token}` } };

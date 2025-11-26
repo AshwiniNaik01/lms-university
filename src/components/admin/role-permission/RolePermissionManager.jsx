@@ -1,0 +1,712 @@
+
+// import React, { useState, useEffect } from "react";
+// import apiClient from "../../../api/axiosConfig";
+
+// const allModules = [
+//   { module: "course", label: "Course" },
+//   { module: "session", label: "Session" },
+//   { module: "lecture", label: "Lecture" },
+//   { module: "meeting", label: "Meeting" },
+//   { module: "batches", label: "Batches" },
+//   { module: "curriculum", label: "Curriculum" },
+//   { module: "assignment", label: "Assignment" },
+//   { module: "test", label: "Test" },
+//   { module: "student", label: "Student" },
+// ];
+
+// const allActions = ["create", "read", "update", "delete"];
+
+// const RolePermissionManager = () => {
+//   const [roles, setRoles] = useState([]); // Roles from backend
+//   const [selectedRoleId, setSelectedRoleId] = useState("");
+//   const [selectedRoleName, setSelectedRoleName] = useState("");
+//   const [permissions, setPermissions] = useState({});
+//   const [loading, setLoading] = useState(false);
+
+//   // --------------------------------------------------------
+//   // STEP 1 — Load all roles for dropdown
+//   // --------------------------------------------------------
+//   useEffect(() => {
+//     const fetchRoles = async () => {
+//       try {
+//         const res = await apiClient.get("/api/role");
+//         setRoles(res.data.message || []);
+//       } catch (err) {
+//         console.error("Error fetching roles", err);
+//       }
+//     };
+//     fetchRoles();
+//   }, []);
+
+//   // --------------------------------------------------------
+//   // STEP 2 — Load selected role permissions
+//   // --------------------------------------------------------
+//   useEffect(() => {
+//     if (!selectedRoleId) return;
+
+//     setLoading(true);
+
+//     apiClient
+//       .get(`/api/role/${selectedRoleId}`)
+//       .then((res) => {
+//         const role = res.data.message;
+//         setSelectedRoleName(role.role);
+
+//         const formatted = {};
+
+//         if (role.permissions.length === 1 && role.permissions[0].module === "*") {
+//           // Admin — full access
+//           allModules.forEach((m) => {
+//             formatted[m.module] = [...allActions];
+//           });
+//         } else {
+//           // Normal roles
+//           allModules.forEach((m) => (formatted[m.module] = []));
+//           role.permissions.forEach((p) => {
+//             formatted[p.module] = p.actions;
+//           });
+//         }
+
+//         setPermissions(formatted);
+//       })
+//       .catch((err) => {
+//         console.error("Error loading role", err);
+//       })
+//       .finally(() => setLoading(false));
+//   }, [selectedRoleId]);
+
+//   // --------------------------------------------------------
+//   // STEP 3 — Toggle checkbox
+//   // --------------------------------------------------------
+//   const handleCheckboxChange = (module, action) => {
+//     setPermissions((prev) => {
+//       const moduleActions = prev[module] || [];
+//       const updated = moduleActions.includes(action)
+//         ? moduleActions.filter((a) => a !== action)
+//         : [...moduleActions, action];
+
+//       return { ...prev, [module]: updated };
+//     });
+//   };
+
+//   // --------------------------------------------------------
+//   // STEP 4 — Submit create/update
+//   // --------------------------------------------------------
+//   const handleSubmit = async () => {
+//     const payload = {
+//       role: selectedRoleName,
+//       permissions: Object.entries(permissions)
+//         .filter(([_, actions]) => actions.length > 0)
+//         .map(([module, actions]) => ({ module, actions })),
+//     };
+
+//     try {
+//       let res;
+
+//       if (selectedRoleId) {
+//         // UPDATE ROLE
+//         res = await apiClient.put(`/api/role/${selectedRoleId}`, payload);
+//       } else {
+//         // CREATE ROLE
+//         res = await apiClient.post(`/api/role`, payload);
+//       }
+
+//       alert("Permissions saved successfully!");
+//       console.log(res.data);
+//     } catch (err) {
+//       console.error(err);
+//       alert("Error saving permissions.");
+//     }
+//   };
+
+//   return (
+//     <div className="p-8 bg-gray-50 min-h-screen">
+//       {/* HEADER */}
+//       <div className="mb-8">
+//         <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">
+//           Role Permission Manager
+//         </h1>
+//         <p className="text-gray-500">Assign and manage access for roles.</p>
+//       </div>
+
+//       {/* ROLE DROPDOWN */}
+//       <div className="bg-white shadow-lg rounded-xl p-6 mb-8 border border-gray-200">
+//         <label className="block text-gray-700 font-semibold mb-3">
+//           Select Role
+//         </label>
+//         <select
+//           value={selectedRoleId}
+//           onChange={(e) => setSelectedRoleId(e.target.value)}
+//           className="w-64 border border-gray-300 rounded-lg px-4 py-2"
+//         >
+//           <option value="">-- Select Role --</option>
+
+//           {roles.map((role) => (
+//             <option key={role._id} value={role._id}>
+//               {role.role.toUpperCase()}
+//             </option>
+//           ))}
+//         </select>
+//       </div>
+
+//       {/* PERMISSION TABLE */}
+//       {selectedRoleId && (
+//         <div className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto mb-6">
+//           <table className="min-w-full divide-y divide-gray-200">
+//             <thead className="bg-indigo-50">
+//               <tr>
+//                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+//                   Module
+//                 </th>
+//                 {allActions.map((action) => (
+//                   <th key={action} className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
+//                     {action.toUpperCase()}
+//                   </th>
+//                 ))}
+//               </tr>
+//             </thead>
+
+//             <tbody>
+//               {allModules.map((m) => (
+//                 <tr key={m.module} className="hover:bg-indigo-50 transition">
+//                   <td className="px-6 py-4 text-gray-800 font-medium">{m.label}</td>
+
+//                   {allActions.map((action) => (
+//                     <td key={action} className="px-6 py-4 text-center">
+//                       <input
+//                         type="checkbox"
+//                         checked={permissions[m.module]?.includes(action)}
+//                         onChange={() => handleCheckboxChange(m.module, action)}
+//                         disabled={selectedRoleName === "admin"}
+//                         className="h-5 w-5 text-indigo-600"
+//                       />
+//                     </td>
+//                   ))}
+//                 </tr>
+//               ))}
+//             </tbody>
+//           </table>
+//         </div>
+//       )}
+
+//       {/* SAVE BUTTON */}
+//       {selectedRoleId && (
+//         <div className="flex justify-end">
+//           <button
+//             onClick={handleSubmit}
+//             disabled={loading}
+//             className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl shadow-md"
+//           >
+//             {loading ? "Saving..." : "Save Permissions"}
+//           </button>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default RolePermissionManager;
+
+
+
+
+import React, { useState, useEffect } from "react";
+import apiClient from "../../../api/axiosConfig";
+import { FaPlus } from "react-icons/fa";
+import Modal from "../../popupModal/Modal";
+
+const allActions = ["create", "read", "update", "delete"];
+
+const RolePermissionManager = () => {
+  const [roles, setRoles] = useState([]);
+  const [modules, setModules] = useState([]); // dynamic modules from API
+  const [selectedRoleId, setSelectedRoleId] = useState("");
+  const [selectedRoleName, setSelectedRoleName] = useState("");
+  const [permissions, setPermissions] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newRoleName, setNewRoleName] = useState("");
+
+  // --------------------------
+  // Fetch roles
+  // --------------------------
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await apiClient.get("/api/role");
+        setRoles(res.data.message || []);
+      } catch (err) {
+        console.error("Error fetching roles", err);
+      }
+    };
+    fetchRoles();
+  }, []);
+
+  // --------------------------
+  // Fetch modules dynamically
+  // --------------------------
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const res = await apiClient.get("/api/module");
+        if (res.data.success && Array.isArray(res.data.data)) {
+          const formatted = res.data.data.map((m) => ({
+            module: m.module.toLowerCase(),
+            label: m.module,
+          }));
+          setModules(formatted);
+        }
+      } catch (err) {
+        console.error("Error fetching modules", err);
+      }
+    };
+    fetchModules();
+  }, []);
+
+  // --------------------------
+  // Load selected role permissions
+  // --------------------------
+  useEffect(() => {
+    if (!selectedRoleId) return;
+    setLoading(true);
+
+    apiClient
+      .get(`/api/role/${selectedRoleId}`)
+      .then((res) => {
+        const role = res.data.message;
+        setSelectedRoleName(role.role);
+
+        const formatted = {};
+        if (role.permissions.length === 1 && role.permissions[0].module === "*") {
+          modules.forEach((m) => {
+            formatted[m.module] = [...allActions];
+          });
+        } else {
+          modules.forEach((m) => (formatted[m.module] = []));
+          role.permissions.forEach((p) => {
+            formatted[p.module] = p.actions;
+          });
+        }
+        setPermissions(formatted);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [selectedRoleId, modules]);
+
+  // --------------------------
+  // Checkbox toggle
+  // --------------------------
+  const handleCheckboxChange = (module, action) => {
+    setPermissions((prev) => {
+      const moduleActions = prev[module] || [];
+      const updated = moduleActions.includes(action)
+        ? moduleActions.filter((a) => a !== action)
+        : [...moduleActions, action];
+      return { ...prev, [module]: updated };
+    });
+  };
+
+  // --------------------------
+  // Submit role permissions
+  // --------------------------
+  const handleSubmit = async () => {
+    const payload = {
+      role: selectedRoleName,
+      permissions: Object.entries(permissions)
+        .filter(([_, actions]) => actions.length > 0)
+        .map(([module, actions]) => ({ module, actions })),
+    };
+
+    try {
+      let res;
+      if (selectedRoleId) {
+        res = await apiClient.put(`/api/role/${selectedRoleId}`, payload);
+      } else {
+        res = await apiClient.post(`/api/role`, payload);
+      }
+      alert("Permissions saved successfully!");
+      console.log(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Error saving permissions.");
+    }
+  };
+
+  // --------------------------
+  // Add new role
+  // --------------------------
+  const handleAddNewRole = async () => {
+    if (!newRoleName.trim()) return alert("Role name is required!");
+    try {
+      const payload = { role: newRoleName.trim().toLowerCase() };
+      const res = await apiClient.post("/api/role", payload);
+      alert("New role added successfully!");
+      setRoles((prev) => [...prev, res.data.message]);
+      setIsModalOpen(false);
+      setNewRoleName("");
+    } catch (err) {
+      console.error(err);
+      alert("Error creating role.");
+    }
+  };
+
+  return (
+    <div className="p-8 bg-gray-50 min-h-screen relative">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">
+            Role Permission Manager
+          </h1>
+          <p className="text-gray-500">Assign and manage access for roles.</p>
+        </div>
+
+        {/* Add New Role Button */}
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-md"
+        >
+          <FaPlus /> Add New Role
+        </button>
+      </div>
+
+      {/* Role Dropdown */}
+      <div className="bg-white shadow-lg rounded-xl p-6 mb-8 border border-gray-200">
+        <label className="block text-gray-700 font-semibold mb-3">Select Role</label>
+        <select
+          value={selectedRoleId}
+          onChange={(e) => setSelectedRoleId(e.target.value)}
+          className="w-64 border border-gray-300 rounded-lg px-4 py-2"
+        >
+          <option value="">-- Select Role --</option>
+          {roles.map((role) => (
+            <option key={role._id} value={role._id}>
+              {role.role.toUpperCase()}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Permission Table */}
+      {selectedRoleId && modules.length > 0 && (
+        <div className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto mb-6">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-indigo-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                  Module
+                </th>
+                {allActions.map((action) => (
+                  <th
+                    key={action}
+                    className="px-6 py-3 text-center text-sm font-semibold text-gray-700"
+                  >
+                    {action.toUpperCase()}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {modules.map((m) => (
+                <tr key={m.module} className="hover:bg-indigo-50 transition">
+                  <td className="px-6 py-4 text-gray-800 font-medium">{m.label}</td>
+                  {allActions.map((action) => (
+                    <td key={action} className="px-6 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={permissions[m.module]?.includes(action)}
+                        onChange={() => handleCheckboxChange(m.module, action)}
+                        disabled={selectedRoleName === "admin"}
+                        className="h-5 w-5 text-indigo-600"
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Save Button */}
+      {selectedRoleId && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl shadow-md"
+          >
+            {loading ? "Saving..." : "Save Permissions"}
+          </button>
+        </div>
+      )}
+
+      {/* Add New Role Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        header="Add New Role"
+        primaryAction={{ label: "Create Role", onClick: handleAddNewRole }}
+      >
+        <div className="flex flex-col gap-4">
+          <label className="text-gray-700 font-medium">Role Name</label>
+          <input
+            type="text"
+            value={newRoleName}
+            onChange={(e) => setNewRoleName(e.target.value)}
+            placeholder="e.g., trainer"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2"
+          />
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+export default RolePermissionManager;
+
+
+
+// import React, { useState, useEffect } from "react";
+// import apiClient from "../../../api/axiosConfig";
+// // import Modal from "../../common/Modal"; // import your Modal component
+
+// import { FaPlus } from "react-icons/fa";
+// import Modal from "../../popupModal/Modal";
+
+// const allModules = [
+//   { module: "course", label: "Course" },
+//   { module: "session", label: "Session" },
+//   { module: "lecture", label: "Lecture" },
+//   { module: "meeting", label: "Meeting" },
+//   { module: "batches", label: "Batches" },
+//   { module: "curriculum", label: "Curriculum" },
+//   { module: "assignment", label: "Assignment" },
+//   { module: "test", label: "Test" },
+//   { module: "student", label: "Student" },
+// ];
+
+// const allActions = ["create", "read", "update", "delete"];
+
+// const RolePermissionManager = () => {
+//   const [roles, setRoles] = useState([]);
+//   const [selectedRoleId, setSelectedRoleId] = useState("");
+//   const [selectedRoleName, setSelectedRoleName] = useState("");
+//   const [permissions, setPermissions] = useState({});
+//   const [loading, setLoading] = useState(false);
+
+//   // Modal state
+//   const [isModalOpen, setIsModalOpen] = useState(false);
+//   const [newRoleName, setNewRoleName] = useState("");
+
+//   // Fetch roles
+//   useEffect(() => {
+//     const fetchRoles = async () => {
+//       try {
+//         const res = await apiClient.get("/api/role");
+//         setRoles(res.data.message || []);
+//       } catch (err) {
+//         console.error("Error fetching roles", err);
+//       }
+//     };
+//     fetchRoles();
+//   }, []);
+
+//   // Load selected role permissions
+//   useEffect(() => {
+//     if (!selectedRoleId) return;
+//     setLoading(true);
+
+//     apiClient
+//       .get(`/api/role/${selectedRoleId}`)
+//       .then((res) => {
+//         const role = res.data.message;
+//         setSelectedRoleName(role.role);
+
+//         const formatted = {};
+//         if (role.permissions.length === 1 && role.permissions[0].module === "*") {
+//           allModules.forEach((m) => {
+//             formatted[m.module] = [...allActions];
+//           });
+//         } else {
+//           allModules.forEach((m) => (formatted[m.module] = []));
+//           role.permissions.forEach((p) => {
+//             formatted[p.module] = p.actions;
+//           });
+//         }
+//         setPermissions(formatted);
+//       })
+//       .catch(console.error)
+//       .finally(() => setLoading(false));
+//   }, [selectedRoleId]);
+
+//   const handleCheckboxChange = (module, action) => {
+//     setPermissions((prev) => {
+//       const moduleActions = prev[module] || [];
+//       const updated = moduleActions.includes(action)
+//         ? moduleActions.filter((a) => a !== action)
+//         : [...moduleActions, action];
+
+//       return { ...prev, [module]: updated };
+//     });
+//   };
+
+//   const handleSubmit = async () => {
+//     const payload = {
+//       role: selectedRoleName,
+//       permissions: Object.entries(permissions)
+//         .filter(([_, actions]) => actions.length > 0)
+//         .map(([module, actions]) => ({ module, actions })),
+//     };
+
+//     try {
+//       let res;
+//       if (selectedRoleId) {
+//         res = await apiClient.put(`/api/role/${selectedRoleId}`, payload);
+//       } else {
+//         res = await apiClient.post(`/api/role`, payload);
+//       }
+//       alert("Permissions saved successfully!");
+//       console.log(res.data);
+//     } catch (err) {
+//       console.error(err);
+//       alert("Error saving permissions.");
+//     }
+//   };
+
+//   // -------------------
+//   // Add New Role Handler
+//   // -------------------
+//   const handleAddNewRole = async () => {
+//     if (!newRoleName.trim()) return alert("Role name is required!");
+//     try {
+//       const payload = { role: newRoleName.trim().toLowerCase() };
+//       const res = await apiClient.post("/api/role", payload);
+//       alert("New role added successfully!");
+//       setRoles((prev) => [...prev, res.data.message]);
+//       setIsModalOpen(false);
+//       setNewRoleName("");
+//     } catch (err) {
+//       console.error(err);
+//       alert("Error creating role.");
+//     }
+//   };
+
+//   return (
+//     <div className="p-8 bg-gray-50 min-h-screen relative">
+//       {/* Header */}
+//       <div className="flex justify-between items-center mb-8">
+//         <div>
+//           <h1 className="text-3xl font-extrabold text-indigo-700 mb-2">
+//             Role Permission Manager
+//           </h1>
+//           <p className="text-gray-500">Assign and manage access for roles.</p>
+//         </div>
+
+//         {/* Add New Role Button */}
+//         <button
+//           onClick={() => setIsModalOpen(true)}
+//           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-md"
+//         >
+//           <FaPlus /> Add New Role
+//         </button>
+//       </div>
+
+//       {/* Role Dropdown */}
+//       <div className="bg-white shadow-lg rounded-xl p-6 mb-8 border border-gray-200">
+//         <label className="block text-gray-700 font-semibold mb-3">
+//           Select Role
+//         </label>
+//         <select
+//           value={selectedRoleId}
+//           onChange={(e) => setSelectedRoleId(e.target.value)}
+//           className="w-64 border border-gray-300 rounded-lg px-4 py-2"
+//         >
+//           <option value="">-- Select Role --</option>
+//           {roles.map((role) => (
+//             <option key={role._id} value={role._id}>
+//               {role.role.toUpperCase()}
+//             </option>
+//           ))}
+//         </select>
+//       </div>
+
+//       {/* Permission Table */}
+//       {selectedRoleId && (
+//         <div className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto mb-6">
+//           <table className="min-w-full divide-y divide-gray-200">
+//             <thead className="bg-indigo-50">
+//               <tr>
+//                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+//                   Module
+//                 </th>
+//                 {allActions.map((action) => (
+//                   <th
+//                     key={action}
+//                     className="px-6 py-3 text-center text-sm font-semibold text-gray-700"
+//                   >
+//                     {action.toUpperCase()}
+//                   </th>
+//                 ))}
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {allModules.map((m) => (
+//                 <tr key={m.module} className="hover:bg-indigo-50 transition">
+//                   <td className="px-6 py-4 text-gray-800 font-medium">{m.label}</td>
+//                   {allActions.map((action) => (
+//                     <td key={action} className="px-6 py-4 text-center">
+//                       <input
+//                         type="checkbox"
+//                         checked={permissions[m.module]?.includes(action)}
+//                         onChange={() => handleCheckboxChange(m.module, action)}
+//                         disabled={selectedRoleName === "admin"}
+//                         className="h-5 w-5 text-indigo-600"
+//                       />
+//                     </td>
+//                   ))}
+//                 </tr>
+//               ))}
+//             </tbody>
+//           </table>
+//         </div>
+//       )}
+
+//       {/* Save Button */}
+//       {selectedRoleId && (
+//         <div className="flex justify-end">
+//           <button
+//             onClick={handleSubmit}
+//             disabled={loading}
+//             className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl shadow-md"
+//           >
+//             {loading ? "Saving..." : "Save Permissions"}
+//           </button>
+//         </div>
+//       )}
+
+//       {/* Add New Role Modal */}
+//       <Modal
+//         isOpen={isModalOpen}
+//         onClose={() => setIsModalOpen(false)}
+//         header="Add New Role"
+//         primaryAction={{ label: "Create Role", onClick: handleAddNewRole }}
+//       >
+//         <div className="flex flex-col gap-4">
+//           <label className="text-gray-700 font-medium">Role Name</label>
+//           <input
+//             type="text"
+//             value={newRoleName}
+//             onChange={(e) => setNewRoleName(e.target.value)}
+//             placeholder="e.g., trainer"
+//             className="w-full border border-gray-300 rounded-lg px-4 py-2"
+//           />
+//         </div>
+//       </Modal>
+//     </div>
+//   );
+// };
+
+// export default RolePermissionManager;

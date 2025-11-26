@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   FaArrowRight,
+  FaBookOpen,
   FaClock,
   FaEdit,
   FaEnvelope,
+  FaLightbulb,
   FaPhone,
   FaStar,
-  FaUser,
+  FaUser
 } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +18,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BatchesComingSoon from "../../components/popupModal/BatchesComingSoon";
 import { BASE_URL, STUDENT_PORTAL_URL } from "../../utils/constants";
+// import student_dashboard_img from "../../../public/images";
 
 // Single stat card
 const StatCard = ({ title, value, icon, bgColor, iconBg }) => (
@@ -190,85 +193,159 @@ const StudentDashboardPage = () => {
   }
 
   const ProfileHeader = () => (
-    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl p-6 mb-8 relative overflow-hidden">
-      <div className="flex items-center gap-6">
+    // <div className="bg-gradient-to-r from-blue-900 via-indigo-800 to-purple-800 text-white rounded-2xl p- mb-10 relative overflow-hidden shadow-lg">
+    //   <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
+
+    //     {/* 👤 Profile Info Left */}
+    //     <div className="flex items-center gap-6 w-full md:w-2/3">
+    //       {userData.profilePhotoStudent ? (
+    //         <img
+    //           src={`${BASE_URL}/uploads/student/student-profilephoto/${userData.profilePhotoStudent}`}
+    //           alt="Student"
+    //           className="w-20 h-20 rounded-full border-4 border-white object-cover shadow-md"
+    //         />
+    //       ) : (
+    //         <div className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center shadow-md">
+    //           <FaUser className="w-10 h-10 text-white/70" />
+    //         </div>
+    //       )}
+
+    //       <div>
+    //         <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-1">
+    //           Welcome back, {userData.fullName}!
+    //         </h1>
+    //         <p className="text-indigo-100 text-sm md:text-base">
+    //           Here's a look at your learning journey. Keep pushing forward! 🚀
+    //         </p>
+    //       </div>
+    //     </div>
+
+    //     {/* 🖼️ Image Right */}
+    //     <div className="w-full md:w-1/3 flex justify-center md:justify-end">
+    //       <img
+    //         src="https://studyhub.vinnovateit.com/img/allnighter_img.svg"
+    //         alt="Learning Illustration"
+    //         className="w-35 md:w-35 lg:w-35"
+    //       />
+    //     </div>
+    //   </div>
+
+    //   {/* 🎨 Subtle background glow effect */}
+    //   <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+
+    //   {/* ✨ Animation */}
+    //   <style>{`
+    //     @keyframes fadeIn {
+    //       from { opacity: 0; transform: translateY(20px); }
+    //       to { opacity: 1; transform: translateY(0); }
+    //     }
+    //     .animate-fadeIn {
+    //       animation: fadeIn 1s ease-out forwards;
+    //     }
+    //   `}</style>
+    // </div>
+
+    <div className="bg-blue-800 text-white rounded-2xl px-4 md:px-4 flex flex-col md:flex-row items-center justify-between shadow-lg mb-8">
+      {/* Text Section */}
+      <div className="flex items-center gap-6 w-full md:w-3/3">
         {userData.profilePhotoStudent ? (
           <img
             src={`${BASE_URL}/uploads/student/student-profilephoto/${userData.profilePhotoStudent}`}
             alt="Student"
-            className="w-20 h-20 rounded-full border-4 border-white object-cover"
+            className="w-20 h-20 rounded-full border-4 border-white object-cover shadow-md"
           />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center">
+          <div className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center shadow-md">
             <FaUser className="w-10 h-10 text-white/70" />
           </div>
         )}
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">
+          <h2 className="text-3xl font-bold mb-2">
             Welcome back, {userData.fullName}!
-          </h1>
-          <p className="mt-1 text-indigo-100">
-            Here's a look at your learning journey
+          </h2>
+
+          <p className="text-indigo-100 text-md font-mono leading-relaxed flex items-start gap-2">
+            Your journey to mastery starts with showing up. Let’s make today a
+            productive one!
+            <FaLightbulb className="mt-1 text-yellow-300 w-5 h-5" />
+          </p>
+
+          <p className="text-indigo-100 text-md font-mono leading-relaxed flex items-start gap-2">
+            You’ve got this — let today be another chapter in your growth story.
+            <FaBookOpen className="mt-1 text-green-300 w-5 h-5" />
           </p>
         </div>
       </div>
+
+      {/* Illustration */}
+      <div className="w-40 md:w-56 mt-6 md:mt-0">
+        <img
+          src="/images/student_dashboard_img.svg"
+          alt="Learning"
+          className="w-full h-auto"
+        />
+      </div>
     </div>
   );
 
-const OverviewTab = () => {
-  const coursesWithBatch = userData.enrolledCourses?.filter(
-    (course) => course.batch !== null
-  );
-  const coursesWithoutBatch = userData.enrolledCourses?.filter(
-    (course) => course.batch === null
-  );
+  const OverviewTab = () => {
+    const coursesWithBatch = userData.enrolledCourses?.filter(
+      (course) => course.batch !== null
+    );
+    const coursesWithoutBatch = userData.enrolledCourses?.filter(
+      (course) => course.batch === null
+    );
 
-  return (
-    <div className="space-y-10">
-      {/* Courses with Batches */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">My Courses</h2>
-          <a href={courseUrl} className="text-white bg-indigo-500 hover:bg-blue-600 text-lg font-semibold flex items-center gap-2 border border-blue-600 rounded-md p-3 transition-transform duration-200 hover:scale-105" target="_blank" rel="noopener noreferrer">
-            Explore Courses <FaArrowRight className="w-4 h-4" />
-          </a>
+    return (
+      <div className="space-y-10">
+        {/* Courses with Batches */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">My Courses</h2>
+            <a
+              href={courseUrl}
+              className="text-white bg-indigo-500 hover:bg-blue-600 text-lg font-semibold flex items-center gap-2 border border-blue-600 rounded-md p-3 transition-transform duration-200 hover:scale-105"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Explore Courses <FaArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+
+          {coursesWithBatch.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {coursesWithBatch.map((course) => (
+                <CourseCard key={course._id} course={course} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No active courses yet.</p>
+          )}
         </div>
 
-        {coursesWithBatch.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coursesWithBatch.map((course) => (
-              <CourseCard key={course._id} course={course} />
-            ))}
+        {/* Courses Without Batches */}
+        {coursesWithoutBatch.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl shadow-lg p-6">
+            <h2 className="text-2xl font-bold text-yellow-700 mb-4">
+              Courses You're Interested In
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {coursesWithoutBatch.map((course) => (
+                <BatchesComingSoon key={course._id} course={course} />
+              ))}
+            </div>
           </div>
-        ) : (
-          <p className="text-center text-gray-500">No active courses yet.</p>
         )}
       </div>
-
-      {/* Courses Without Batches */}
-      {coursesWithoutBatch.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-yellow-700 mb-4">
-            Courses You're Interested In
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coursesWithoutBatch.map((course) => (
-              <BatchesComingSoon key={course._id} course={course} />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
+    );
+  };
 
   const ProfileTab = () => {
     const relativeImageUrl =
       "https://img.freepik.com/premium-vector/woman-sits-computer-screen-using-laptop-checking-off-tasks-checklist-screen-is-filled-with-lines-text-green-checkmark-signifying-completion_520881-7879.jpg";
 
     return (
-      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden md:flex">
+      <div className="max-w-8xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden md:flex">
         {/* Left Side Image with Text Overlay */}
         <div
           className="md:w-1/2 relative bg-cover bg-center flex items-center justify-center"
@@ -370,7 +447,7 @@ const OverviewTab = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-blue-100 py-6 px-4 sm:px-6 lg:px-6">
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -378,29 +455,39 @@ const OverviewTab = () => {
       />
       <ProfileHeader />
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Tab Switcher with Sliding Effect */}
+      <div className="relative w-full max-w-md mx-auto bg-white rounded-md p-2 shadow-xl flex items-center justify-between mb-6">
+        {/* Slider Background */}
+        <div
+          className={`absolute top-1 bottom-1 w-1/2 bg-blue-800 rounded-md transition-all duration-300 ${
+            activeTab === "overview" ? "left-1" : "left-1/2"
+          }`}
+        />
+
+        {/* Tab Buttons */}
         <button
           onClick={() => setActiveTab("overview")}
-          className={`px-4 py-2 rounded-lg ${
-            activeTab === "overview"
-              ? "bg-indigo-600 text-white"
-              : "text-gray-600 hover:bg-indigo-100"
+          className={`relative z-10 w-1/2 text-center py-2 rounded-full transition-all duration-300 font-semibold ${
+            activeTab === "overview" ? "text-white" : "text-blue-800"
           }`}
         >
-          <RiDashboardFill className="inline-block mr-1" /> My Courses
+          <RiDashboardFill className="inline-block mr-1" />
+          My Courses
         </button>
+
         <button
           onClick={() => setActiveTab("profile")}
-          className={`px-4 py-2 rounded-lg ${
-            activeTab === "profile"
-              ? "bg-indigo-600 text-white"
-              : "text-gray-600 hover:bg-indigo-100"
+          className={`relative z-10 w-1/2 text-center py-2 rounded-full transition-all duration-300 font-semibold ${
+            activeTab === "profile" ? "text-white" : "text-blue-800"
           }`}
         >
-          <FaUser className="inline-block mr-1" /> Profile
+          <FaUser className="inline-block mr-1" />
+          Profile
         </button>
       </div>
+      
 
+      {/* Tab Content */}
       <div>
         {activeTab === "overview" && <OverviewTab />}
         {activeTab === "profile" && <ProfileTab />}

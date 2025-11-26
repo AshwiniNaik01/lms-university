@@ -2,13 +2,40 @@ import apiClient from "./axiosConfig";
 /**
  * User ko register karta hai
  */
+// export const register = async (formData) => {
+//   try {
+//     // SAHI URL: http://localhost:5001/api/auth/register
+//     // URL se '.js' hata diya gaya hai
+//     const response = await apiClient.post(`/api/auth/register`, formData, {
+//       headers: {
+//         "Content-Type": "multipart/form-data",
+//       },
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error("API Register Error:", error.response?.data || error.message);
+//     throw (
+//       error.response?.data || {
+//         success: false,
+//         message: "Server error during registration.",
+//       }
+//     );
+//   }
+// };
+
+
+
+// POST: Register a student
+// export const registerStudent = async (formData) => {
+//   const response = await apiClient.post('/api/student/register', formData);
+//   return response.data;
+// };
+
 export const register = async (formData) => {
   try {
-    // SAHI URL: http://localhost:5001/api/auth/register
-    // URL se '.js' hata diya gaya hai
     const response = await apiClient.post(`/api/auth/register`, formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json", // ✅ Correct for JSON
       },
     });
     return response.data;
@@ -24,12 +51,6 @@ export const register = async (formData) => {
 };
 
 
-
-// POST: Register a student
-// export const registerStudent = async (formData) => {
-//   const response = await apiClient.post('/api/student/register', formData);
-//   return response.data;
-// };
 /**
  * User ko login karta hai
  */

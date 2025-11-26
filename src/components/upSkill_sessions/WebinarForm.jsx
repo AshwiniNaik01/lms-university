@@ -1,12 +1,16 @@
-
-// src/components/forms/WebinarForm.jsx
+// -----------------------------------------------------------------------------
+// 📘 WebinarForm Component
+// Handles both Create & Edit modes for Webinars with form validation,
+// dynamic fields, file uploads, and beautiful UI.
+// -----------------------------------------------------------------------------
 
 import { useFormik } from "formik";
 import { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import * as Yup from "yup";
 
-// import InputField from "../form-fields/InputField";
+// 🧩 Reusable form components
 import Dropdown from "../form/Dropdown";
 import DynamicInputFields from "../form/DynamicInputFields";
 import FileInput from "../form/FileInput";
@@ -15,21 +19,27 @@ import TextAreaField from "../form/TextAreaField";
 import TimeRangePicker from "../form/TimeRangePicker";
 import ToggleSwitch from "../form/ToggleSwitch";
 
-import { createWebinar, getWebinarById, updateWebinar } from "./upSkillsApi";
-// import { DIR } from "../../constants/dir";
+// 🌐 API functions & constants
 import { DIR } from "../../utils/constants";
+import { createWebinar, getWebinarById, updateWebinar } from "./upSkillsApi";
 
 const WebinarForm = () => {
-  const { id: categoryId } = useParams(); // might be a session-category ID
+  // ---------------------------------------------------------------------------
+  // ⚙️ Setup
+  // ---------------------------------------------------------------------------
+  const { id: categoryId } = useParams();
   const { search } = useLocation();
+  const navigate = useNavigate();
   const query = new URLSearchParams(search);
 
   const mode = query.get("type"); // "edit" or "add"
-  const webinarId = query.get("id"); // only exists in edit mode
+  const webinarId = query.get("id");
 
   const [loading, setLoading] = useState(false);
-  const [formStatus, setFormStatus] = useState("");
 
+  // ---------------------------------------------------------------------------
+  // 🧾 Default Values
+  // ---------------------------------------------------------------------------
   const defaultValues = {
     title: "",
     description: "",
@@ -51,7 +61,9 @@ const WebinarForm = () => {
 
   const [initialValues, setInitialValues] = useState(defaultValues);
 
-  // Fetch data only in edit mode
+  // ---------------------------------------------------------------------------
+  // 📦 Fetch Webinar (Edit Mode)
+  // ---------------------------------------------------------------------------
   useEffect(() => {
     const fetchWebinar = async () => {
       if (mode !== "edit" || !webinarId) return;
@@ -60,39 +72,24 @@ const WebinarForm = () => {
       try {
         const resp = await getWebinarById(webinarId);
         const data = resp.data?.data;
-        if (data && data._id) {
-          setInitialValues({
-            title: data.title || "",
-            description: data.description || "",
-            date: data.date ? data.date.split("T")[0] : "",
-            startTime: data.startTime || "",
-            endTime: data.endTime || "",
-            speakerName: data.speakerName || "",
-            speakerBio: data.speakerBio || "",
-            speakerPhoto: data.speakerPhoto
-              ? `${DIR.WEBINAR_SPEAKER_PHOTO}${data.speakerPhoto}`
-              : null,
-            platform: data.platform || "",
-            meetingLink: data.meetingLink || "",
-            meetingId: data.meetingId || "",
-            passcode: data.passcode || "",
-            registrationRequired: data.registrationRequired ?? true,
-            maxParticipants: data.maxParticipants
-              ? String(data.maxParticipants)
-              : "",
-            tags:
-              Array.isArray(data.tags) && data.tags.length > 0
-                ? data.tags
-                : [""],
-            status: data.status || "Upcoming",
-          });
-          setFormStatus("");
-        } else {
-          setFormStatus("❌ Webinar not found");
+
+        if (!data) {
+          Swal.fire("Error", "Webinar not found", "error");
+          return;
         }
+
+        setInitialValues({
+          ...defaultValues,
+          ...data,
+          date: data.date ? data.date.split("T")[0] : "",
+          speakerPhoto: data.speakerPhoto
+            ? `${DIR.WEBINAR_SPEAKER_PHOTO}${data.speakerPhoto}`
+            : null,
+          tags: Array.isArray(data.tags) && data.tags.length > 0 ? data.tags : [""],
+        });
       } catch (err) {
-        console.error("Error fetching webinar:", err);
-        setFormStatus("❌ Failed to load webinar data");
+        console.error("❌ Error fetching webinar:", err);
+        Swal.fire("Error", "Failed to load webinar data", "error");
       } finally {
         setLoading(false);
       }
@@ -101,111 +98,117 @@ const WebinarForm = () => {
     fetchWebinar();
   }, [mode, webinarId]);
 
+  // ---------------------------------------------------------------------------
+  // ✅ Validation Schema (Yup)
+  // ---------------------------------------------------------------------------
+  const validationSchema = Yup.object({
+    title: Yup.string().required("Title is required"),
+    date: Yup.date().required("Date is required"),
+    startTime: Yup.string().required("Start time is required"),
+    speakerName: Yup.string().required("Speaker name is required"),
+    platform: Yup.string().required("Platform is required"),
+    meetingLink: Yup.string()
+      .url("Must be a valid URL")
+      .required("Meeting link is required"),
+  });
+
+  // ---------------------------------------------------------------------------
+  // 🧠 Formik Setup
+  // ---------------------------------------------------------------------------
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
-    validationSchema: Yup.object({
-      title: Yup.string().required("Title is required"),
-      date: Yup.date().required("Date is required"),
-      startTime: Yup.string().required("Start time is required"),
-      speakerName: Yup.string().required("Speaker name is required"),
-      platform: Yup.string().required("Platform is required"),
-      meetingLink: Yup.string()
-        .url("Must be a valid URL")
-        .required("Meeting link is required"),
-    }),
+    validationSchema,
     onSubmit: async (values, { resetForm, setSubmitting }) => {
       setSubmitting(true);
-      setFormStatus("");
 
       try {
+        // Create FormData for file + text data
         const formData = new FormData();
 
-        // Tags
+        // Append simple scalar fields
+        Object.entries(values).forEach(([key, value]) => {
+          if (key === "speakerPhoto" || key === "tags") return;
+          if (value !== undefined && value !== null && value !== "")
+            formData.append(key, value);
+        });
+
+        // Append tags (array)
         if (Array.isArray(values.tags)) {
           values.tags
             .filter((tag) => tag.trim() !== "")
             .forEach((tag) => formData.append("tags[]", tag));
         }
 
-        // Speaker Photo
+        // Append speaker photo if file
         if (values.speakerPhoto instanceof File) {
           formData.append("speakerPhoto", values.speakerPhoto);
         }
 
-        // Scalar fields
-        const scalarFields = [
-          "title",
-          "description",
-          "date",
-          "startTime",
-          "endTime",
-          "speakerName",
-          "speakerBio",
-          "platform",
-          "meetingLink",
-          "meetingId",
-          "passcode",
-          "registrationRequired",
-          "maxParticipants",
-          "status",
-        ];
-
-        scalarFields.forEach((field) => {
-          const val = values[field];
-          if (val !== undefined && val !== null && val !== "") {
-            formData.append(field, val);
-          }
-        });
-
-        // Create or Update
+        // Submit: Create or Update
         if (mode === "edit" && webinarId) {
           await updateWebinar(webinarId, formData);
-          setFormStatus("✅ Webinar updated successfully!");
+          Swal.fire({
+            title: "Success",
+            text: "Webinar updated successfully!",
+            icon: "success",
+            confirmButtonText: "OK",
+          }).then(() => navigate("/book-session"));
         } else {
           await createWebinar(formData);
-          setFormStatus("✅ Webinar created successfully!");
-          resetForm();
+          Swal.fire({
+            title: "Success",
+            text: "Webinar created successfully!",
+            icon: "success",
+            confirmButtonText: "OK",
+          }).then(() => {
+            resetForm();
+            navigate("/book-session");
+          });
         }
       } catch (err) {
-        console.error("Error submitting webinar:", err);
-        setFormStatus("❌ Failed to submit webinar.");
+        console.error("❌ Error submitting webinar:", err);
+        Swal.fire("Error", "Failed to submit webinar", "error");
       } finally {
         setSubmitting(false);
       }
     },
   });
-  return (
-    <form
-      onSubmit={formik.handleSubmit}
-      className="space-y-8 p-8 max-w-4xl mx-auto bg-white shadow-lg rounded-lg border border-gray-200"
-    >
-      <h2 className="text-3xl font-bold mb-6 text-gray-900 text-center">
-        {webinarId ? "Edit Webinar" : "Create Webinar"}
-      </h2>
 
-      {loading && (
-        <p className="text-center text-gray-500">Loading webinar data...</p>
-      )}
-      {formStatus && (
-        <p
-          className={`text-center text-sm font-medium ${
-            formStatus.startsWith("✅") ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {formStatus}
-        </p>
-      )}
+  // ---------------------------------------------------------------------------
+  // 🎨 UI Layout
+  // ---------------------------------------------------------------------------
+return (
+  <form
+    onSubmit={formik.handleSubmit}
+    className="space-y-10 p-8 max-w-6xl mx-auto bg-white shadow-xl rounded-xl border-3 border-blue-700 border-opacity-80"
+  >
+    {/* 🏷️ Header */}
+    <h2 className="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-4 mb-4 text-start">
+      {mode === "edit" ? "Edit Webinar" : "Create Webinar"}
+    </h2>
 
-      {/* Title & Description */}
-      <InputField label="Title" name="title" formik={formik} />
+    {/* 🧩 Basic Information */}
+    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Basic Information
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputField label="Title *" name="title" formik={formik} />
+        <InputField label="Platform *" name="platform" formik={formik} />
+      </div>
       <TextAreaField label="Description" name="description" formik={formik} />
+    </section>
 
-      {/* Date & Time */}
+    {/* 📅 Date & Time */}
+    <section className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Date & Time
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Date*
+            Date *
           </label>
           <input
             type="date"
@@ -213,20 +216,24 @@ const WebinarForm = () => {
             value={formik.values.date}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            className="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300"
+            className="w-full mt-1 border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
           />
           {formik.touched.date && formik.errors.date && (
-            <span className="text-red-500 text-xs">{formik.errors.date}</span>
+            <p className="text-red-500 text-xs mt-1">{formik.errors.date}</p>
           )}
         </div>
         <TimeRangePicker formik={formik} />
       </div>
+    </section>
 
-      {/* Platform & Meeting Details */}
+    {/* 💻 Meeting Details */}
+    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Meeting Details
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField label="Platform" name="platform" formik={formik} />
         <InputField
-          label="Meeting Link"
+          label="Meeting Link *"
           name="meetingLink"
           formik={formik}
           type="url"
@@ -234,13 +241,25 @@ const WebinarForm = () => {
         <InputField label="Meeting ID" name="meetingId" formik={formik} />
         <InputField label="Passcode" name="passcode" formik={formik} />
       </div>
+    </section>
 
-      {/* Speaker info */}
-      <InputField label="Speaker Name" name="speakerName" formik={formik} />
-      <TextAreaField label="Speaker Bio" name="speakerBio" formik={formik} />
-      <FileInput label="Speaker Photo" name="speakerPhoto" formik={formik} />
+    {/* 🎤 Speaker Information */}
+    <section className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Speaker Information
+      </h3>
+      <div className="grid grid-cols-1 gap-6">
+        <InputField label="Speaker Name *" name="speakerName" formik={formik} />
+        <TextAreaField label="Speaker Bio" name="speakerBio" formik={formik} />
+        <FileInput label="Speaker Photo" name="speakerPhoto" formik={formik} />
+      </div>
+    </section>
 
-      {/* Registration & Tags */}
+    {/* 👥 Registration & Tags */}
+    <section className="space-y-4 bg-blue-50 p-4 rounded-lg">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Registration & Tags
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField
           label="Max Participants"
@@ -261,10 +280,15 @@ const WebinarForm = () => {
           )
         }
       />
+    </section>
 
-      {/* Status */}
+    {/* 📊 Status */}
+    <section className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+        Status
+      </h3>
       <Dropdown
-        label="Status"
+        label="Webinar Status"
         name="status"
         formik={formik}
         options={[
@@ -273,23 +297,34 @@ const WebinarForm = () => {
           { _id: "Completed", title: "Completed" },
         ]}
       />
+    </section>
 
-      {/* Submit Button */}
-      <div className="flex justify-center mt-6">
-        <button
-          type="submit"
-          disabled={formik.isSubmitting}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow disabled:opacity-50"
-        >
-          {formik.isSubmitting
-            ? "Submitting..."
-            : webinarId
-            ? "Update Webinar"
-            : "Create Webinar"}
-        </button>
-      </div>
-    </form>
-  );
+    {/* 🚀 Submit Button */}
+    <div className="flex justify-end pt-4 gap-4">
+          <button
+    type="button"
+    onClick={() => navigate(-1)} // Go back to previous page
+    className="px-8 py-4 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-xl shadow-lg transition duration-300"
+  >
+    Cancel
+  </button>
+      <button
+        type="submit"
+        disabled={formik.isSubmitting || loading}
+        className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {mode === "edit"
+          ? loading
+            ? "Updating..."
+            : "Update Webinar"
+          : loading
+          ? "Creating..."
+          : "Create Webinar"}
+      </button>
+    </div>
+  </form>
+);
+
 };
 
 export default WebinarForm;
