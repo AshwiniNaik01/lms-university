@@ -1,5 +1,6 @@
 
 import { useEffect } from "react";
+import { FaPlus, FaTimes } from "react-icons/fa";
 
 const DynamicInputFields = ({ formik, name, label }) => {
   // Safe access to nested array values
@@ -68,9 +69,9 @@ const DynamicInputFields = ({ formik, name, label }) => {
               <button
                 type="button"
                 onClick={addInput}
-                className="px-3 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                className="px-3 py-2 text-white bg-sky-600 rounded hover:bg-sky-500"
               >
-                +
+                <FaPlus/>
               </button>
             )}
 
@@ -78,9 +79,9 @@ const DynamicInputFields = ({ formik, name, label }) => {
               <button
                 type="button"
                 onClick={() => removeInput(index)}
-                className="px-3 py-2 text-white bg-red-500 rounded hover:bg-red-600"
+                className="px-3 py-2 text-white bg-rose-500 rounded hover:bg-rose-400"
               >
-                ✕
+                <FaTimes/>
               </button>
             )}
           </div>

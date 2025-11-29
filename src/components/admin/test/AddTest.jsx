@@ -12,6 +12,8 @@ import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import RadioButtonGroup from "../../form/RadioButtonGroup";
 import { useCourseParam } from "../../hooks/useCourseParam";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const AddTest = ({ onClose, onTestAdded }) => {
   const formikRef = useRef(null);
@@ -25,6 +27,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
   const [chapters, setChapters] = useState([]);
   const [batches, setBatches] = useState([]);
   // const [selectedCourseId, setSelectedCourseId] = useState(initialValues.courseId);
+      const { rolePermissions } = useSelector((state) => state.permissions);
 
   const testLevelOptions = [
     { _id: "Beginner", title: "Beginner" },
@@ -200,8 +203,8 @@ const AddTest = ({ onClose, onTestAdded }) => {
           "question",
           "optionA",
           "optionB",
-          "optionC",
-          "optionD",
+          // "optionC",
+          // "optionD",
           "correctAns",
           "marks",
           "chapterName",
@@ -382,7 +385,9 @@ const AddTest = ({ onClose, onTestAdded }) => {
         onClose?.();
 
         // Navigate to ManageTest page
+         if (canPerformAction(rolePermissions, "test", "read")) {
         navigate("/manage-test");
+         }
       } else {
         Swal.fire({
           icon: "warning",
@@ -419,7 +424,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
         <Form className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-6 overflow-hidden border-4 border-[rgba(14,85,200,0.83)]">
           {/* Header */}
           <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center mb-6">
-            ➕ Add New Assessment Test
+            ➕ Add Assessment Test
           </h2>
 
           {/* Test Info */}

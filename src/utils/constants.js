@@ -42,7 +42,7 @@ export const DIR = {
 
   // 📘 Course Materials
   COURSE_NOTES: BASE_URL + "/uploads/course-notes/",
-  ASSIGNMENT_FILES: BASE_URL + "/uploads/assignment-submissions/",
+  ASSIGNMENT_FILES: BASE_URL + "/uploads/assignments/",
 
   // 📊 Test Materials
   TEST_EXCEL: BASE_URL + "/uploads/test-excel/",
@@ -68,5 +68,9 @@ export const DIR = {
   SPONSOR_LOGO: BASE_URL + "/uploads/sponsorship/logo/",
 
   // Logo
-  LOGO: BASE_URL +"/uploads/contact/company-logo/"
+  LOGO: BASE_URL +"/uploads/contact/company-logo/",
+
+  // 🧩 Prerequisite Materials 
+  PREREQUISITE_MATERIALS: BASE_URL + "/uploads/prerequisite/materials/",
+
 };

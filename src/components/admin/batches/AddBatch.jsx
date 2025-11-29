@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+
+
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { createBatch, fetchBatchById, updateBatch } from "../../../api/batch";
@@ -10,16 +12,19 @@ import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import TextAreaField from "../../form/TextAreaField";
 import { useSelector } from "react-redux";
 import { canPerformAction } from "../../../utils/permissionUtils";
+import apiClient from "../../../api/axiosConfig"; // Axios instance
+import { FiCheck, FiDownload, FiUpload } from "react-icons/fi";
 
 const AddBatch = ({ onBatchSaved }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const fileRef = useRef(null);
 
   const [selectedBatchId, setSelectedBatchId] = useState(id || null);
   const [courses, setCourses] = useState([]);
   const [trainers, setTrainers] = useState([]);
   const [loading, setLoading] = useState(false);
-    const { rolePermissions } = useSelector((state) => state.permissions);
+  const { rolePermissions } = useSelector((state) => state.permissions);
 
   const [formData, setFormData] = useState({
     batchName: "",
@@ -31,6 +36,8 @@ const AddBatch = ({ onBatchSaved }) => {
     trainersAssigned: [],
     additionalNotes: "",
   });
+
+  const [excelFile, setExcelFile] = useState(null);
 
   const daysOfWeek = [
     "Monday",
@@ -48,8 +55,7 @@ const AddBatch = ({ onBatchSaved }) => {
     { _id: "Hybrid", title: "Hybrid" },
   ];
 
-  // -------------------- Handled the cancel button --------------------
-
+  // -------------------- Handle Cancel --------------------
   const handleCancel = () => {
     setFormData({
       batchName: "",
@@ -62,6 +68,8 @@ const AddBatch = ({ onBatchSaved }) => {
       additionalNotes: "",
     });
     setSelectedBatchId(null);
+    setExcelFile(null);
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   // -------------------- Fetch Courses & Trainers --------------------
@@ -71,21 +79,15 @@ const AddBatch = ({ onBatchSaved }) => {
         getAllCourses(),
         fetchAllTrainers(),
       ]);
-
       setCourses(coursesData || []);
       setTrainers(trainersData || []);
     } catch (err) {
-      console.error("Error fetching courses/trainers:", err);
-
-      // Check if the error response has the same structure
-      const errorMessage =
-        err.response?.data?.message ||
-        "Failed to fetch Training Program or Trainers.";
-
       Swal.fire({
         icon: "warning",
         title: "Warning",
-        text: errorMessage,
+        text:
+          err.response?.data?.message ||
+          "Failed to fetch Training Program or Trainers.",
         confirmButtonText: "OK",
       });
     }
@@ -116,7 +118,6 @@ const AddBatch = ({ onBatchSaved }) => {
           navigate("/manage-batches");
         }
       } catch (err) {
-        console.error(err);
         Swal.fire("Error", err.message || "Failed to fetch batch.", "error");
         navigate("/manage-batches");
       } finally {
@@ -148,22 +149,32 @@ const AddBatch = ({ onBatchSaved }) => {
     setFormData((prev) => ({ ...prev, [name]: selectedIds }));
   };
 
+  // -------------------- Handle Excel File Change --------------------
+  const handleExcelChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setExcelFile(file);
+  };
+
   // -------------------- Handle Submit --------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const payload = {
-      batchName: formData.batchName,
-      time: { start: formData.startTime, end: formData.endTime },
-      days: formData.days,
-      mode: formData.mode,
-      coursesAssigned: formData.coursesAssigned,
-      trainersAssigned: formData.trainersAssigned,
-      additionalNotes: formData.additionalNotes,
-    };
-
     try {
+      // -------------------- Save Batch --------------------
+      const payload = {
+        batchName: formData.batchName,
+        time: { start: formData.startTime, end: formData.endTime },
+        days: formData.days,
+        mode: formData.mode,
+        coursesAssigned: formData.coursesAssigned,
+        trainersAssigned: formData.trainersAssigned,
+        additionalNotes: formData.additionalNotes,
+      };
+
+      let batchId = selectedBatchId;
+
       if (selectedBatchId) {
         await updateBatch(selectedBatchId, payload);
         Swal.fire({
@@ -173,7 +184,8 @@ const AddBatch = ({ onBatchSaved }) => {
           confirmButtonColor: "#0E55C8",
         });
       } else {
-        await createBatch(payload);
+        const res = await createBatch(payload);
+        batchId = res._id || res.data?._id;
         Swal.fire({
           title: "Added!",
           text: "Batch added successfully.",
@@ -182,53 +194,41 @@ const AddBatch = ({ onBatchSaved }) => {
         });
       }
 
-      // Reset form
-      setFormData({
-        batchName: "",
-        startTime: "",
-        endTime: "",
-        days: [],
-        mode: "Online",
-        coursesAssigned: [],
-        trainersAssigned: [],
-        additionalNotes: "",
-      });
-      setSelectedBatchId(null);
+      // -------------------- Upload Excel (if any) --------------------
+      if (excelFile) {
+        const formDataPayload = new FormData();
+        formDataPayload.append("excelFile", excelFile);
+        formDataPayload.append("enrolledCourses", JSON.stringify(formData.coursesAssigned));
+        formDataPayload.append("enrolledBatches", JSON.stringify([batchId]));
 
-      // if (onBatchSaved) onBatchSaved();
-      // navigate("/manage-batches");
+        await apiClient.post("/api/batches/upload-excel", formDataPayload, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
-      // Conditionally navigate if user has read permission
-    if (canPerformAction(rolePermissions, "batch", "read")) {
-      navigate("/manage-batches");
-    } else if (onBatchSaved) {
-      // Optional: trigger callback if needed
-      onBatchSaved();
-    }
+        Swal.fire({
+          title: "Success",
+          text: "Excel file uploaded successfully.",
+          icon: "success",
+          confirmButtonColor: "#0E55C8",
+        });
+      }
+
+      handleCancel(); // reset form
+
+      if (canPerformAction(rolePermissions, "batch", "read")) {
+        navigate("/manage-batches");
+      } else if (onBatchSaved) {
+        onBatchSaved();
+      }
     } catch (err) {
-      console.error(
-        "Error submitting batch:",
-        err.response?.data || err.message
-      );
       Swal.fire(
         "Error",
-        err.response?.data?.message ||
-          "Failed to save batch. Please try again.",
+        err.response?.data?.message || "Failed to save batch. Please try again.",
         "error"
       );
     } finally {
       setLoading(false);
     }
-  };
-
-  // -------------------- Formik-like object for Dropdowns --------------------
-  const formik = {
-    values: formData,
-    touched: {},
-    errors: {},
-    handleBlur: () => {},
-    setFieldValue: (name, value) =>
-      setFormData((prev) => ({ ...prev, [name]: value })),
   };
 
   // -------------------- JSX --------------------
@@ -240,12 +240,12 @@ const AddBatch = ({ onBatchSaved }) => {
             {selectedBatchId ? "Update Batch" : "Add Batch"}
           </h3>
           {canPerformAction(rolePermissions, "batch", "read") && (
-          <button
-            onClick={() => navigate("/manage-batches")}
-            className="text-md bg-[rgba(14,85,200,0.83)] hover:bg-blue-700 px-4 py-2 rounded-md font-bold text-white transition"
-          >
-            ← Manage Batches
-          </button>
+            <button
+              onClick={() => navigate("/manage-batches")}
+              className="text-md bg-[rgba(14,85,200,0.83)] hover:bg-blue-700 px-4 py-2 rounded-md font-bold text-white transition"
+            >
+              ← Manage Batches
+            </button>
           )}
         </div>
 
@@ -257,10 +257,10 @@ const AddBatch = ({ onBatchSaved }) => {
                 key={idx}
                 label={
                   field === "batchName"
-                    ? "Batch Name"
+                    ? "Batch Name*"
                     : field === "startTime"
-                    ? "Start Time"
-                    : "End Time"
+                    ? "Start Time*"
+                    : "End Time*"
                 }
                 name={field}
                 type={field.includes("Time") ? "time" : "text"}
@@ -276,49 +276,39 @@ const AddBatch = ({ onBatchSaved }) => {
             ))}
           </div>
 
-          {/* Mode */}
+          {/* Mode, Courses & Trainers */}
           <div className="grid grid-cols-3 gap-6">
-            <Dropdown
-              label="Mode"
-              name="mode"
-              options={modeOptions}
-              formik={formik}
-            />
+            <Dropdown label="Mode*" name="mode" options={modeOptions} formik={{
+              values: formData,
+              setFieldValue: (name, value) =>
+                setFormData((prev) => ({ ...prev, [name]: value })),
+              touched: {},
+              errors: {},
+              handleBlur: () => {},
+            }} />
 
-            {/* Courses & Trainers */}
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
             <MultiSelectDropdown
-              label="Assign Training Program(s)"
+              label="Assign Training Program(s)*"
               name="coursesAssigned"
               options={courses}
-              formik={{
-                values: formData,
-                setFieldValue: (name, value) =>
-                  handleMultiSelectChange(name, value),
-              }}
+              formik={{ values: formData, setFieldValue: handleMultiSelectChange }}
               getOptionValue={(c) => c._id}
               getOptionLabel={(c) => c.title}
             />
+
             <MultiSelectDropdown
-              label="Assign Trainer(s)"
+              label="Assign Trainer(s)*"
               name="trainersAssigned"
               options={trainers}
-              formik={{
-                values: formData,
-                setFieldValue: (name, value) =>
-                  handleMultiSelectChange(name, value),
-              }}
+              formik={{ values: formData, setFieldValue: handleMultiSelectChange }}
               getOptionValue={(t) => t._id}
               getOptionLabel={(t) => t.fullName}
             />
           </div>
-          {/* </div> */}
 
           {/* Days */}
           <div>
-            <label className="font-semibold text-gray-700 mb-2 block">
-              Days:
-            </label>
+            <label className="font-semibold text-gray-700 mb-2 block">Days:*</label>
             <div className="flex flex-wrap gap-3 mt-1">
               {daysOfWeek.map((day) => (
                 <label
@@ -338,13 +328,13 @@ const AddBatch = ({ onBatchSaved }) => {
             </div>
           </div>
 
-          {/* Notes */}
+          {/* Additional Notes */}
           <TextAreaField
-            label="Additional Notes"
+            label="Additional Notes(optional)"
             name="additionalNotes"
             formik={{
               values: formData,
-              handleChange: handleChange,
+              handleChange,
               handleBlur: () => {},
               touched: {},
               errors: {},
@@ -352,7 +342,67 @@ const AddBatch = ({ onBatchSaved }) => {
             rows={4}
           />
 
-          {/* Submit */}
+          {/* Excel Upload */}
+<div
+  className="bg-gray-50 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-300"
+  onClick={() => fileRef.current?.click()}
+  onDragOver={(e) => e.preventDefault()}
+  onDrop={(e) => {
+    e.preventDefault();
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) handleExcelChange({ target: { files: [droppedFile] } });
+  }}
+>
+  <label className="font-bold"> Upload Student Excel(optional)</label>
+  {/* Hidden file input */}
+  <input
+    type="file"
+    ref={fileRef}
+    accept=".xlsx,.xls"
+    onChange={handleExcelChange}
+    className="hidden"
+  />
+
+  {/* Drag & Drop Icon */}
+  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    <FiUpload className="text-blue-600 w-8 h-8" />
+  </div>
+
+  {/* Instructions */}
+  {!excelFile ? (
+    <div>
+      <p className="text-gray-700 font-medium mb-2">
+        Click to upload or drag & drop
+      </p>
+      <p className="text-gray-500 text-sm">Excel files only (.xlsx, .xls)</p>
+    </div>
+  ) : (
+    <div>
+      <p className="text-green-600 font-semibold mb-2">
+        File Selected <FiCheck className="inline" />
+      </p>
+      <p className="text-gray-600 text-sm">{excelFile.name}</p>
+      <p className="text-gray-500 text-xs mt-1">
+        {(excelFile.size / 1024 / 1024).toFixed(2)} MB
+      </p>
+    </div>
+  )}
+
+  {/* Sample Excel Download */}
+  <a
+    href="/Enrollment_Sample.xlsx"
+    download
+    onClick={(e) => e.stopPropagation()} // Prevent triggering the file upload
+    className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
+  >
+    <FiDownload className="w-5 h-5" />
+    Sample Excel
+  </a>
+</div>
+
+
+
+          {/* Submit Buttons */}
           <div className="text-center flex justify-end gap-4">
             <button
               type="button"
@@ -368,11 +418,7 @@ const AddBatch = ({ onBatchSaved }) => {
               disabled={loading}
               className="bg-[rgba(14,85,200,0.83)] text-white font-semibold px-10 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300 disabled:opacity-60"
             >
-              {loading
-                ? "Saving..."
-                : selectedBatchId
-                ? "Update Batch"
-                : "Add Batch"}
+              {loading ? "Saving..." : selectedBatchId ? "Update Batch" : "Add Batch"}
             </button>
           </div>
         </form>

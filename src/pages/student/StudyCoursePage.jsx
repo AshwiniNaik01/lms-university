@@ -13,12 +13,13 @@ import {
 } from "react-icons/fa";
 import { Link, useParams } from "react-router-dom";
 import { fetchCourseById } from "../../api/courses";
-import AssignmentsTab from "../../components/student-course/AssignmentsTab";
+// import AssignmentsTab from "../../components/student-course/AssignmentsTab";
 import CurriculumTab from "../../components/student-course/CurriculumTab";
 import NotesTab from "../../components/student-course/NotesTab";
 import OutcomesTab from "../../components/student-course/OutcomesTab";
 import OverviewTab from "../../components/student-course/OverviewTab";
 import VideosTab from "../../components/student-course/VideosTab";
+import AssignmentsTab from "../../components/student-course/assignmentSection/AssignmentsTab";
 
 const StudyCoursePage = () => {
   const { courseId } = useParams();

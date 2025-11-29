@@ -4,6 +4,8 @@ import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const EnrolledStudentList = () => {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ const EnrolledStudentList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [modalType, setModalType] = useState(null); // "courses" | "batches"
+    const { rolePermissions } = useSelector((state) => state.permissions);
 
   // ✅ Fetch all enrollments
   useEffect(() => {
@@ -122,6 +125,7 @@ const EnrolledStudentList = () => {
           </button>
 
           {/* Edit Button */}
+           {canPerformAction(rolePermissions, "enrollment", "update") && (
           <button
             onClick={() =>
               navigate(`/enroll-student/${row.enrollment._id}`)
@@ -130,8 +134,10 @@ const EnrolledStudentList = () => {
           >
             Edit
           </button>
+           )}
 
           {/* Delete Button */}
+          {canPerformAction(rolePermissions, "enrollment", "delete") && (
           <button
             onClick={async () => {
               const result = await Swal.fire({
@@ -177,6 +183,7 @@ const EnrolledStudentList = () => {
           >
             Delete
           </button>
+          )}
         </div>
       ),
     },
@@ -285,12 +292,14 @@ const EnrolledStudentList = () => {
         <h2 className="text-2xl font-bold text-gray-700">
           Manage Enrolled Student
         </h2>
+        {canPerformAction(rolePermissions, "enrollment", "create") && (
         <button
           onClick={() => navigate("/enroll-student")}
           className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
         >
           + Enroll New Student
         </button>
+        )}
       </div>
 
       {/* ✅ Table Section */}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
+import { useSelector } from "react-redux";
 
 import {
   createSessionCategory,
@@ -21,6 +22,7 @@ import { ListCheckIcon, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 import Modal from "../popupModal/Modal";
 import Dropdown from "../form/Dropdown";
+import { canPerformAction } from "../../utils/permissionUtils";
 
 // ----------------------
 // Validation Schema
@@ -43,14 +45,14 @@ const SessionCategoryForm = () => {
   const [isTableOpen, setIsTableOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const navigate = useNavigate();
+  const { rolePermissions } = useSelector((state) => state.permissions);
 
-const upSkillOptions = [
-  { value: "internship-session", label: "Internship Session" },
-  { value: "workshop", label: "Workshop" },
-  { value: "webinar", label: "Webinar" },
-  { value: "event", label: "Event" },
-];
-
+  const upSkillOptions = [
+    { value: "internship-session", label: "Internship Session" },
+    { value: "workshop", label: "Workshop" },
+    { value: "webinar", label: "Webinar" },
+    { value: "event", label: "Event" },
+  ];
 
   // ----------------------
   // Fetch all session categories
@@ -176,11 +178,10 @@ const upSkillOptions = [
   //     // navigate(`/admin/session-category/${category._id}/list`);
   // };
 
-// New:
-const handleManage = (category) => {
-  navigate(`/session-category/${category.slug}/${category._id}/list`);
-};
-
+  // New:
+  const handleManage = (category) => {
+    navigate(`/session-category/${category.slug}/${category._id}/list`);
+  };
 
   // ----------------------
   // Open form for creating new category
@@ -226,14 +227,16 @@ const handleManage = (category) => {
       accessor: (row) => (
         <div className="flex space-x-4">
           {/* Edit */}
-          <button
-            data-tooltip-id="tooltip"
-            data-tooltip-content="Edit UpSkill"
-            className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition"
-            onClick={() => handleEdit(row)}
-          >
-            <Pencil size={18} />
-          </button>
+          {canPerformAction(rolePermissions, "session", "update") && (
+            <button
+              data-tooltip-id="tooltip"
+              data-tooltip-content="Edit UpSkill"
+              className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition"
+              onClick={() => handleEdit(row)}
+            >
+              <Pencil size={18} />
+            </button>
+          )}
 
           {/* Delete */}
           {/* <button
@@ -246,26 +249,30 @@ const handleManage = (category) => {
           </button> */}
 
           {/* Manage */}
-          <button
-            data-tooltip-id="tooltip"
-            data-tooltip-content={`List ${row.slug}`}
-            className="p-2 rounded-lg hover:bg-indigo-50 text-indigo-600 transition"
-            onClick={() => handleManage(row)}
-          >
-            <ListCheckIcon size={18} />
-          </button>
+          {canPerformAction(rolePermissions, "session", "read") && (
+            <button
+              data-tooltip-id="tooltip"
+              data-tooltip-content={`List ${row.slug}`}
+              className="p-2 rounded-lg hover:bg-indigo-50 text-indigo-600 transition"
+              onClick={() => handleManage(row)}
+            >
+              <ListCheckIcon size={18} />
+            </button>
+          )}
 
           {/* Create content */}
-          <button
-            data-tooltip-id="tooltip"
-            data-tooltip-content={`Add ${row.slug}`}
-            className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition"
-            onClick={() =>
-              navigate(`/session-category/${row.slug}/${row._id}/manage`)
-            }
-          >
-            <Plus size={18} />
-          </button>
+          {canPerformAction(rolePermissions, "session", "create") && (
+            <button
+              data-tooltip-id="tooltip"
+              data-tooltip-content={`Add ${row.slug}`}
+              className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition"
+              onClick={() =>
+                navigate(`/session-category/${row.slug}/${row._id}/manage`)
+              }
+            >
+              <Plus size={18} />
+            </button>
+          )}
         </div>
       ),
     },
@@ -308,68 +315,69 @@ const handleManage = (category) => {
       </div>
 
       {/* ========== FORM POPUP ========== */}
-   <Modal
-  isOpen={isFormOpen}
-  onClose={handleCloseForm}
-  header={
-    selectedCategory
-      ? "✏️ Edit UpSkill Category"
-      : "➕ Add UpSkill Category"
-  }
-  primaryAction={{
-    label: loading
-      ? "⏳ Submitting..."
-      : selectedCategory
-      ? "💾 Update Category"
-      : "🚀 Add Category",
-    onClick: formik.handleSubmit,
-  }}
->
-  {/* Form Content */}
-  <form onSubmit={formik.handleSubmit} className="space-y-6">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <InputField label="UpSkill Title" name="name" formik={formik} />
-      {/* <InputField label="UpSkill Slug" name="slug" formik={formik} /> */}
-      <Dropdown
-  label="UpSkill Type"
-  name="slug"
-  formik={formik}
-  options={upSkillOptions.map(opt => ({ _id: opt.value, title: opt.label }))}
-/>
-
-
-      {/* Active Toggle */}
-      <div className="flex items-center gap-4">
-        <span className="text-sm font-medium text-gray-700">Status</span>
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            name="isActive"
-            checked={formik.values.isActive}
-            onChange={formik.handleChange}
-            className="sr-only peer"
-          />
-          <div className="w-12 h-7 bg-gray-300 peer-checked:bg-blue-600 rounded-full transition-colors duration-300"></div>
-          <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
-        </label>
-      </div>
-    </div>
-
-    <TextAreaField label="Description" name="desc" formik={formik} />
-
-    {/* Optional Cancel Button inside form */}
-    {selectedCategory && (
-      <button
-        type="button"
-        onClick={handleCloseForm}
-        className="mt-4 w-full bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all py-3"
+      <Modal
+        isOpen={isFormOpen}
+        onClose={handleCloseForm}
+        header={
+          selectedCategory
+            ? "✏️ Edit UpSkill Category"
+            : "➕ Add UpSkill Category"
+        }
+        primaryAction={{
+          label: loading
+            ? "⏳ Submitting..."
+            : selectedCategory
+            ? "💾 Update Category"
+            : "🚀 Add Category",
+          onClick: formik.handleSubmit,
+        }}
       >
-        ❌ Cancel Edit
-      </button>
-    )}
-  </form>
-</Modal>
+        {/* Form Content */}
+        <form onSubmit={formik.handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InputField label="UpSkill Title" name="name" formik={formik} />
+            {/* <InputField label="UpSkill Slug" name="slug" formik={formik} /> */}
+            <Dropdown
+              label="UpSkill Type"
+              name="slug"
+              formik={formik}
+              options={upSkillOptions.map((opt) => ({
+                _id: opt.value,
+                title: opt.label,
+              }))}
+            />
 
+            {/* Active Toggle */}
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-gray-700">Status</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isActive"
+                  checked={formik.values.isActive}
+                  onChange={formik.handleChange}
+                  className="sr-only peer"
+                />
+                <div className="w-12 h-7 bg-gray-300 peer-checked:bg-blue-600 rounded-full transition-colors duration-300"></div>
+                <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+              </label>
+            </div>
+          </div>
+
+          <TextAreaField label="Description" name="desc" formik={formik} />
+
+          {/* Optional Cancel Button inside form */}
+          {selectedCategory && (
+            <button
+              type="button"
+              onClick={handleCloseForm}
+              className="mt-4 w-full bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all py-3"
+            >
+              ❌ Cancel Edit
+            </button>
+          )}
+        </form>
+      </Modal>
 
       {/* ========== MODAL ========== */}
       {/* <EventTableModal

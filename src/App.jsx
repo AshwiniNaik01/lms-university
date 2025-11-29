@@ -2,18 +2,24 @@ import { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAuth } from "./contexts/AuthContext.jsx";
-import PrivateRoute from "./components/layout/PrivateRoute.jsx";
+import AddPrerequisite from "./components/admin/prerequisite/AddPrerequisite.jsx";
 import AdminLayout from "./components/layout/AdminLayout.jsx";
+import Footer from "./components/layout/Footer.jsx";
+import Navbar from "./components/layout/Navbar.jsx";
+import PrivateRoute from "./components/layout/PrivateRoute.jsx";
+import ScrollToTop from "./components/layout/ScrollToTop.jsx";
+import SessionCategoryList from "./components/upSkill_sessions/SessionCategoryList.jsx";
+import { useAuth } from "./contexts/AuthContext.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
+import ManagePrerequisites from "./components/admin/prerequisite/ManagePrerequisites.jsx";
+import AssignmentsPage from "./components/student-course/assignmentSection/AssignmentPage.jsx";
+// import AssignmentsPage from "./components/student-course/AssignmentPage.jsx";
 const CourseForm = lazy(() =>
   import("./components/admin/courses/CourseForm.jsx")
 );
 const CourseTable = lazy(() =>
   import("./components/admin/courses/CourseTable.jsx")
 );
-import Footer from "./components/layout/Footer.jsx";
-import Navbar from "./components/layout/Navbar.jsx";
-import SessionCategoryList from "./components/upSkill_sessions/SessionCategoryList.jsx";
 const EnrolledCoursesPage = lazy(() =>
   import("./components/admin/enrollStudent/EnrolledCoursesPage.jsx")
 );
@@ -31,8 +37,6 @@ const ManageTest = lazy(() => import("./components/admin/test/ManageTest.jsx"));
 const ViewTestQuestions = lazy(() =>
   import("./components/admin/test/ViewTestQuestions.jsx")
 );
-import NotFoundPage from "./pages/NotFoundPage.jsx";
-import ScrollToTop from "./components/layout/ScrollToTop.jsx";
 const VideoPlayerPage = lazy(() =>
   import("./components/student-course/VideoPlayerPage.jsx")
 );
@@ -199,20 +203,36 @@ function App() {
                 element={<StudentRegistrationForm />}
               />
               <Route
-                path="/trainer-register"
-                element={<TrainerRegistrationForm />}
-              />
+                element={
+                  <PrivateRoute
+                    requiredModule="trainer"
+                    requiredAction="create"
+                  />
+                }
+              >
+                <Route
+                  path="/trainer-register"
+                  element={<TrainerRegistrationForm />}
+                />
+              </Route>
+
               <Route
-                path="/trainers/update/:id"
-                element={<TrainerRegistrationForm />}
-              />
-              {/* <Route element={<PrivateRoute />}>
-                      
-                    </Route> */}
+                element={
+                  <PrivateRoute
+                    requiredModule="trainer"
+                    requiredAction="update"
+                  />
+                }
+              >
+                <Route
+                  path="/trainers/update/:id"
+                  element={<TrainerRegistrationForm />}
+                />
+              </Route>
 
               {/* Shared Protected Routes for Student and Admin*/}
               {/* <Route element={<PrivateRoute roles={["student", "admin"]} />}> */}
-              <Route element={<PrivateRoute/>}>
+              <Route element={<PrivateRoute />}>
                 <Route
                   path="/results/:resultId"
                   element={<ResultDetailPage />}
@@ -221,12 +241,18 @@ function App() {
 
               {/* Student Routes */}
               {/* <Route element={<PrivateRoute roles={["student"]} />}> */}
-              <Route element={<PrivateRoute/>}>
+              <Route element={<PrivateRoute />}>
                 <Route
                   path="/student/dashboard"
                   element={<StudentDashboardPage />}
                 />
                 <Route path="/my-courses" element={<MyCoursesPage />} />
+
+                <Route
+                  path="/course/:courseId/assignments"
+                  element={<AssignmentsPage />}
+                />
+
                 <Route
                   path="/courses/:courseId/study"
                   element={<StudyCoursePage />}
@@ -255,18 +281,59 @@ function App() {
               </Route>
 
               {/* <Route element={<PrivateRoute roles={["admin", "trainer"]} />}> */}
-              <Route element={<PrivateRoute/>}>
+              <Route element={<PrivateRoute />}>
                 <Route path="/" element={<AdminLayout />}>
-                  <Route path="dashboard" element={<AdminDashboardPage />} />
-                  <Route path="users" element={<AdminUserManagementPage />} />
+                  {/* <Route path="dashboard" element={<AdminDashboardPage />} /> */}
+
+                  <Route
+                    path="dashboard"
+                    element={<PrivateRoute adminOnly={true} />}
+                  >
+                    <Route index element={<AdminDashboardPage />} />
+                  </Route>
+
+                  {/* <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="user"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route path="users" element={<AdminUserManagementPage />} />
+                  </Route> */}
+
+                  <Route
+                    path="users"
+                    element={<PrivateRoute adminOnly={true} />}
+                  >
+                    <Route index element={<AdminUserManagementPage />} />
+                  </Route>
+
                   <Route
                     path="role-permission"
-                    element={<RolePermissionManager />}
-                  />
-                  <Route
+                    element={<PrivateRoute adminOnly={true} />}
+                  >
+                    <Route index element={<RolePermissionManager />} />
+                  </Route>
+
+                  {/* <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="role"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="role-permission"
+                      element={<RolePermissionManager />}
+                    />
+                  </Route> */}
+                  {/* <Route
                     path="branches"
                     element={<AdminBranchManagementPage />}
-                  />
+                  /> */}
                   {/* <Route path="manage-courses" element={<CourseTable />} /> */}
                   <Route
                     element={
@@ -278,7 +345,6 @@ function App() {
                   >
                     <Route path="manage-courses" element={<CourseTable />} />
                   </Route>
-                  {/* <Route path="add-courses" element={<CourseForm />} /> */}
                   <Route
                     element={
                       <PrivateRoute
@@ -300,7 +366,6 @@ function App() {
                   >
                     <Route path="courses/edit/:id" element={<CourseForm />} />
                   </Route>
-                  {/* <Route path="courses/edit/:id" element={<CourseForm />} /> */}
                   <Route
                     path="course/:courseId/content"
                     element={<CourseContentManagementPage />}
@@ -313,41 +378,140 @@ function App() {
                   <Route path="tests/create" element={<CreateTestPage />} />
                   <Route path="results" element={<AdminAllResultsPage />} />
                   <Route
-                    path="book-session"
-                    element={<SessionCategoryForm />}
-                  />
+                    element={
+                      <PrivateRoute
+                        requiredModule="session"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="book-session"
+                      element={<SessionCategoryForm />}
+                    />
+                  </Route>
+
                   <Route
-                    path="/session-category/:slug/:id/list"
-                    element={<SessionCategoryList />}
-                  />
-                  <Route path="trainer-management" element={<TrainerTable />} />
+                    element={
+                      <PrivateRoute
+                        requiredModule="session"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="/session-category/:slug/:id/list"
+                      element={<SessionCategoryList />}
+                    />
+                  </Route>
+
+                  {/* <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="trainer"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="trainer-management"
+                      element={<TrainerTable />}
+                    />
+                  </Route> */}
+
+                  <Route
+                    path="trainer-management"
+                    element={<PrivateRoute adminOnly={true} />}
+                  >
+                    <Route index element={<TrainerTable />} />
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="prerequisite"
+                        requiredAction="create"
+                      />
+                    }
+                  >
+                    <Route
+                      path="add-prerequisite"
+                      element={<AddPrerequisite />}
+                    />
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="prerequisite"
+                        requiredAction="update"
+                      />
+                    }
+                  >
+                    <Route
+                      path="edit-prerequisite/:id"
+                      element={<AddPrerequisite />}
+                    />
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="prerequisite"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="manage-prerequisite"
+                      element={<ManagePrerequisites />}
+                    />
+                  </Route>
                   {/* <Route
                     path="session-category/:slug/:id/manage"
                     element={<ManageSessionCategory />}
                   /> */}
                   <Route
-                    path="session-category/:slug/:id/manage"
-                    element={<ManageSessionCategory />}
-                  />
-                  <Route
-                    path="session-category/:id/manage/event"
-                    element={<EventTablePage />}
-                  />
+                    element={
+                      <PrivateRoute
+                        requiredModule="session"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="session-category/:slug/:id/manage"
+                      element={<ManageSessionCategory />}
+                    />
+                  </Route>
+
                   <Route
                     element={
-                      <PrivateRoute 
+                      <PrivateRoute
+                        requiredModule="session"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="session-category/:id/manage/event"
+                      element={<EventTablePage />}
+                    />
+                  </Route>
+                  <Route
+                    element={
+                      <PrivateRoute
                         requiredModule="lecture"
                         requiredAction="create"
                       />
                     }
                   >
                     <Route path="add-course-videos" element={<AddLectures />} />
-                    
                   </Route>
 
                   <Route
                     element={
-                      <PrivateRoute 
+                      <PrivateRoute
                         requiredModule="lecture"
                         requiredAction="update"
                       />
@@ -360,47 +524,47 @@ function App() {
                   </Route>
                   {/* <Route path="add-course-videos" element={<AddLectures />} /> */}
 
-                   <Route
+                  <Route
                     element={
-                      <PrivateRoute 
+                      <PrivateRoute
                         requiredModule="lecture"
                         requiredAction="read"
                       />
                     }
                   >
-                  <Route
-                    path="manage-course-videos"
-                    element={<ManageLectures />}
-                  />
+                    <Route
+                      path="manage-course-videos"
+                      element={<ManageLectures />}
+                    />
                   </Route>
                   {/* Edit Lecture Route */}
                   {/* <Route
                     path="edit-lecture/:lectureId"
                     element={<AddLectures />}
                   /> */}
-                   <Route
+                  <Route
                     element={
-                      <PrivateRoute 
+                      <PrivateRoute
                         requiredModule="curriculum"
                         requiredAction="create"
                       />
                     }
                   >
-                  <Route path="add-curriculum" element={<AddCurriculum />} />
+                    <Route path="add-curriculum" element={<AddCurriculum />} />
                   </Route>
                   <Route path="profile" element={<ProfilePage />} />
-                    <Route
+                  <Route
                     element={
-                      <PrivateRoute 
+                      <PrivateRoute
                         requiredModule="curriculum"
                         requiredAction="read"
                       />
                     }
                   >
-                  <Route
-                    path="manage-curriculum"
-                    element={<ManageCurriculum />}
-                  />
+                    <Route
+                      path="manage-curriculum"
+                      element={<ManageCurriculum />}
+                    />
                   </Route>
 
                   <Route
@@ -482,13 +646,32 @@ function App() {
                       element={<ManageAssignments />}
                     />
                   </Route>
-                  <Route path="add-meeting" element={<AddMeetingForm />} />
-                  <Route path="manage-meeting" element={<ManageMeeting />} />
 
                   <Route
                     element={
                       <PrivateRoute
-                        requiredModule="Attendance"
+                        requiredModule="meeting"
+                        requiredAction="create"
+                      />
+                    }
+                  >
+                    <Route path="add-meeting" element={<AddMeetingForm />} />
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="meeting"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route path="manage-meeting" element={<ManageMeeting />} />
+                  </Route>
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="attendance"
                         requiredAction="create"
                       />
                     }
@@ -501,18 +684,28 @@ function App() {
                   <Route
                     element={
                       <PrivateRoute
-                        requiredModule="notes"
+                        requiredModule="note"
                         requiredAction="create"
                       />
                     }
                   >
                     <Route path="add-notes" element={<AddNotes />} />
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="note"
+                        requiredAction="update"
+                      />
+                    }
+                  >
                     <Route path="edit-note/:noteId" element={<AddNotes />} />
                   </Route>
                   <Route
                     element={
                       <PrivateRoute
-                        requiredModule="notes"
+                        requiredModule="note"
                         requiredAction="read"
                       />
                     }
@@ -520,12 +713,40 @@ function App() {
                     <Route path="manage-notes" element={<ManageNotes />} />
                   </Route>
                   {/* <Route path="add-notes" element={<AddNotes />} /> */}
-                  <Route path="add-test" element={<AddTest />} />
-                  <Route path="manage-test" element={<ManageTest />} />
+
                   <Route
-                    path="view-excel/:testId"
-                    element={<ViewTestQuestions />}
-                  />
+                    element={
+                      <PrivateRoute
+                        requiredModule="test"
+                        requiredAction="create"
+                      />
+                    }
+                  >
+                    <Route path="add-test" element={<AddTest />} />
+                  </Route>
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="test"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route path="manage-test" element={<ManageTest />} />
+                  </Route>
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="test"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="view-excel/:testId"
+                      element={<ViewTestQuestions />}
+                    />
+                  </Route>
                   {/* <Route path="manage-notes" element={<ManageNotes />} /> */}
                   {/* Notes */}
                   {/* <Route path="add-notes" element={<AddNotes />} /> */}
@@ -541,6 +762,24 @@ function App() {
                       path="enroll-student"
                       element={<EnrollStudentForm />}
                     />
+                    <Route
+                      path="enroll-student/:enrollmentId"
+                      element={<EnrollStudentForm />}
+                    />
+                    <Route
+                      path="/enrollments/upload-excel"
+                      element={<UploadEnrollmentExcel />}
+                    />
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="enrollment"
+                        requiredAction="update"
+                      />
+                    }
+                  >
                     <Route
                       path="enroll-student/:enrollmentId"
                       element={<EnrollStudentForm />}
@@ -589,10 +828,6 @@ function App() {
                     <Route
                       path="enrollments/:id"
                       element={<EnrollmentDetails />}
-                    />
-                    <Route
-                      path="/enrollments/upload-excel"
-                      element={<UploadEnrollmentExcel />}
                     />
                   </Route>
                   {/* <Route path="manage-notes" element={<ManageNotes />} /> */}

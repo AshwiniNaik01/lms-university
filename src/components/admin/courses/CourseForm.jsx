@@ -1,5 +1,6 @@
 import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
 import { useEffect, useState } from "react";
+import { FaUpload } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
@@ -17,12 +18,8 @@ import InputField from "../../form/InputField.jsx";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown.jsx";
 import TextAreaField from "../../form/TextAreaField.jsx";
 import ToggleSwitch from "../../form/ToggleSwitch.jsx";
-import { FaUpload } from "react-icons/fa";
-import { useSelector } from "react-redux";
-import { canPerformAction } from "../../../utils/permissionUtils.js";
 
 // import { canPerformAction } from "../../../utils/permissions"; // your helper
-
 
 const CourseForm = () => {
   const [editCourseData, setEditCourseData] = useState(null);
@@ -35,7 +32,6 @@ const CourseForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   // const { rolePermissions } = useSelector((state) => state.permissions);
-
 
   // Initial Form Values
   const initialValues = {
@@ -60,7 +56,7 @@ const CourseForm = () => {
         subPoints: [""],
       },
     ],
-    fees: "",
+    fees: "4",
     durationValue: "",
     durationUnit: "days",
     // trainer: "",
@@ -208,10 +204,6 @@ const CourseForm = () => {
 
   // Handle form submission
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-   
-    //  const { rolePermissions } = useSelector((state) => state.permissions);
-
-    
     setError("");
     setSuccess("");
     setIsLoading(true);
@@ -254,8 +246,10 @@ const CourseForm = () => {
       }
 
       // Call API
+       let response;
       if (id && editCourseData) {
         await updateCourse(id, formData);
+        //  response = await updateCourse(id, formData);
         Swal.fire({
           icon: "success",
           title: "Updated!",
@@ -263,6 +257,7 @@ const CourseForm = () => {
         });
       } else {
         await createCourse(formData);
+          // response = await createCourse(formData);
         Swal.fire({
           icon: "success",
           title: "Created!",
@@ -270,11 +265,42 @@ const CourseForm = () => {
         });
       }
 
-      resetForm();
+       // Get the newly created course ID
+  const courseId = response?.data?._id;
 
-      // if(canPerformAction(rolePermissions, "course", "read")){
-      navigate("/manage-courses");
-      // }
+  // Show next action Swal
+  const result = await Swal.fire({
+    title: "Training Program created successfully! What would you like to do next?",
+    showDenyButton: true,
+    showCancelButton: true,
+    confirmButtonText: "Add New Training Program",
+    denyButtonText: "Show List",
+    cancelButtonText: "Add Batch",
+    // icon: "question",
+  });
+
+  // Handle actions using switch
+ // Map Swal result to custom action names
+let action;
+if (result.isConfirmed) action = "ADD_NEW";
+else if (result.isDenied) action = "SHOW_LIST";
+else if (result.isDismissed) action = "ADD_BATCH";
+
+switch (action) {
+  case "ADD_NEW":
+    navigate("/add-courses"); // Add new training program
+    break;
+  case "SHOW_LIST":
+    navigate("/manage-courses"); // Show list
+    break;
+   case "ADD_BATCH":
+    if (courseId) navigate(`/add-batch?courseId=${courseId}`); // Pass courseId as query param
+    break;
+  default:
+    console.log("No action taken");
+}
+      resetForm();
+      // navigate("/manage-courses");
     } catch (err) {
       const errorMsg =
         err?.message || err?.response?.data?.message || "Operation failed.";
@@ -289,6 +315,123 @@ const CourseForm = () => {
     setIsLoading(false);
     setSubmitting(false);
   };
+
+
+//   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+//   setError("");
+//   setSuccess("");
+//   setIsLoading(true);
+
+//   try {
+//     const formData = new FormData();
+
+//     // Basic fields
+//     formData.append("title", values.title);
+//     formData.append("description", values.description);
+//     formData.append(
+//       "duration",
+//       `${values.durationValue} ${values.durationUnit}`
+//     );
+//     formData.append("rating", values.rating);
+//     formData.append("enrolledCount", values.enrolledCount);
+//     formData.append("overview", values.overview);
+//     formData.append("fees", values.fees);
+//     formData.append("cloudLabsLink", values.cloudLabsLink || "");
+//     formData.append("isActive", values.isActive);
+//     formData.append("startDate", values.startDate);
+//     formData.append("endDate", values.endDate);
+
+//     // Arrays of strings
+//     formData.append("keyFeatures", JSON.stringify(values.keyFeatures));
+//     formData.append("features", JSON.stringify(values.features));
+//     formData.append(
+//       "learningOutcomes",
+//       JSON.stringify(values.learningOutcomes)
+//     );
+//     formData.append("benefits", JSON.stringify(values.benefits));
+
+//     // File upload (trainingPlan)
+//     if (values.trainingPlan) {
+//       formData.append("trainingPlan", values.trainingPlan);
+//     }
+
+//     if (values.trainer) {
+//       formData.append("trainer", JSON.stringify(values.trainer));
+//     }
+
+//     // Call API
+//     let response;
+//   if (id && editCourseData) {
+//     response = await updateCourse(id, formData);
+//     Swal.fire({
+//       icon: "success",
+//       title: "Updated!",
+//       text: "Course updated successfully!",
+//     });
+//   } else {
+//     response = await createCourse(formData);
+//     Swal.fire({
+//       icon: "success",
+//       title: "Created!",
+//       text: "Training Program created successfully!",
+//     });
+//   }
+
+//    // Get the newly created course ID
+//   const courseId = response?.data?._id;
+
+//   // Show next action Swal
+//   const result = await Swal.fire({
+//     title: "What would you like to do next?",
+//     showDenyButton: true,
+//     showCancelButton: true,
+//     confirmButtonText: "Add New Training Program",
+//     denyButtonText: "Show List",
+//     cancelButtonText: "Add Batch",
+//     icon: "question",
+//   });
+
+//   // Handle actions using switch
+//  // Map Swal result to custom action names
+// let action;
+// if (result.isConfirmed) action = "ADD_NEW";
+// else if (result.isDenied) action = "SHOW_LIST";
+// else if (result.isDismissed) action = "ADD_BATCH";
+
+// switch (action) {
+//   case "ADD_NEW":
+//     navigate("/add-courses"); // Add new training program
+//     break;
+//   case "SHOW_LIST":
+//     navigate("/manage-courses"); // Show list
+//     break;
+//    case "ADD_BATCH":
+//     if (courseId) navigate(`/add-batch?courseId=${courseId}`); // Pass courseId as query param
+//     break;
+//   default:
+//     console.log("No action taken");
+// }
+
+
+
+//     resetForm();
+
+
+
+//   } catch (err) {
+//     const errorMsg =
+//       err?.message || err?.response?.data?.message || "Operation failed.";
+//     Swal.fire({
+//       icon: "error",
+//       title: "Oops...",
+//       text: errorMsg,
+//     });
+//     console.error("Error submitting Training Program:", err);
+//   }
+
+//   setIsLoading(false);
+//   setSubmitting(false);
+// };
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-white shadow-xl rounded-xl border-2 border-blue-700 border-opacity-80">
@@ -432,59 +575,62 @@ const CourseForm = () => {
                 />
 
                 {/* Training Plan File Upload */}
-             <div className="mb-6">
-  <label className="block text-sm font-semibold text-gray-800 mb-2">
-    Training Plan (PDF / DOCX / XLSX)
-  </label>
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Training Plan (PDF / DOCX / XLSX)
+                  </label>
 
-  <div className="relative w-full">
-    <input
-      type="file"
-      name="trainingPlan"
-      id="trainingPlan"
-      accept=".pdf,.docx,.xlsx"
-      onChange={(e) => formik.setFieldValue("trainingPlan", e.target.files[0])}
-      className="absolute inset-0 opacity-0 cursor-pointer z-20"
-    />
+                  <div className="relative w-full">
+                    <input
+                      type="file"
+                      name="trainingPlan"
+                      id="trainingPlan"
+                      accept=".pdf,.docx,.xlsx"
+                      onChange={(e) =>
+                        formik.setFieldValue("trainingPlan", e.target.files[0])
+                      }
+                      className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                    />
 
-    <div className="flex items-center justify-between border-2 border-dashed border-gray-300 bg-white px-4 py-3 rounded-lg shadow-sm hover:border-blue-400 transition-all duration-300 z-10">
-      <div className="flex items-center space-x-3">
-        <FaUpload className="text-blue-600" />
-        <span className="text-gray-700 font-medium truncate max-w-[300px]">
-          {formik.values.trainingPlan
-            ? formik.values.trainingPlan.name
-            : "Choose a file..."}
-        </span>
-      </div>
+                    <div className="flex items-center justify-between border-2 border-dashed border-gray-300 bg-white px-4 py-3 rounded-lg shadow-sm hover:border-blue-400 transition-all duration-300 z-10">
+                      <div className="flex items-center space-x-3">
+                        <FaUpload className="text-blue-600" />
+                        <span className="text-gray-700 font-medium truncate max-w-[300px]">
+                          {formik.values.trainingPlan
+                            ? formik.values.trainingPlan.name
+                            : "Choose a file..."}
+                        </span>
+                      </div>
 
-      <span className="text-sm text-gray-500 hidden md:block">
-        Max: 5MB
-      </span>
-    </div>
-  </div>
+                      <span className="text-sm text-gray-500 hidden md:block">
+                        Max: 5MB
+                      </span>
+                    </div>
+                  </div>
 
-  {/* Show existing file link (edit mode) */}
-  {formik.values.trainingPlanUrl && !formik.values.trainingPlan && (
-    <div className="mt-3">
-      <a
-        href={formik.values.trainingPlanUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 underline font-medium"
-      >
-        View Existing Training Plan
-      </a>
-    </div>
-  )}
+                  {/* Show existing file link (edit mode) */}
+                  {formik.values.trainingPlanUrl &&
+                    !formik.values.trainingPlan && (
+                      <div className="mt-3">
+                        <a
+                          href={formik.values.trainingPlanUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline font-medium"
+                        >
+                          View Existing Training Plan
+                        </a>
+                      </div>
+                    )}
 
-  {/* Error Message */}
-  {formik.touched.trainingPlan && formik.errors.trainingPlan && (
-    <div className="text-red-500 text-sm font-medium mt-1">
-      {formik.errors.trainingPlan}
-    </div>
-  )}
-</div>
-
+                  {/* Error Message */}
+                  {formik.touched.trainingPlan &&
+                    formik.errors.trainingPlan && (
+                      <div className="text-red-500 text-sm font-medium mt-1">
+                        {formik.errors.trainingPlan}
+                      </div>
+                    )}
+                </div>
 
                 {/* Active Toggle */}
                 <div className="mt-6">
