@@ -6,6 +6,8 @@ import { deleteNote, fetchAllNotes } from "../../../api/notes";
 import { DIR } from "../../../utils/constants";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 // import Modal from "../../modal/Modal"; // Import your modal
 
 const ManageNotes = () => {
@@ -14,6 +16,7 @@ const ManageNotes = () => {
   const [error, setError] = useState(null);
   const [selectedNote, setSelectedNote] = useState(null); // For modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+    const { rolePermissions } = useSelector((state) => state.permissions);
 
   const navigate = useNavigate();
 
@@ -95,18 +98,22 @@ const ManageNotes = () => {
           >
             View
           </button>
+          {canPerformAction(rolePermissions, "note", "update") && (
           <button
             onClick={() => handleEdit(row._id)}
             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
             Edit
           </button>
+          )}
+          {canPerformAction(rolePermissions, "note", "delete") && (
           <button
             onClick={() => handleDelete(row._id)}
             className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
           >
             Delete
           </button>
+          )}
         </div>
       ),
     },
@@ -120,12 +127,14 @@ const ManageNotes = () => {
       {/* Header */}
       <div className="flex justify-between items-center px-8 py-2 bg-white shadow-md z-10">
         <h2 className="text-2xl font-bold text-gray-700">Manage Study Material</h2>
+        {canPerformAction(rolePermissions, "note", "create") && (
         <button
           onClick={() => navigate("/add-notes")}
           className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
         >
           + Add Study Material
         </button>
+        )}
       </div>
 
       {/* Table */}

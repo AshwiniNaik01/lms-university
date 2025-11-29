@@ -1,6 +1,6 @@
 // src/components/Admin/Batch/ManageBatches.jsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
   deleteBatch,
@@ -25,6 +25,7 @@ const ManageBatch = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { rolePermissions } = useSelector((state) => state.permissions);
   const navigate = useNavigate();
+  const location = useLocation(); // for query params
 
   // -------------------- Fetch All Batches --------------------
   const fetchBatches = async () => {
@@ -80,22 +81,52 @@ const ManageBatch = () => {
   };
 
   // -------------------- Fetch Courses --------------------
+  // const loadCourses = async () => {
+  //   try {
+  //     const coursesData = await getAllCourses(); // call API
+  //     setCourses(coursesData || []); // set state in main page
+  //   } catch (err) {
+  //     const errorMessage =
+  //       err.response?.data?.message || "Failed to fetch Training Programs";
+
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Error Fetching Training Mangaements",
+  //       text: errorMessage,
+  //       confirmButtonColor: "#d33",
+  //     });
+  //   }
+  // };
+
+   // -------------------- Fetch Courses --------------------
   const loadCourses = async () => {
     try {
-      const coursesData = await getAllCourses(); // call API
-      setCourses(coursesData || []); // set state in main page
+      const coursesData = await getAllCourses(); 
+      setCourses(coursesData || []);
+
+      // -------------------- Handle URL param pre-fill --------------------
+      const queryParams = new URLSearchParams(location.search);
+      const courseIdFromURL = queryParams.get("courseId");
+      if (courseIdFromURL && coursesData.some(c => c._id === courseIdFromURL)) {
+        setSelectedCourseId(courseIdFromURL);
+        loadBatchesByCourse(courseIdFromURL);
+      } else {
+        setSelectedCourseId("all");
+        fetchBatches();
+      }
+
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || "Failed to fetch Training Programs";
-
       Swal.fire({
         icon: "error",
-        title: "Error Fetching Training Mangaements",
+        title: "Error Fetching Training Programs",
         text: errorMessage,
         confirmButtonColor: "#d33",
       });
     }
   };
+
 
   // -------------------- Handle Delete --------------------
   const handleDelete = async (id) => {
@@ -156,6 +187,8 @@ const ManageBatch = () => {
   // -------------------- Navigation Handler --------------------
   const handleEdit = (batchId) => navigate(`/add-batch/${batchId}`);
 
+
+  
   // -------------------- Handle Course Filter --------------------
   const handleCourseFilterChange = (e) => {
     const courseId = e.target.value;

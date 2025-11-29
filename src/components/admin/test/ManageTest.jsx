@@ -3,12 +3,15 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
 import ScrollableTable from "../../table/ScrollableTable";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const ManageTest = () => {
   const navigate = useNavigate();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { rolePermissions } = useSelector((state) => state.permissions);
 
 
 const columns = [
@@ -30,12 +33,14 @@ const columns = [
         >
           📂 View
         </button>
+        {canPerformAction(rolePermissions, "test", "delete") && (
         <button
           className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all"
           onClick={() => handleDelete(row._id)}
         >
           🗑️ Delete
         </button>
+        )}
       </div>
     ),
   },
@@ -96,7 +101,7 @@ const fetchTests = async () => {
           "Error!",
           err.response?.data?.message || "Failed to delete test.",
           "error"
-        );
+        ); 
       }
     }
   };
@@ -106,12 +111,14 @@ const fetchTests = async () => {
     {/* Header */}
     <div className="flex justify-between items-center mb-6">
       <h2 className="text-3xl font-bold text-gray-800">All Tests 📘</h2>
+      {canPerformAction(rolePermissions, "test", "create") && (
       <button
         className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition-all"
         onClick={() => navigate("/add-test")}
       >
-        + Add New Assessment Test
+        + Add Assessment Test
       </button>
+      )}
     </div>
 
     {/* Loading/Error */}

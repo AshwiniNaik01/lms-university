@@ -1,77 +1,76 @@
-const ScrollableTable = ({
-  columns = [],
-  data = [],
-  maxHeight = "600px",
-  emptyMessage = "No data available",
-}) => {
-  return (
-    <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-      
-      {/* Scrollable Container */}
-      <div
-        className="overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-indigo-100"
-        style={{ maxHeight }}
-      >
-        <table className="min-w-full border-collapse text-sm text-left">
-          {/* Sticky Header */}
-          <thead className="sticky top-0 bg-indigo-50 z-10 shadow-md">
-            <tr>
-              {columns.map((col, index) => (
-                <th
-                  key={index}
-                  className="px-6 py-4 font-semibold text-indigo-900 text-sm uppercase tracking-wider border-b border-indigo-200"
-                >
-                  {col.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
+// const ScrollableTable = ({
+//   columns = [],
+//   data = [],
+//   maxHeight = "600px",
+//   emptyMessage = "No data available",
+// }) => {
+//   return (
+//     <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
 
-          {/* Table Body */}
-          <tbody>
-            {data.length > 0 ? (
-              data.map((row, rowIndex) => (
-                <tr
-                  key={rowIndex}
-                  className={`transition-all duration-300 ${
-                    rowIndex % 2 === 0 ? "bg-white" : "bg-indigo-50"
-                  } hover:bg-indigo-100`}
-                >
-                  {columns.map((col, colIndex) => (
-                    <td
-                      key={colIndex}
-                      className={`px-6 py-4 whitespace-nowrap ${
-                        colIndex === 0
-                          ? "font-semibold text-indigo-900"
-                          : "font-normal"
-                      }`}
-                    >
-                      {typeof col.accessor === "function"
-                        ? col.accessor(row)
-                        : row[col.accessor]}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-6 py-8 text-center text-indigo-400 italic"
-                >
-                  {emptyMessage}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
+//       {/* Scrollable Container */}
+//       <div
+//         className="overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-indigo-100"
+//         style={{ maxHeight }}
+//       >
+//         <table className="min-w-full border-collapse text-sm text-left">
+//           {/* Sticky Header */}
+//           <thead className="sticky top-0 bg-indigo-50 z-10 shadow-md">
+//             <tr>
+//               {columns.map((col, index) => (
+//                 <th
+//                   key={index}
+//                   className="px-6 py-4 font-semibold text-indigo-900 text-sm uppercase tracking-wider border-b border-indigo-200"
+//                 >
+//                   {col.header}
+//                 </th>
+//               ))}
+//             </tr>
+//           </thead>
 
-export default ScrollableTable;
+//           {/* Table Body */}
+//           <tbody>
+//             {data.length > 0 ? (
+//               data.map((row, rowIndex) => (
+//                 <tr
+//                   key={rowIndex}
+//                   className={`transition-all duration-300 ${
+//                     rowIndex % 2 === 0 ? "bg-white" : "bg-indigo-50"
+//                   } hover:bg-indigo-100`}
+//                 >
+//                   {columns.map((col, colIndex) => (
+//                     <td
+//                       key={colIndex}
+//                       className={`px-6 py-4 whitespace-nowrap ${
+//                         colIndex === 0
+//                           ? "font-semibold text-indigo-900"
+//                           : "font-normal"
+//                       }`}
+//                     >
+//                       {typeof col.accessor === "function"
+//                         ? col.accessor(row)
+//                         : row[col.accessor]}
+//                     </td>
+//                   ))}
+//                 </tr>
+//               ))
+//             ) : (
+//               <tr>
+//                 <td
+//                   colSpan={columns.length}
+//                   className="px-6 py-8 text-center text-indigo-400 italic"
+//                 >
+//                   {emptyMessage}
+//                 </td>
+//               </tr>
+//             )}
+//           </tbody>
+//         </table>
+//       </div>
+//     </div>
+//   );
+// };
 
+// export default ScrollableTable;
 
 // import { useState, useMemo, useEffect } from "react";
 
@@ -101,8 +100,6 @@ export default ScrollableTable;
 //   const [sortConfig, setSortConfig] = useState(null);
 //   const [page, setPage] = useState(1);
 // const [showFilters, setShowFilters] = useState({});
-
-
 
 //   const [columnWidths, setColumnWidths] = useState(
 //     columns.reduce((acc, col) => {
@@ -215,12 +212,12 @@ export default ScrollableTable;
 
 // return (
 //   <div className="w-full bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden">
-    
+
 //     {/* 🔍 GLOBAL SEARCH & CONTROLS */}
 //     {(enableSearch || enableColumnHide) && (
 //       <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-200">
 //         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          
+
 //           {/* Search Bar */}
 //           {enableSearch && (
 //             <div className="flex-1 w-full lg:max-w-md">
@@ -246,7 +243,7 @@ export default ScrollableTable;
 //                   <span className="text-lg text-purple-600">📊</span>
 //                   <span className="text-sm font-semibold text-purple-700">Manage Columns</span>
 //                 </button>
-                
+
 //                 {/* Column Dropdown */}
 //                 <div className="absolute right-0 top-full mt-3 w-72 bg-white rounded-2xl shadow-2xl border-2 border-purple-200 p-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-30">
 //                   <h4 className="text-base font-bold text-purple-800 mb-4 flex items-center gap-2">
@@ -290,7 +287,6 @@ export default ScrollableTable;
 //         </div>
 //       </div>
 //     )}
-    
 
 //     {/* TABLE HEADER */}
 //   <div className="sticky top-0   bg-indigo-600 text-white z-20 shadow-lg">
@@ -422,13 +418,13 @@ export default ScrollableTable;
 //     <div style={{ maxHeight }} className="overflow-y-auto bg-gradient-to-b from-white to-purple-50">
 //       {paginatedData.map((row, index) => {
 //         const selected = !!selectedRows[index];
-        
+
 //         return (
 //           <div
 //             key={index}
 //             className={`flex border-b border-purple-100 transition-all duration-300 ${
-//               selected 
-//                 ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500 shadow-sm' 
+//               selected
+//                 ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500 shadow-sm'
 //                 : 'hover:bg-gradient-to-r hover:from-white hover:to-purple-50 hover:border-l-4 hover:border-l-purple-300 hover:shadow-md'
 //             }`}
 //           >
@@ -510,7 +506,7 @@ export default ScrollableTable;
 //           <span className="font-bold text-purple-800">{Math.min(page * pageSize, data.length)}</span> of{' '}
 //           <span className="font-bold text-purple-800">{data.length}</span> entries
 //         </div>
-        
+
 //         <div className="flex items-center gap-3">
 //           <button
 //             disabled={page === 1}
@@ -557,3 +553,106 @@ export default ScrollableTable;
 // };
 
 // export default ScrollableTable;
+
+import { useMemo, useState } from "react";
+import { FaArrowDown, FaArrowUp } from "react-icons/fa";
+
+const ScrollableTable = ({
+  columns = [],
+  data = [],
+  maxHeight = "600px",
+  emptyMessage = "No data available",
+}) => {
+  const [sortOrder, setSortOrder] = useState("top"); // "top" = top-to-bottom, "bottom" = bottom-to-top
+
+  const sortedData = useMemo(() => {
+    return sortOrder === "top" ? data : [...data].reverse();
+  }, [data, sortOrder]);
+
+  return (
+    <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+      {/* Scrollable Container */}
+      <div
+        className="overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-indigo-100"
+        style={{ maxHeight }}
+      >
+        <table className="min-w-full border-collapse text-sm text-left">
+          {/* Sticky Header */}
+          <thead className="sticky top-0 bg-indigo-50 z-10 shadow-md">
+            <tr>
+              {columns.map((col, index) => (
+                <th
+                  key={index}
+                  className="px-4 py-4 font-semibold text-indigo-900 text-sm uppercase tracking-wider border-b border-indigo-200 whitespace-nowrap"
+                >
+                  <div className="flex items-center space-x-4">
+                    <span>{col.header}</span>
+                    {index === 0 && (
+                      <button
+                        onClick={() =>
+                          setSortOrder(sortOrder === "top" ? "bottom" : "top")
+                        }
+                        className="text-indigo-600 hover:text-indigo-900 transition-colors font-extrabold"
+                        title={
+                          sortOrder === "top"
+                            ? "Show Bottom First"
+                            : "Show Top First"
+                        }
+                      >
+                        {sortOrder === "top" ? (
+                          <FaArrowUp size={16} />
+                        ) : (
+                          <FaArrowDown size={14} />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          {/* Table Body */}
+          <tbody>
+            {sortedData.length > 0 ? (
+              sortedData.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  className={`transition-all duration-300 ${
+                    rowIndex % 2 === 0 ? "bg-white" : "bg-indigo-50"
+                  } hover:bg-indigo-100`}
+                >
+                  {columns.map((col, colIndex) => (
+                    <td
+                      key={colIndex}
+                      className={`px-6 py-4 whitespace-nowrap ${
+                        colIndex === 0
+                          ? "font-semibold text-indigo-900"
+                          : "font-normal"
+                      }`}
+                    >
+                      {typeof col.accessor === "function"
+                        ? col.accessor(row)
+                        : row[col.accessor]}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="px-6 py-8 text-center text-indigo-400 italic"
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default ScrollableTable;

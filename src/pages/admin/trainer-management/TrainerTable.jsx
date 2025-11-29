@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { FaEye, FaPencilAlt } from "react-icons/fa";
 import { useNavigate } from "react-router";
@@ -7,6 +6,8 @@ import Modal from "../../../components/popupModal/Modal";
 import ScrollableTable from "../../../components/table/ScrollableTable";
 import { DIR } from "../../../utils/constants";
 import { approveTrainer, deleteTrainer, fetchAllTrainers } from "./trainerApi";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const TrainerTable = () => {
   const [trainers, setTrainers] = useState([]);
@@ -15,6 +16,7 @@ const TrainerTable = () => {
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { rolePermissions } = useSelector((state) => state.permissions);
 
   /** Fetch trainers */
   const loadTrainers = async () => {
@@ -149,7 +151,10 @@ const TrainerTable = () => {
       {
         header: "Email",
         accessor: (row) => (
-          <a href={`mailto:${row.email}`} className="text-blue-600 hover:underline">
+          <a
+            href={`mailto:${row.email}`}
+            className="text-blue-600 hover:underline"
+          >
             {row.email}
           </a>
         ),
@@ -175,7 +180,8 @@ const TrainerTable = () => {
       {
         header: "Status",
         accessor: (row) => {
-          const isApproved = row.isApproved || row.approvalStatus === "approved";
+          const isApproved =
+            row.isApproved || row.approvalStatus === "approved";
           return (
             <div className="flex items-center justify-center">
               {isApproved ? (
@@ -206,21 +212,25 @@ const TrainerTable = () => {
               <FaEye />
             </button>
 
-            <button
-              onClick={() => navigate(`/trainers/update/${row._id}`)}
-              className="p-2 rounded-full bg-yellow-50 hover:bg-yellow-100 text-yellow-600 transition-colors duration-200"
-              title="Edit Trainer"
-            >
-              <FaPencilAlt />
-            </button>
+            {canPerformAction(rolePermissions, "trainer", "update") && (
+              <button
+                onClick={() => navigate(`/trainers/update/${row._id}`)}
+                className="p-2 rounded-full bg-yellow-50 hover:bg-yellow-100 text-yellow-600 transition-colors duration-200"
+                title="Edit Trainer"
+              >
+                <FaPencilAlt />
+              </button>
+            )}
 
-            <button
-              onClick={() => handleDelete(row._id)}
-              className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 transition-colors duration-200"
-              title="Delete Trainer"
-            >
-              🗑️
-            </button>
+            {canPerformAction(rolePermissions, "trainer", "delete") && (
+              <button
+                onClick={() => handleDelete(row._id)}
+                className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 transition-colors duration-200"
+                title="Delete Trainer"
+              >
+                🗑️
+              </button>
+            )}
           </div>
         ),
       },
@@ -249,7 +259,11 @@ const TrainerTable = () => {
               No trainers found.
             </p>
           ) : (
-            <ScrollableTable columns={columns} data={trainers} maxHeight="500px" />
+            <ScrollableTable
+              columns={columns}
+              data={trainers}
+              maxHeight="500px"
+            />
           )}
         </div>
       </div>

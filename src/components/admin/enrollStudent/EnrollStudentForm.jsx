@@ -1,5 +1,5 @@
 import { FormikProvider, useFormik } from "formik";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaUpload } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -10,6 +10,8 @@ import { DIR } from "../../../utils/constants";
 import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import ToggleSwitch from "../../form/ToggleSwitch";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const EnrollStudentForm = () => {
   const { enrollmentId } = useParams(); // optional ID for edit
@@ -18,6 +20,8 @@ const EnrollStudentForm = () => {
   const [loading, setLoading] = useState(false);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
   const navigate = useNavigate(); // initialize navigate
+  const { rolePermissions } = useSelector((state) => state.permissions);
+  const fileInputRef = useRef(null);
 
   // Fetch Courses
   useEffect(() => {
@@ -135,11 +139,21 @@ const EnrollStudentForm = () => {
 
         if (res.data.success) {
           Swal.fire("✅ Success", res.data.message, "success").then(() => {
-            navigate("/enrolled-student-list");
+            if (canPerformAction(rolePermissions, "enrollment", "read")) {
+              navigate("/enrolled-student-list");
+            }
           });
 
           resetForm();
           setFilteredBatches([]);
+
+          // FIX — Reset Preview Image
+          setProfilePhotoPreview(null);
+
+          // FIX — Reset File Input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
         } else {
           Swal.fire(
             "⚠️ Warning",
@@ -380,6 +394,7 @@ const EnrollStudentForm = () => {
 
             <input
               id="profilePhotoInput"
+              ref={fileInputRef} // ← ADD THIS
               type="file"
               accept="image/*"
               className="hidden"

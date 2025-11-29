@@ -60,11 +60,16 @@ const VideoPlayerPage = () => {
       <main className="max-w-7xl mx-auto px-4 py-6 grid lg:grid-cols-4 gap-6">
         <section className="lg:col-span-3">
           <VideoPlayer video={selectedVideo} />
-          <VideoIcon video={selectedVideo} chapterTitle={chapterTitle} />
+          {/* <VideoIcon video={selectedVideo} chapterTitle={chapterTitle} /> */}
+          <div className="flex items-center gap-2 mt-4">
+  <VideoIcon className="w-6 h-6" />
+  <span>{chapterTitle}</span>
+</div>
+
         </section>
 
         <aside className="lg:col-span-1">
-          <FaFileVideo
+          {/* <FaFileVideo
             videos={allLectures}
             currentVideo={selectedVideo}
             onVideoSelect={(vid) =>
@@ -72,7 +77,28 @@ const VideoPlayerPage = () => {
                 state: { courseTitle, chapterTitle },
               })
             }
-          />
+          /> */}
+
+
+          <aside className="lg:col-span-1 space-y-3">
+  {allLectures.map((v) => (
+    <div
+      key={v._id}
+      onClick={() =>
+        navigate(`/course/${courseId}/video/${v._id}`, {
+          state: { courseTitle, chapterTitle },
+        })
+      }
+      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer
+        ${selectedVideo._id === v._id ? "bg-blue-600" : "bg-gray-800"}
+      `}
+    >
+      <FaFileVideo className="w-5 h-5" />
+      <span>{v.title}</span>
+    </div>
+  ))}
+</aside>
+
         </aside>
       </main>
     </div>
@@ -108,14 +134,14 @@ const Header = ({
     <header className="bg-black/80 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button
+          {/* <button
             onClick={navigateBack}
             className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
           >
             <FaArrowLeft className="w-5 h-5" />
             <span className="hidden sm:block">Back to Course</span>
-          </button>
-          <div className="h-6 w-px bg-gray-700"></div>
+          </button> */}
+          {/* <div className="h-6 w-px bg-gray-700"></div> */}
           <div>
             <h1 className="text-lg font-semibold line-clamp-1">
               {courseTitle}
@@ -124,7 +150,7 @@ const Header = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <button
             onClick={() => setIsLiked(!isLiked)}
             className="p-2 text-gray-400 hover:text-red-500 transition-colors"
@@ -141,7 +167,7 @@ const Header = ({
           <button className="p-2 text-gray-400 hover:text-white transition-colors">
             <FaDownload className="w-5 h-5" />
           </button>
-        </div>
+        </div> */}
       </div>
     </header>
   );

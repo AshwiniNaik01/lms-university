@@ -15,6 +15,7 @@ import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import TextAreaField from "../../form/TextAreaField";
 import VideoUploadField from "../../form/VideoUploadField";
 import { useCourseParam } from "../../hooks/useCourseParam";
+import { useSelector } from "react-redux";
 
 // import { getAllCourses } from "../helpers/courseHelpers"; // adjust path as needed
 
@@ -27,6 +28,7 @@ export default function AddLectures() {
   const [availableTrainers, setAvailableTrainers] = useState([]);
   const [availableBatches, setAvailableBatches] = useState([]);
   const [loading, setLoading] = useState(false);
+      const { rolePermissions } = useSelector((state) => state.permissions);
 
   // ✅ Formik setup
   const formik = useFormik({
@@ -100,12 +102,12 @@ export default function AddLectures() {
             confirmButtonColor: "#0e55c8",
           }).then(() => {
             resetForm();
-            navigate("/manage-course-videos");
+            // navigate("/manage-course-videos");
           });
         }
 
         resetForm();
-        navigate("/manage-course-videos");
+        // navigate("/manage-course-videos");
       } catch (error) {
         console.error(error);
         alert(

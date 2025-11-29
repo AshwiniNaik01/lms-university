@@ -5,6 +5,8 @@ import apiClient from "../../../api/axiosConfig";
 import Dropdown from "../../form/Dropdown";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
+import { useSelector } from "react-redux";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 const ManageMeeting = () => {
   const [batches, setBatches] = useState([]);
@@ -12,6 +14,7 @@ const ManageMeeting = () => {
   const [meetings, setMeetings] = useState([]);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+   const { rolePermissions } = useSelector((state) => state.permissions);
 
   // 🆕 Attendance modal states
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
@@ -156,19 +159,23 @@ const ManageMeeting = () => {
           >
             View
           </button>
+               {canPerformAction(rolePermissions, "attendance", "create") && (
           <button
             onClick={() => handleAttendance(row)}
             className="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-green-600 transition-all"
           >
             Attendance
           </button>
+               )}
           {/* 🆕 View Attendance Button */}
+               {canPerformAction(rolePermissions, "attendance", "read") && (
           <button
             onClick={() => handleViewAttendance(row)}
             className="px-3 py-1.5 bg-purple-500 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-purple-600 transition-all"
           >
             View Attendance
           </button>
+               )}
         </div>
       ),
     },

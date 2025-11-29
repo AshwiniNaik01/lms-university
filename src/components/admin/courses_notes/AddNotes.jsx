@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
+import { useSelector } from "react-redux";
 
 import apiClient from "../../../api/axiosConfig";
 import { getAllCourses } from "../../../api/courses";
@@ -14,6 +15,7 @@ import InputField from "../../form/InputField";
 import PDFUploadField from "../../form/PDFUploadField";
 import TextAreaField from "../../form/TextAreaField";
 import { useCourseParam } from "../../hooks/useCourseParam";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 export default function AddNotes() {
   const { noteId } = useParams();
@@ -25,6 +27,7 @@ export default function AddNotes() {
   const [loading, setLoading] = useState(false);
   const [existingFile, setExistingFile] = useState(null);
   const [selectedCourseFromParam, , isCoursePreselected] = useCourseParam(availableCourses);
+    const { rolePermissions } = useSelector((state) => state.permissions);
 
 
   // ✅ Fetch all courses on mount
@@ -81,7 +84,9 @@ useEffect(() => {
         }
 
         resetForm();
+         if (canPerformAction(rolePermissions, "note", "read")) {
         navigate("/manage-notes");
+         }
       } catch (error) {
         console.error(error);
         Swal.fire(
