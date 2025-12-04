@@ -125,12 +125,12 @@ const Navbar = () => {
                 >
                   Trainer Dashboard
                 </Link>
-                <Link
+                {/* <Link
                   to="/trainer-courses"
                   className="hover:underline text-white"
                 >
                   My Courses
-                </Link>
+                </Link> */}
                 <Link
                   to="/trainer-profile"
                   className="hover:underline text-white"

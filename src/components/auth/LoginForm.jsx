@@ -29,7 +29,15 @@ export default function LoginForm() {
         const userRole = result.user.role?.toLowerCase();
 
         // Single dashboard route for all roles
-        navigate("/dashboard");
+        // navigate("/dashboard");
+
+         // ✔ Role Based Navigation
+      if (userRole === "trainer") {
+        navigate("/trainer/dashboard");
+      } else {
+        navigate("/dashboard"); // admin, manager, student, etc.
+      }
+
       } else {
         setError(result.message || "Login failed.");
       }

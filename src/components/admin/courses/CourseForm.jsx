@@ -1,6 +1,6 @@
 import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
 import { useEffect, useState } from "react";
-import { FaUpload } from "react-icons/fa";
+import { FaMinus, FaPlus, FaUpload } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
@@ -18,6 +18,7 @@ import InputField from "../../form/InputField.jsx";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown.jsx";
 import TextAreaField from "../../form/TextAreaField.jsx";
 import ToggleSwitch from "../../form/ToggleSwitch.jsx";
+import DateRangePicker from "../../form/DateRangePicker.jsx";
 
 // import { canPerformAction } from "../../../utils/permissions"; // your helper
 
@@ -56,7 +57,7 @@ const CourseForm = () => {
         subPoints: [""],
       },
     ],
-    fees: "4",
+    fees: "",
     durationValue: "",
     durationUnit: "days",
     // trainer: "",
@@ -73,7 +74,7 @@ const CourseForm = () => {
 
     // Extract number and unit from backend duration (e.g., "20 months" or "20days")
     const match = editCourseData.duration?.match(
-      /^(\d+)\s*(days|months|years)$/i
+      /^(\d+)\s*(days|weeks|months|years)$/i
     );
     const durationValue = match ? match[1] : "";
     const durationUnit = match ? match[2].toLowerCase() : "days";
@@ -129,7 +130,7 @@ const CourseForm = () => {
     description: Yup.string().required("Description is required"),
     rating: Yup.number().min(0).max(5).required("Rating is required"),
     enrolledCount: Yup.number().min(0).required("Enrolled count is required"),
-    overview: Yup.string().required("Overview is required"),
+    // overview: Yup.string().required("Overview is required"),
     // learningOutcomes: Yup.array().of(Yup.string().required("Required")),
     // benefits: Yup.array().of(Yup.string().required("Required")),
     // features: Yup.object({
@@ -248,16 +249,16 @@ const CourseForm = () => {
       // Call API
        let response;
       if (id && editCourseData) {
-        await updateCourse(id, formData);
-        //  response = await updateCourse(id, formData);
+        // await updateCourse(id, formData);
+        response = await updateCourse(id, formData);
         Swal.fire({
           icon: "success",
           title: "Updated!",
           text: "Course updated successfully!",
         });
       } else {
-        await createCourse(formData);
-          // response = await createCourse(formData);
+        // await createCourse(formData);
+         response = await createCourse(formData);
         Swal.fire({
           icon: "success",
           title: "Created!",
@@ -475,12 +476,12 @@ switch (action) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Title */}
-                <InputField label="Title" name="title" formik={formik} />
+                <InputField label="Title*" name="title" formik={formik} />
 
                 <div className="grid grid-cols-2 gap-2">
                   {/* Duration Value */}
                   <InputField
-                    label="Duration Value  "
+                    label="Duration Value*"
                     name="durationValue"
                     type="number"
                     formik={formik}
@@ -488,10 +489,11 @@ switch (action) {
 
                   {/* Duration Unit */}
                   <Dropdown
-                    label="Duration Unit  "
+                    label="Duration Unit*"
                     name="durationUnit"
                     options={[
                       { _id: "days", title: "Days" },
+                      { _id: "weeks", title: "Weeks" },
                       { _id: "months", title: "Months" },
                       { _id: "years", title: "Years" },
                     ]}
@@ -502,7 +504,7 @@ switch (action) {
 
               {/* Description */}
               <TextAreaField
-                label="Description"
+                label="Description*"
                 name="description"
                 rows={4}
                 formik={formik}
@@ -518,7 +520,7 @@ switch (action) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {/* Rating */}
                 <InputField
-                  label="Rating  "
+                  label="Rating*"
                   name="rating"
                   type="number"
                   formik={formik}
@@ -526,7 +528,7 @@ switch (action) {
 
                 {/* Enrolled Count */}
                 <InputField
-                  label="Enrolled Count  "
+                  label="Enrolled Count*"
                   name="enrolledCount"
                   type="number"
                   formik={formik}
@@ -534,14 +536,14 @@ switch (action) {
 
                 {/* Fees */}
                 <InputField
-                  label="Fees ($)  "
+                  label="Fees ($)*"
                   name="fees"
                   type="number"
                   formik={formik}
                 />
 
                 {/* Start Date */}
-                <InputField
+                {/* <InputField
                   label="Start Date"
                   name="startDate"
                   type="date"
@@ -549,16 +551,18 @@ switch (action) {
                 />
 
                 {/* End Date */}
-                <InputField
+                {/* <InputField
                   label="End Date"
                   name="endDate"
                   type="date"
                   formik={formik}
-                />
+                /> */} 
+
+                 <DateRangePicker formik={formik} />
 
                 {/* Cloud Labs Link */}
                 <InputField
-                  label="Cloud Labs Link"
+                  label="Cloud Labs Link*"
                   name="cloudLabsLink"
                   type="text"
                   formik={formik}
@@ -566,7 +570,7 @@ switch (action) {
 
                 {/* Trainers Multi-Select */}
                 <MultiSelectDropdown
-                  label="Trainer"
+                  label="Trainer*"
                   name="trainer"
                   options={trainers}
                   formik={formik}
@@ -577,7 +581,7 @@ switch (action) {
                 {/* Training Plan File Upload */}
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-gray-800 mb-2">
-                    Training Plan (PDF / DOCX / XLSX)
+                    Training Plan (PDF / DOCX / XLSX)*
                   </label>
 
                   <div className="relative w-full">
@@ -634,7 +638,7 @@ switch (action) {
 
                 {/* Active Toggle */}
                 <div className="mt-6">
-                  <Field name="isActive">
+                  <Field name="isActive*">
                     {({ field, form }) => (
                       <ToggleSwitch
                         label="Is this training program active"
@@ -651,7 +655,7 @@ switch (action) {
 
               {/* Overview */}
               <TextAreaField
-                label="Overview"
+                label="Overview(optional)"
                 name="overview"
                 rows={4}
                 formik={formik}
@@ -667,7 +671,7 @@ switch (action) {
               <DynamicInputFields
                 formik={formik}
                 name="learningOutcomes"
-                label="Learning Outcomes"
+                label="Learning Outcomes(optional)"
               />
             </section>
 
@@ -680,14 +684,14 @@ switch (action) {
               <DynamicInputFields
                 formik={formik}
                 name="benefits"
-                label="Benefits"
+                label="Benefits(optional)"
               />
             </section>
 
             {/* ================= FEATURES ================= */}
             <section className="space-y-6 bg-blue-50 p-6 rounded-lg shadow-md">
               <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
-                Features
+                Features(optional)
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -761,7 +765,7 @@ switch (action) {
                         {/* Feature Title */}
                         <div className="mb-3">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Title
+                            Title(optional)
                           </label>
                           <Field
                             name={`keyFeatures[${idx}].title`}
@@ -788,7 +792,7 @@ switch (action) {
                         {/* Feature Description */}
                         <div className="mb-3">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Description
+                            Description(optional)
                           </label>
                           <Field
                             as="textarea"
@@ -812,7 +816,7 @@ switch (action) {
                         {/* Sub Points */}
                         <div>
                           <label className="block mb-1 font-medium text-gray-700">
-                            Sub Points
+                            Sub Points(optional)
                           </label>
                           <FieldArray name={`keyFeatures[${idx}].subPoints`}>
                             {({ push: pushSP, remove: removeSP }) => (
@@ -836,7 +840,7 @@ switch (action) {
                                       onClick={() => removeSP(spIdx)}
                                       disabled={feature.subPoints.length === 1}
                                     >
-                                      -
+                                      <FaMinus/>
                                     </button>
                                     {spIdx === feature.subPoints.length - 1 && (
                                       <button
@@ -844,7 +848,7 @@ switch (action) {
                                         className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                                         onClick={() => pushSP("")}
                                       >
-                                        +
+                                        <FaPlus/>
                                       </button>
                                     )}
                                   </div>

@@ -108,17 +108,17 @@ const TrainerCoursesPage = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {course.features.certificate && (
+                  {course.features?.certificate && (
                     <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded flex items-center gap-1">
                       <FaCertificate /> Certificate
                     </span>
                   )}
-                  {course.features.codingExercises && (
+                  {course.features?.codingExercises && (
                     <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">
                       Coding Exercises
                     </span>
                   )}
-                  {course.features.recordedLectures && (
+                  {course.features?.recordedLectures && (
                     <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded">
                       Recorded Lectures
                     </span>
