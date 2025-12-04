@@ -106,3 +106,23 @@ export const fetchActiveBatchById = async (batchId) => {
   const batch = Array.isArray(res.data.data) ? res.data.data[0] : res.data.data;
   return batch;
 };
+
+
+/**
+ * Upload an Excel file for batches
+ * @param {FormData} formData - The FormData containing the Excel file and related info
+ * @returns {Promise<object>} - The response from the server
+ */
+export const uploadBatchExcel = async (formData) => {
+  try {
+    const res = await apiClient.post("/api/batches/upload-excel", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error uploading Excel:", err.response?.data || err.message);
+    const errorMessage =
+      err.response?.data?.message || "Failed to upload Excel file";
+    throw new Error(errorMessage);
+  }
+};

@@ -13,6 +13,8 @@ import { useAuth } from "./contexts/AuthContext.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import ManagePrerequisites from "./components/admin/prerequisite/ManagePrerequisites.jsx";
 import AssignmentsPage from "./components/student-course/assignmentSection/AssignmentPage.jsx";
+import CreateFeedback from "./components/admin/feedback/CreateFeedback.jsx";
+import ManageFeedback from "./components/admin/feedback/ManageFeedback.jsx";
 // import AssignmentsPage from "./components/student-course/AssignmentPage.jsx";
 const CourseForm = lazy(() =>
   import("./components/admin/courses/CourseForm.jsx")
@@ -188,7 +190,8 @@ function App() {
             <Routes>
               {/* Public Routes */}
               {/* Saare Routes jaise the waise hi rahenge */}
-              <Route path="/" element={<HomePage />} />
+              {/* <Route path="/" element={<HomePage />} /> */}
+              <Route path="/" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/branches" element={<BranchListPage />} />
@@ -366,6 +369,48 @@ function App() {
                   >
                     <Route path="courses/edit/:id" element={<CourseForm />} />
                   </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="feedback"
+                        requiredAction="create"
+                      />
+                    }
+                  >
+                    <Route
+                      path="create-feedback"
+                      element={<CreateFeedback />}
+                    />
+                  </Route>
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="feedback"
+                        requiredAction="update"
+                      />
+                    }
+                  >
+                    <Route
+                      path="edit-feedback/:feedbackId"
+                      element={<CreateFeedback />}
+                    />
+                  </Route>
+
+                  <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="feedback"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route
+                      path="/manage-feedback"
+                      element={<ManageFeedback />}
+                    />
+                  </Route>
+
                   <Route
                     path="course/:courseId/content"
                     element={<CourseContentManagementPage />}
@@ -785,6 +830,11 @@ function App() {
                       element={<EnrollStudentForm />}
                     />
                   </Route>
+
+                  <Route
+                    path="/trainer/dashboard"
+                    element={<TrainerDashboardPage />}
+                  />
                   {/* <Route
                     path="enroll-student"
                     element={<EnrollStudentForm />}
@@ -834,22 +884,16 @@ function App() {
                 </Route>
               </Route>
 
+              <Route path="/trainer-courses" element={<TrainerCoursesPage />} />
+              <Route
+                path="/trainer-courses/:courseId"
+                element={<TrainerCourseDetailsPage />}
+              />
+              <Route path="/trainer-profile" element={<TrainerProfile />} />
+              {/* <Route path="/trainer-profile" element={<TrainerRegistrationForm />} /> */}
+
               {/* Trainer Routes */}
-              {/* <Route element={<PrivateRoute roles={["trainer"]} />}>
-                <Route
-                  path="/trainer/dashboard"
-                  element={<TrainerDashboardPage />}
-                />
-                <Route
-                  path="/trainer-courses"
-                  element={<TrainerCoursesPage />}
-                />
-                <Route
-                  path="/trainer-courses/:courseId"
-                  element={<TrainerCourseDetailsPage />}
-                />
-                <Route path="/trainer-profile" element={<TrainerProfile />} />
-              </Route> */}
+              <Route element={<PrivateRoute roles={["trainer"]} />} />
 
               {/* Fallback */}
               <Route path="*" element={<NotFoundPage />} />

@@ -13,8 +13,6 @@ import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
 import { useSelector } from "react-redux";
 import { canPerformAction } from "../../../utils/permissionUtils";
-// import { canPerformAction } from "../../../utils/permissionUtils";
-
 
 const ManageBatch = () => {
   const [batches, setBatches] = useState([]);
@@ -80,52 +78,67 @@ const ManageBatch = () => {
     }
   };
 
-  // -------------------- Fetch Courses --------------------
+
+   // -------------------- Fetch Courses --------------------
   // const loadCourses = async () => {
   //   try {
-  //     const coursesData = await getAllCourses(); // call API
-  //     setCourses(coursesData || []); // set state in main page
+  //     const coursesData = await getAllCourses(); 
+  //     setCourses(coursesData || []);
+
+  //     // -------------------- Handle URL param pre-fill --------------------
+  //     const queryParams = new URLSearchParams(location.search);
+  //     const courseIdFromURL = queryParams.get("courseId");
+  //     if (courseIdFromURL && coursesData.some(c => c._id === courseIdFromURL)) {
+  //       setSelectedCourseId(courseIdFromURL);
+  //       loadBatchesByCourse(courseIdFromURL);
+  //     } else {
+  //       setSelectedCourseId("all");
+  //       fetchBatches();
+  //     }
+
   //   } catch (err) {
   //     const errorMessage =
   //       err.response?.data?.message || "Failed to fetch Training Programs";
-
   //     Swal.fire({
   //       icon: "error",
-  //       title: "Error Fetching Training Mangaements",
+  //       title: "Error Fetching Training Programs",
   //       text: errorMessage,
   //       confirmButtonColor: "#d33",
   //     });
   //   }
   // };
 
-   // -------------------- Fetch Courses --------------------
-  const loadCourses = async () => {
+  useEffect(() => {
+  const initialize = async () => {
     try {
-      const coursesData = await getAllCourses(); 
+      // Fetch courses
+      const coursesData = await getAllCourses();
       setCourses(coursesData || []);
 
-      // -------------------- Handle URL param pre-fill --------------------
+      // Get query param
       const queryParams = new URLSearchParams(location.search);
       const courseIdFromURL = queryParams.get("courseId");
+
       if (courseIdFromURL && coursesData.some(c => c._id === courseIdFromURL)) {
         setSelectedCourseId(courseIdFromURL);
-        loadBatchesByCourse(courseIdFromURL);
+        await loadBatchesByCourse(courseIdFromURL);
       } else {
         setSelectedCourseId("all");
-        fetchBatches();
+        await fetchBatches();
       }
-
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message || "Failed to fetch Training Programs";
       Swal.fire({
         icon: "error",
         title: "Error Fetching Training Programs",
-        text: errorMessage,
+        text: err.response?.data?.message || err.message,
         confirmButtonColor: "#d33",
       });
     }
   };
+
+  initialize();
+}, [location.search]); // optional dependency if you want it to respond to URL changes
+
 
 
   // -------------------- Handle Delete --------------------
@@ -197,10 +210,10 @@ const ManageBatch = () => {
   };
 
   // -------------------- Fetch on Mount --------------------
-  useEffect(() => {
-    fetchBatches();
-    loadCourses();
-  }, []);
+  // useEffect(() => {
+  //   fetchBatches();
+  //   loadCourses();
+  // }, []);
 
   // -------------------- Table Columns --------------------
   const columns = [
@@ -216,36 +229,150 @@ const ManageBatch = () => {
         row.trainersAssigned?.map((t) => t?.fullName).join(", ") || "-",
     },
     { header: "Status", accessor: (row) => row.status || "-" },
-    {
-      header: "Actions",
-      accessor: (row) => (
-        <div className="flex gap-2">
+    // {
+    //   header: "Actions",
+    //   accessor: (row) => (
+    //     <div className="flex gap-2">
+    //       <button
+    //         onClick={() => handleView(row._id)}
+    //         className="px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 text-sm"
+    //       >
+    //         View
+    //       </button>
+    //       {canPerformAction(rolePermissions, "batch", "update") && (
+    //       <button
+    //         onClick={() => handleEdit(row._id)}
+    //         className="px-2 py-1 rounded-md bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
+    //       >
+    //         Edit
+    //       </button>
+    //       )}
+
+    //       {canPerformAction(rolePermissions, "batch", "delete") && (
+    //       <button
+    //         onClick={() => handleDelete(row._id)}
+    //         className="px-2 py-1 rounded-md bg-red-500 text-white hover:bg-red-600 text-sm"
+    //       >
+    //         Delete
+    //       </button>
+    //       )}
+    //     </div>
+    //   ),
+    // },
+
+{
+  header: "Actions",
+  accessor: (row) => {
+    const batchId = row._id;
+    const courseIds = row.coursesAssigned?.map(c => c._id).join(","); // get all assigned course IDs
+
+    return (
+      <div className="flex gap-2">
+        <button
+          onClick={() => handleView(batchId)}
+          className="px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 text-sm"
+        >
+          View
+        </button>
+
+        {canPerformAction(rolePermissions, "batch", "update") && (
           <button
-            onClick={() => handleView(row._id)}
-            className="px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 text-sm"
-          >
-            View
-          </button>
-          {canPerformAction(rolePermissions, "batch", "update") && (
-          <button
-            onClick={() => handleEdit(row._id)}
+            onClick={() => handleEdit(batchId)}
             className="px-2 py-1 rounded-md bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
           >
             Edit
           </button>
-          )}
+        )}
 
-          {canPerformAction(rolePermissions, "batch", "delete") && (
+        {canPerformAction(rolePermissions, "batch", "delete") && (
           <button
-            onClick={() => handleDelete(row._id)}
+            onClick={() => handleDelete(batchId)}
             className="px-2 py-1 rounded-md bg-red-500 text-white hover:bg-red-600 text-sm"
           >
             Delete
           </button>
-          )}
-        </div>
-      ),
-    },
+        )}
+
+        {canPerformAction(rolePermissions, "batch", "update") && (
+          <button
+            onClick={() =>
+              navigate(
+                `/enrollments/upload-excel?batchId=${batchId}&courseIds=${courseIds}`
+              )
+            }
+            className="px-2 py-1 rounded-md bg-green-500 text-white hover:bg-green-600 text-sm"
+          >
+            Add Candidate
+          </button>
+        )}
+
+        {/* ---------- View Candidate Button ---------- */}
+        <button
+          onClick={() =>
+            navigate(`/enrolled-student-list?b_id=${batchId}`)
+          }
+          className="px-2 py-1 rounded-md bg-purple-500 text-white hover:bg-purple-600 text-sm"
+        >
+          View Candidate
+        </button>
+      </div>
+    );
+  },
+}
+
+
+
+//     {
+//   header: "Actions",
+//   accessor: (row) => {
+//     const batchId = row._id;
+//     const courseIds = row.coursesAssigned?.map(c => c._id).join(","); // get all assigned course IDs
+
+//     return (
+//       <div className="flex gap-2">
+//         <button
+//           onClick={() => handleView(batchId)}
+//           className="px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 text-sm"
+//         >
+//           View
+//         </button>
+
+//         {canPerformAction(rolePermissions, "batch", "update") && (
+//           <button
+//             onClick={() => handleEdit(batchId)}
+//             className="px-2 py-1 rounded-md bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
+//           >
+//             Edit
+//           </button>
+//         )}
+
+//         {canPerformAction(rolePermissions, "batch", "delete") && (
+//           <button
+//             onClick={() => handleDelete(batchId)}
+//             className="px-2 py-1 rounded-md bg-red-500 text-white hover:bg-red-600 text-sm"
+//           >
+//             Delete
+//           </button>
+//         )}
+
+//         {/* ---------- Add Candidate Button ---------- */}
+//         {canPerformAction(rolePermissions, "batch", "update") && (
+//           <button
+//             onClick={() =>
+//               navigate(
+//                 `/enrollments/upload-excel?batchId=${batchId}&courseIds=${courseIds}`
+//               )
+//             }
+//             className="px-2 py-1 rounded-md bg-green-500 text-white hover:bg-green-600 text-sm"
+//           >
+//             Add Candidate
+//           </button>
+//         )}
+//       </div>
+//     );
+//   },
+// }
+
   ];
 
   return (

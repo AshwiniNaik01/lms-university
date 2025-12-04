@@ -162,27 +162,27 @@ const menuItems = [
         ],
       },
 
-  // {
-  //   label: "Prerequisite",
-  //   icon: <FaTasks />,
-  //   module: "prerequisite",
-  //   children: [
-  //     {
-  //       label: "Add Prerequisite",
-  //       icon: <FaRegFileAlt />,
-  //       path: "/add-prerequisite",
-  //       action: "create",
-  //       module: "prerequisite",
-  //     },
-  //     {
-  //       label: "Manage Prerequisite",
-  //       icon: <FaLayerGroup />,
-  //       path: "/manage-prerequisite",
-  //       action: "read",
-  //       module: "prerequisite",
-  //     },
-  //   ],
-  // },
+  {
+    label: "Prerequisite",
+    icon: <FaTasks />,
+    module: "prerequisite",
+    children: [
+      {
+        label: "Add Prerequisite",
+        icon: <FaRegFileAlt />,
+        path: "/add-prerequisite",
+        action: "create",
+        module: "prerequisite",
+      },
+      {
+        label: "Manage Prerequisite",
+        icon: <FaLayerGroup />,
+        path: "/manage-prerequisite",
+        action: "read",
+        module: "prerequisite",
+      },
+    ],
+  },
 
       // ASSIGNMENT
       {
@@ -272,6 +272,30 @@ const menuItems = [
             path: "/manage-meeting",
             action: "read",
             module: "meeting",
+          },
+        ],
+      },
+      
+
+       // Feedback
+      {
+        label: "Feedback",
+        icon: <FaStickyNote />,
+        module: "feedback",
+        children: [
+          {
+            label: "Add Feedback Questions",
+            icon: <FaRegFileAlt />,
+            path: "/create-feedback",
+            action: "create",
+            module: "feedback",
+          },
+          {
+            label: "Manage Feedback Questions",
+            icon: <FaLayerGroup />,
+            path: "/manage-feedback",
+            action: "read",
+            module: "feedback",
           },
         ],
       },

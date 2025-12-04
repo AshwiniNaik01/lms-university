@@ -44,6 +44,25 @@ export const getPhasesByCourse = async (courseId) => {
   return response.data?.data || [];
 };
 
+/**
+ * Fetch a phase by ID
+ * @param {string} phaseId - The ID of the phase to fetch
+ * @returns {Promise<object>} - The phase object
+ */
+export const getPhaseById = async (phaseId) => {
+  if (!phaseId) throw new Error("Phase ID is required");
+
+  try {
+    const res = await apiClient.get(`/api/phases/${phaseId}`);
+    return res.data?.data || res.data;
+  } catch (err) {
+    console.error(`Error fetching phase ${phaseId}:`, err.response?.data || err.message);
+    const errorMessage = err.response?.data?.message || "Failed to fetch phase details";
+    throw new Error(errorMessage);
+  }
+};
+
+
 
 /**
  * Fetch all weeks

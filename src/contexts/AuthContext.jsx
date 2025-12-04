@@ -395,7 +395,7 @@ export const AuthProvider = ({ children }) => {
       if (user.role === 'student') {
         Cookies.set('studentId', user.studentId, { expires: 1 });
       } else if (user.role === 'trainer') {
-        Cookies.set('trainerId', user.trainerId, { expires: 1 });
+        Cookies.set('trainerId', user._id, { expires: 1 });
       }
 
       setCurrentUser({ token, user });

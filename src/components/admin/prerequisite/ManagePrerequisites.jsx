@@ -1,65 +1,64 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
+import { canPerformAction } from "../../../utils/permissionUtils";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
-import { useSelector } from "react-redux";
-import { canPerformAction } from "../../../utils/permissionUtils";
 
 const ManagePrerequisites = () => {
-  const navigate = useNavigate();
   const [prerequisites, setPrerequisites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { rolePermissions } = useSelector((state) => state.permissions);
-
   const [selectedPrerequisite, setSelectedPrerequisite] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch all prerequisites
-  useEffect(() => {
-    const fetchPrerequisites = async () => {
-      try {
-        setLoading(true);
-        const { data } = await apiClient.get("/api/prerequisite");
+  const [searchParams] = useSearchParams();
+  const batchIdParam = searchParams.get("b_id"); // optional batch filter
 
-        if (data.success) {
-          setPrerequisites(data.data);
-        } else {
-          setError("Failed to fetch prerequisites");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Failed to fetch prerequisites");
-      } finally {
-        setLoading(false);
+  const { rolePermissions } = useSelector((state) => state.permissions);
+  const navigate = useNavigate();
+
+  // Fetch prerequisites
+  const loadPrerequisites = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.get("/api/prerequisite");
+      let data = response.data.data || [];
+
+      // Filter by batch if batchId param exists
+      if (batchIdParam) {
+        data = data.filter((p) => p.batchId === batchIdParam);
       }
-    };
 
-    fetchPrerequisites();
-  }, []);
+      setPrerequisites(data);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // View handler
-  const handleView = (item) => {
-    setSelectedPrerequisite(item);
+  useEffect(() => {
+    loadPrerequisites();
+  }, [batchIdParam]);
+
+  const handleEdit = (id) => navigate(`/edit-prerequisite/${id}`);
+  const handleAdd = () => navigate("/add-prerequisite");
+  const handleView = (prerequisite) => {
+    setSelectedPrerequisite(prerequisite);
     setIsModalOpen(true);
   };
 
-  // Edit handler
-  const handleEdit = (id) => {
-    navigate(`/edit-prerequisite/${id}`);
-  };
-
-  // Delete handler
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, title) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "This prerequisite will be deleted permanently!",
+      text: `You won’t be able to recover "${title}"!`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#0e55c8",
+      cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
     });
 
@@ -67,42 +66,37 @@ const ManagePrerequisites = () => {
 
     try {
       await apiClient.delete(`/api/prerequisite/${id}`);
-
-      Swal.fire("Deleted!", "Prerequisite has been deleted.", "success");
-
-      setPrerequisites(prerequisites.filter((p) => p._id !== id));
+      Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: `"${title}" deleted successfully!`,
+      });
+      loadPrerequisites();
     } catch (err) {
       console.error(err);
-      Swal.fire("Error!", "Failed to delete prerequisite.", "error");
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Failed to delete prerequisite.",
+      });
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading prerequisites...</p>;
-  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
-
   // Table columns
   const columns = [
-    { header: "Title", accessor: (row) => row.title },
-    { header: "Course", accessor: (row) => row.course?.title || "-" },
-    {
-      header: "Batch",
-      accessor: (row) => row.course?.batches?.length
-        ? row.course.batches.find((b) => b === row.batchId)
-        : row.batchId,
-    },
+    { header: "Title", accessor: "title" },
+    // { header: "Course ID", accessor: "courseId" },
+    // { header: "Batch ID", accessor: "batchId" },
     {
       header: "Actions",
       accessor: (row) => (
         <div className="flex gap-2">
-          {/* View */}
           <button
             onClick={() => handleView(row)}
             className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
           >
             View
           </button>
-
-          {/* Edit */}
           {canPerformAction(rolePermissions, "prerequisite", "update") && (
             <button
               onClick={() => handleEdit(row._id)}
@@ -111,11 +105,9 @@ const ManagePrerequisites = () => {
               Edit
             </button>
           )}
-
-          {/* Delete */}
           {canPerformAction(rolePermissions, "prerequisite", "delete") && (
             <button
-              onClick={() => handleDelete(row._id)}
+              onClick={() => handleDelete(row._id, row.title)}
               className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
             >
               Delete
@@ -126,76 +118,82 @@ const ManagePrerequisites = () => {
     },
   ];
 
-  return (
-    <div className="p-8 min-h-screen bg-blue-50 font-sans">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-700">Manage Prerequisites</h2>
+  if (loading)
+    return <p className="text-center mt-10">Loading prerequisites...</p>;
+  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
 
-          {canPerformAction(rolePermissions, "prerequisite", "create") && (
+  return (
+    <div className="flex flex-col max-h-screen bg-white font-sans">
+      {/* Header */}
+      <div className="flex justify-between items-center px-8 py-2 bg-white shadow-md z-10">
+        <h2 className="text-2xl font-bold text-gray-700">
+          Manage Prerequisites
+        </h2>
+        {!batchIdParam &&
+          canPerformAction(rolePermissions, "prerequisite", "create") && (
             <button
-              onClick={() => navigate("/add-prerequisite")}
+              onClick={handleAdd}
               className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
             >
               + Add Prerequisite
             </button>
           )}
-        </div>
-
-        {/* Table */}
-        <ScrollableTable columns={columns} data={prerequisites} maxHeight="600px" />
       </div>
 
-      {/* View Modal */}
+      {/* Table */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-7xl mx-auto">
+          <ScrollableTable
+            columns={columns}
+            data={prerequisites}
+            maxHeight="440px"
+          />
+        </div>
+      </div>
+
+      {/* Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        header="Prerequisite Details"
+        header={selectedPrerequisite?.title || "Prerequisite Details"}
       >
         {selectedPrerequisite && (
           <div className="space-y-4">
-            <p>
-              <strong>Title:</strong> {selectedPrerequisite.title}
-            </p>
-            <p>
-              <strong>Description:</strong> {selectedPrerequisite.description}
-            </p>
-
-            <p>
-              <strong>Course:</strong> {selectedPrerequisite.course?.title || "-"}
-            </p>
-
-            <p>
-              <strong>Batch ID:</strong> {selectedPrerequisite.batchId}
-            </p>
-
-            {/* Topics */}
-            <div>
-              <strong>Topics:</strong>
-              <ul className="list-disc ml-5 mt-1">
-                {selectedPrerequisite.topics.map((topic) => (
-                  <li key={topic._id} className="mb-2">
-                    <strong>{topic.name}</strong>
-
-                    <div className="ml-4">
-                      <p className="font-semibold">Video Links:</p>
-                      <ul className="list-disc ml-5">
-                        {topic.videoLinks.map((v, i) => (
-                          <li key={i}>{v}</li>
-                        ))}
-                      </ul>
-
-                      <p className="font-semibold mt-2">Materials:</p>
-                      <ul className="list-disc ml-5">
-                        {topic.materialFiles.map((f) => (
-                          <li key={f._id}>{f.fileName} ({f.fileType})</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Title</span>
+                <span className="text-gray-800">
+                  {selectedPrerequisite.title}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Active</span>
+                <span className="text-gray-800">
+                  {selectedPrerequisite.isActive ? "Yes" : "No"}
+                </span>
+              </div>
+              {/* <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Course ID</span>
+                <span className="text-gray-800">{selectedPrerequisite.courseId}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Batch ID</span>
+                <span className="text-gray-800">{selectedPrerequisite.batchId}</span>
+              </div> */}
+              <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Description</span>
+                <span className="text-gray-800">
+                  {selectedPrerequisite.description || "-"}
+                </span>
+              </div>
+              {/* <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Created At</span>
+                <span className="text-gray-800">
+                  {selectedPrerequisite.createdAt
+                    ? new Date(selectedPrerequisite.createdAt).toLocaleString()
+                    : "-"}
+                </span>
+              </div> */}
             </div>
           </div>
         )}
