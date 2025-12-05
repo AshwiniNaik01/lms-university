@@ -445,7 +445,9 @@ const ManageCurriculum = () => {
           >
             <option value="">-- Choose a Training Program --</option>
             {courses.map((course) => (
-              <option key={course._id} value={course._id}>
+              // <option key={course._id} value={course._id}>
+              <option key={`course-${course._id}`} value={course._id}>
+
                 {course.title}
               </option>
             ))}

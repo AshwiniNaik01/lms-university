@@ -1,10 +1,9 @@
+
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
-// import apiClient from "../apiClient"; // adjust path as needed
-// import Dropdown from "../components/Dropdown"; // adjust path as needed
 import Swal from "sweetalert2";
 import { getAllCourses } from "../../../api/courses";
 import { fetchAllTrainers } from "../../../pages/admin/trainer-management/trainerApi";
@@ -16,21 +15,26 @@ import TextAreaField from "../../form/TextAreaField";
 import VideoUploadField from "../../form/VideoUploadField";
 import { useCourseParam } from "../../hooks/useCourseParam";
 import { useSelector } from "react-redux";
-
-// import { getAllCourses } from "../helpers/courseHelpers"; // adjust path as needed
+import { fetchBatchesByCourseId } from "../../../api/batch";
+import { getChaptersByCourse } from "../../../api/chapters"; // Make sure this exists
 
 export default function AddLectures() {
   const { lectureId } = useParams();
   const navigate = useNavigate();
+  const { rolePermissions } = useSelector((state) => state.permissions);
 
-  const [availableChapters, setAvailableChapters] = useState([]);
+  // State
   const [availableCourses, setAvailableCourses] = useState([]);
+  const [availableChapters, setAvailableChapters] = useState([]);
   const [availableTrainers, setAvailableTrainers] = useState([]);
   const [availableBatches, setAvailableBatches] = useState([]);
   const [loading, setLoading] = useState(false);
-      const { rolePermissions } = useSelector((state) => state.permissions);
+  const [selectedCourseId, setSelectedCourseId] = useState("");
 
-  // ✅ Formik setup
+  // Custom hook for preselected course from URL query param
+  const [selectedCourseFromParam, , isCoursePreselected] = useCourseParam(availableCourses);
+
+  // Formik setup
   const formik = useFormik({
     initialValues: {
       course: "",
@@ -49,14 +53,8 @@ export default function AddLectures() {
       chapter: Yup.string().required("Chapter is required"),
       title: Yup.string().required("Title is required"),
       description: Yup.string().required("Description is required"),
-      // duration: Yup.number().required("Duration is required"),
       type: Yup.string(),
-      //    trainer: Yup.array()
-      // .of(Yup.string().required())
-      // .min(1, "At least one trainer is required"),
-
       batches: Yup.array(),
-      // status: Yup.string().oneOf(["pending", "in-progress", "completed"]),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -67,11 +65,7 @@ export default function AddLectures() {
         formData.append("description", values.description);
         formData.append("duration", values.duration);
         formData.append("type", values.type);
-        // formData.append("trainer", values.trainer);
-        values.trainer.forEach((trainerId) =>
-          formData.append("trainer[]", trainerId)
-        );
-
+        values.trainer.forEach((trainerId) => formData.append("trainer[]", trainerId));
         formData.append("status", values.status);
         values.batches.forEach((batch) => formData.append("batches[]", batch));
         if (values.contentUrl) formData.append("contentUrl", values.contentUrl);
@@ -80,13 +74,7 @@ export default function AddLectures() {
           await apiClient.put(`/api/lectures/${lectureId}`, formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
-
-          Swal.fire({
-            icon: "success",
-            title: "Lecture Updated",
-            text: "Lecture updated successfully!",
-            confirmButtonColor: "#0e55c8",
-          }).then(() => {
+          Swal.fire("Success", "Lecture updated successfully!", "success").then(() => {
             resetForm();
             navigate("/manage-course-videos");
           });
@@ -94,146 +82,98 @@ export default function AddLectures() {
           await apiClient.post("/api/lectures", formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
-
-          Swal.fire({
-            icon: "success",
-            title: "Lecture Created",
-            text: "Lecture created successfully!",
-            confirmButtonColor: "#0e55c8",
-          }).then(() => {
+          Swal.fire("Success", "Lecture created successfully!", "success").then(() => {
             resetForm();
-            // navigate("/manage-course-videos");
+            navigate("/manage-course-videos");
           });
         }
-
-        resetForm();
-        // navigate("/manage-course-videos");
       } catch (error) {
         console.error(error);
-        alert(
-          "Failed to submit lecture: " +
-            (error.response?.data?.message || error.message)
-        );
+        Swal.fire("Error", error.response?.data?.message || error.message, "error");
       }
     },
   });
 
-  // ✅ Fetch all dropdown data
+  // Fetch all courses and trainers initially
   useEffect(() => {
     const fetchData = async () => {
       try {
         const coursesRes = await getAllCourses();
         setAvailableCourses(coursesRes || []);
 
-        const [chaptersRes, trainersRes, batchesRes] = await Promise.all([
-          apiClient.get("/api/chapters"),
-          fetchAllTrainers(), // ✅ Use your fetchAllTrainers function
-          apiClient.get("/api/batches/all"),
-        ]);
+        const trainersRes = await fetchAllTrainers();
+        setAvailableTrainers(trainersRes || []);
 
-        setAvailableChapters(chaptersRes.data?.data || []);
-        setAvailableTrainers(trainersRes || []); // trainersRes is already an array of trainer objects
-        setAvailableBatches(batchesRes.data?.data || []);
+        // If a course is preselected from URL, fetch its chapters
+        if (selectedCourseFromParam) {
+          setSelectedCourseId(selectedCourseFromParam);
+        }
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
       }
     };
-
     fetchData();
-  }, []);
+  }, [selectedCourseFromParam]);
 
-// Use custom hook to get preselected course from URL query param
-const [selectedCourseFromParam, setSelectedCourseFromParam, isCoursePreselected] = useCourseParam(availableCourses);
-
-// Whenever availableCourses change, set Formik value if hook returned a course
-useEffect(() => {
-  if (selectedCourseFromParam) {
-    formik.setFieldValue("course", selectedCourseFromParam);
-  }
-}, [selectedCourseFromParam]);
-
-  // ✅ Fetch chapters whenever the selected course changes
+  // Set Formik value if URL param exists
   useEffect(() => {
-    const fetchChaptersByCourse = async (courseId) => {
+    if (selectedCourseFromParam) {
+      formik.setFieldValue("course", selectedCourseFromParam);
+    }
+  }, [selectedCourseFromParam]);
+
+  // Fetch chapters whenever the selected course changes
+  useEffect(() => {
+    const fetchChapters = async (courseId) => {
       if (!courseId) {
         setAvailableChapters([]);
         return;
       }
       try {
-        const res = await apiClient.get(`/api/chapters/course/${courseId}`);
-        if (res.data.success) {
-          setAvailableChapters(res.data.data || []);
-        } else {
-          setAvailableChapters([]);
-        }
+        const res = await getChaptersByCourse(courseId);
+        setAvailableChapters(res.success ? res.data || [] : []);
       } catch (err) {
-        console.error("Error fetching chapters for training program:", err);
+        console.error("Error fetching chapters:", err);
         setAvailableChapters([]);
       }
     };
+    fetchChapters(selectedCourseId || formik.values.course);
+  }, [selectedCourseId, formik.values.course]);
 
-    fetchChaptersByCourse(formik.values.course);
-  }, [formik.values.course]);
+  // Fetch batches whenever the selected course changes
+  useEffect(() => {
+    const fetchBatches = async () => {
+      const courseId = selectedCourseId || formik.values.course;
+      if (!courseId) {
+        setAvailableBatches([]);
+        return;
+      }
+      try {
+        const batches = await fetchBatchesByCourseId(courseId);
+        setAvailableBatches(batches);
+      } catch (err) {
+        console.error("Error fetching batches:", err);
+        setAvailableBatches([]);
+      }
+    };
+    fetchBatches();
+  }, [selectedCourseId, formik.values.course]);
 
-  // ✅ Fetch lecture data if editing
-  // useEffect(() => {
-  //   if (!lectureId) return;
-
-  //   const fetchLecture = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const res = await apiClient.get(`/api/lectures/${lectureId}`);
-  //       if (res.data.success && res.data.data) {
-  //         const lecture = res.data.data;
-  //         formik.setValues({
-  //           course: lecture.course?._id || "",
-  //           chapter: lecture.chapter?._id || "",
-  //           title: lecture.title || "",
-  //           description: lecture.description || "",
-  //           // duration: lecture.duration || "",
-  //           type: lecture.type || "",
-  //           // trainer: lecture.trainer?._id || "",
-  //           // trainer: lecture.trainer?.map((t) => t._id) || [],
-  //           batches: lecture.batches?.map((b) => b._id) || [],
-  //           status: lecture.status || "pending",
-  //           contentUrl: prefilledContentUrl, // ✅ prefilled here
-  //         });
-  //       } else {
-  //         alert("Lecture not found");
-  //         navigate("/admin/manage-course-videos");
-  //       }
-  //     } catch (err) {
-  //       console.error(err);
-  //       alert("Failed to fetch lecture");
-  //       navigate("/admin/manage-course-videos");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchLecture();
-  // }, [lectureId]);
-
-  // Inside your fetchLecture useEffect
+  // Fetch lecture data if editing
   useEffect(() => {
     if (!lectureId) return;
-
     const fetchLecture = async () => {
       setLoading(true);
       try {
         const res = await apiClient.get(`/api/lectures/${lectureId}`);
         if (res.data.success && res.data.data) {
           const lecture = res.data.data;
-
-          // Determine prefilled contentUrl
           let prefilledContentUrl = null;
           if (lecture.type === "mp4" && lecture.contentUrl) {
-            // Prepend the LECTURE_CONTENT path
             prefilledContentUrl = DIR.LECTURE_CONTENT + lecture.contentUrl;
           } else if (lecture.type === "youtube") {
             prefilledContentUrl = lecture.contentUrl;
           }
-
           formik.setValues({
             course: lecture.course?._id || "",
             chapter: lecture.chapter?._id || "",
@@ -244,21 +184,21 @@ useEffect(() => {
             trainer: lecture.trainer?.map((t) => t._id) || [],
             batches: lecture.batches?.map((b) => b._id) || [],
             status: lecture.status || "pending",
-            contentUrl: prefilledContentUrl, // ✅ prefilled here
+            contentUrl: prefilledContentUrl,
           });
+          setSelectedCourseId(lecture.course?._id || "");
         } else {
-          alert("Lecture not found");
+          Swal.fire("Error", "Lecture not found", "error");
           navigate("/manage-course-videos");
         }
       } catch (err) {
         console.error(err);
-        alert("Failed to fetch lecture");
+        Swal.fire("Error", "Failed to fetch lecture", "error");
         navigate("/manage-course-videos");
       } finally {
         setLoading(false);
       }
     };
-
     fetchLecture();
   }, [lectureId]);
 
@@ -270,15 +210,13 @@ useEffect(() => {
         onSubmit={formik.handleSubmit}
         className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-8 border-4 border-[rgba(14,85,200,0.83)]"
       >
-        {/* Heading */}
         <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center">
           {lectureId ? "Edit Recording" : "Add Recording"}
         </h2>
 
-        {/* Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Course Dropdown */}
-          {/* <Dropdown
+          {/* Training Program */}
+          <Dropdown
             label="Training Program"
             name="course"
             options={availableCourses}
@@ -286,50 +224,18 @@ useEffect(() => {
             onChange={(value) => {
               formik.setFieldValue("course", value);
               formik.setFieldValue("chapter", "");
+              setSelectedCourseId(value);
             }}
-          /> */}
-
-
-          <Dropdown
-  label="Training Program"
-  name="course"
-  options={availableCourses}
-  formik={formik}
-  onChange={(value) => {
-    formik.setFieldValue("course", value);
-    formik.setFieldValue("chapter", "");
-  }}
-  disabled={isCoursePreselected} // ✅ Disable if preselected from URL
-/>
-
-
-          {/* Chapter Dropdown */}
-          <Dropdown
-            label="Chapter"
-            name="chapter"
-            options={availableChapters}
-            formik={formik}
+            disabled={isCoursePreselected}
           />
 
+          {/* Chapter */}
+          <Dropdown label="Chapter" name="chapter" options={availableChapters} formik={formik} />
+
+          {/* Title */}
           <InputField label="Title" name="title" type="text" formik={formik} />
 
-         
-
-         
-          {/* Batch Dropdown */}
-          {/* <MultiSelectDropdown
-            label="Batch"
-            name="batches"
-            formik={formik}
-            options={availableBatches}
-            getOptionValue={(option) => option._id}
-            getOptionLabel={(option) =>
-              `${option.batchName} | ${option.time.start} - ${
-                option.time.end
-              } | ${option.days.join(", ")} | ${option.mode}`
-            }
-          /> */}
-
+          {/* Batch */}
           <MultiSelectDropdown
             label="Batch"
             name="batches"
@@ -337,7 +243,6 @@ useEffect(() => {
             options={availableBatches}
             getOptionValue={(option) => option._id}
             getOptionLabel={(option) => {
-              // Convert API day strings to short day names if needed
               const daysMap = {
                 monday: "Mon",
                 tuesday: "Tue",
@@ -347,16 +252,12 @@ useEffect(() => {
                 saturday: "Sat",
                 sunday: "Sun",
               };
-
-              const formattedDays = option.days
-                .map((day) => daysMap[day.toLowerCase()] || day)
-                .join(", ");
-
+              const formattedDays = option.days.map((d) => daysMap[d.toLowerCase()] || d).join(", ");
               return `${option.batchName} | ${option.time.start} - ${option.time.end} | ${formattedDays} | ${option.mode}`;
             }}
           />
 
-          {/* Type Selector */}
+          {/* Type */}
           <Dropdown
             label="Type"
             name="type"
@@ -368,22 +269,8 @@ useEffect(() => {
           />
 
           {/* Conditional Fields */}
-          {formik.values.type === "mp4" && (
-            <VideoUploadField
-              label="Lecture Video (.mp4)"
-              name="contentUrl"
-              formik={formik}
-            />
-          )}
-
-          {formik.values.type === "youtube" && (
-            <InputField
-              label="YouTube URL"
-              name="contentUrl"
-              type="url"
-              formik={formik}
-            />
-          )}
+          {formik.values.type === "mp4" && <VideoUploadField label="Lecture Video (.mp4)" name="contentUrl" formik={formik} />}
+          {formik.values.type === "youtube" && <InputField label="YouTube URL" name="contentUrl" type="url" formik={formik} />}
 
           {/* Status */}
           <Dropdown
@@ -393,19 +280,14 @@ useEffect(() => {
             options={[
               { _id: "visible", title: "Visible" },
               { _id: "not_visible", title: "Not Visible" },
-              // { _id: "completed", title: "Completed" },
             ]}
           />
         </div>
 
-        <TextAreaField
-          label="Description"
-          name="description"
-          rows={4}
-          formik={formik}
-        />
+        {/* Description */}
+        <TextAreaField label="Description" name="description" rows={4} formik={formik} />
 
-        {/* Submit Button */}
+        {/* Submit */}
         <div className="text-center pt-4">
           <button
             type="submit"
@@ -418,3 +300,4 @@ useEffect(() => {
     </FormikProvider>
   );
 }
+

@@ -38,7 +38,12 @@ export default function AddAssignment() {
     const fetchCourses = async () => {
       try {
         const res = await getAllCourses();
-        setAvailableCourses(res);
+        // setAvailableCourses(res);
+        // Remove duplicate courses by _id
+      const uniqueCourses = Array.from(
+        new Map(res.map((c) => [c._id, c])).values()
+      );
+      setAvailableCourses(uniqueCourses);
       } catch (err) {
         console.error("Error fetching training program:", err);
       }
@@ -180,7 +185,13 @@ onSubmit: async (values, { resetForm }) => {
 
       try {
         const res = await getChaptersByCourse(courseId);
-        setAvailableChapters(res.data || []);
+        // setAvailableChapters(res.data || []);
+
+         // Remove duplicate chapters by _id
+      const uniqueChapters = Array.from(
+        new Map(res.data.map((c) => [c._id, c])).values()
+      );
+      setAvailableChapters(uniqueChapters);
       } catch (err) {
         console.error("Error fetching chapters for training program:", err);
         setAvailableChapters([]);

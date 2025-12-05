@@ -42,17 +42,17 @@ const EnrollStudentForm = () => {
       fullName: "",
       mobileNo: "",
       email: "",
-      coursesInterested: [],
+      enrolledCourses: [],
       enrolledBatches: [],
     },
     validationSchema: Yup.object({
       fullName: Yup.string().required("Full name is required"),
-      mobileNo: Yup.string()
-        .matches(/^[0-9]{10}$/, "Enter a valid 10-digit number")
-        .required("Mobile number is required"),
-      email: Yup.string().email("Invalid email").required("Email is required"),
-      designation: Yup.string().required("Designation is required"),
-      collegeName: Yup.string().required("College name is required"),
+      // mobileNo: Yup.string()
+      //   .matches(/^[0-9]{10}$/, "Enter a valid 10-digit number")
+      //   .required("Mobile number is required"),
+      // email: Yup.string().email("Invalid email").required("Email is required"),
+      // designation: Yup.string().required("Designation is required"),
+      // collegeName: Yup.string().required("College name is required"),
     }),
     // onSubmit: async (values, { resetForm }) => {
     //   try {
@@ -100,13 +100,13 @@ const EnrollStudentForm = () => {
         // REQUIRED CHANGE HERE 👇
         values.enrolledBatches = [
           ...values.enrolledBatches,
-          ...values.coursesInterested,
+          ...values.enrolledCourses,
         ];
 
         const formData = new FormData();
 
         Object.keys(values).forEach((key) => {
-          if (key === "coursesInterested") {
+          if (key === "enrolledCourses") {
             formData.append(key, values[key]); // still array
           } else if (key === "enrolledBatches") {
             formData.append(key, values[key].join(",")); // now a comma-separated string
@@ -241,7 +241,7 @@ const EnrollStudentForm = () => {
             email: enrollment.email || "",
             designation: enrollment.designation || "",
             collegeName: enrollment.collegeName || "",
-            coursesInterested: enrollment.coursesInterested || [],
+            enrolledCourses: enrollment.enrolledCourses || [],
             enrolledBatches:
               enrollment.enrolledBatches?.map((b) => b._id) || [],
             profilePhotoStudent: null, // File input cannot be prefilled
@@ -255,7 +255,7 @@ const EnrollStudentForm = () => {
           }
 
           // Set filtered batches based on enrolled courses
-          const batchesFromCourses = enrollment.coursesInterested.flatMap(
+          const batchesFromCourses = enrollment.enrolledCourses.flatMap(
             (courseId) => {
               const course = courses.find((c) => c._id === courseId);
               return course?.batches || [];
@@ -300,7 +300,7 @@ const EnrollStudentForm = () => {
   // }, [formik.values.coursesInterested, courses]);
 
   useEffect(() => {
-    const selectedCourses = formik.values.coursesInterested;
+    const selectedCourses = formik.values.enrolledCourses;
     if (selectedCourses.length > 0) {
       const allBatches = selectedCourses.flatMap((id) => {
         const course = courses.find((c) => c._id === id);
@@ -316,7 +316,7 @@ const EnrollStudentForm = () => {
     } else {
       setFilteredBatches([]);
     }
-  }, [formik.values.coursesInterested, courses]);
+  }, [formik.values.enrolledCourses, courses]);
 
   return (
     <FormikProvider value={formik}>
@@ -340,7 +340,7 @@ const EnrollStudentForm = () => {
 
           <MultiSelectDropdown
             label="Training Interested (optional)"
-            name="coursesInterested"
+            name="enrolledCourses"
             options={courses}
             formik={formik}
             getOptionValue={(option) => option._id}

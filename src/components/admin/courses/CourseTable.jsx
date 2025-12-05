@@ -571,16 +571,120 @@ return (
       header={modalCourseData ? modalCourseData.title : "Loading..."}
     >
       {modalLoading ? (
-        <p className="text-gray-500 text-center py-6">Loading...</p>
-      ) : modalCourseData ? (
-        <div className="space-y-4 text-gray-700 scrollbar-thin pr-2 max-h-[70vh] overflow-y-auto">
-          {/* ALL Existing Modal Info */}
-          {/** Keeping your original modal content unchanged **/}
-          {/** Added scroll + max height so modal never overflows the screen **/}
-        </div>
-      ) : (
-        <p className="text-gray-500 text-center py-6">No data found.</p>
-      )}
+          <p className="text-gray-500 text-center py-6">Loading...</p>
+        ) : modalCourseData ? (
+          <div className="space-y-4 text-gray-700">
+            {/* Description & Overview */}
+            <p>
+              <strong>Description:</strong> {modalCourseData.description}
+            </p>
+            <p>
+              <strong>Overview:</strong> {modalCourseData.overview}
+            </p>
+
+            {/* Learning Outcomes */}
+            {modalCourseData.learningOutcomes?.length > 0 && (
+              <div>
+                <strong>Learning Outcomes:</strong>
+                <ul className="list-disc ml-5 space-y-1">
+                  {modalCourseData.learningOutcomes.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Benefits */}
+            {modalCourseData.benefits?.length > 0 && (
+              <div>
+                <strong>Benefits:</strong>
+                <ul className="list-disc ml-5 space-y-1">
+                  {modalCourseData.benefits.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Key Features */}
+            {modalCourseData.keyFeatures?.length > 0 && (
+              <div>
+                <strong>Key Features:</strong>
+                <ul className="list-disc ml-5 space-y-2">
+                  {modalCourseData.keyFeatures.map((feature) => (
+                    <li key={feature._id}>
+                      <strong>{feature.title}:</strong> {feature.description}
+                      {feature.subPoints?.length > 0 && (
+                        <ul className="list-decimal ml-5 mt-1">
+                          {feature.subPoints.map((sub, i) => (
+                            <li key={i}>{sub}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Trainer Info */}
+            {modalCourseData.trainer?.length > 0 && (
+              <div>
+                <strong>Trainer Info:</strong>
+                {modalCourseData.trainer.map((t) => (
+                  <div
+                    key={t._id}
+                    className="border border-gray-200 p-3 rounded-md mb-3"
+                  >
+                    <p>
+                      <strong>Name:</strong> {t.fullName}
+                    </p>
+                    <p>
+                      <strong>Title:</strong> {t.title}
+                    </p>
+                    <p>
+                      <strong>Qualification:</strong> {t.highestQualification}
+                    </p>
+                    <p>
+                      <strong>College:</strong> {t.collegeName}
+                    </p>
+                    <p>
+                      <strong>Total Experience:</strong> {t.totalExperience}
+                    </p>
+                    <p>
+                      <strong>Available Timing:</strong> {t.availableTiming}
+                    </p>
+                    <p>
+                      <strong>LinkedIn:</strong>{" "}
+                      <a
+                        href={t.linkedinProfile?.trim()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        {t.linkedinProfile?.trim()}
+                      </a>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Ratings and Status */}
+            <p>
+              <strong>Rating:</strong> {modalCourseData.rating}
+            </p>
+            <p>
+              <strong>Enrolled Count:</strong> {modalCourseData.enrolledCount}
+            </p>
+            <p>
+              <strong>Status:</strong>{" "}
+              {modalCourseData.isActive ? "Active" : "Inactive"}
+            </p>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-6">No data found.</p>
+        )}
     </Modal>
   </div>
 );

@@ -6,12 +6,16 @@ import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
 import { useSelector } from "react-redux";
 import { canPerformAction } from "../../../utils/permissionUtils";
+import { fetchActiveBatchById } from "../../../api/batch";
 
 const EnrolledStudentList = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const batchIdParam = searchParams.get("b_id"); // get b_id from URL
   const [enrollments, setEnrollments] = useState([]);
+  const [batchName, setBatchName] = useState("");
+  const [batchLoading, setBatchLoading] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
@@ -45,6 +49,7 @@ const EnrolledStudentList = () => {
 
     fetchEnrollments();
   }, [batchIdParam]);
+
 
   // Table Columns
   const columns = [
@@ -162,13 +167,40 @@ const EnrolledStudentList = () => {
       ),
     },
   ].filter(Boolean); // remove `false` column when batchIdParam exists
+useEffect(() => {
+  const fetchBatch = async () => {
+    if (!batchIdParam) return;
+
+    try {
+      setBatchLoading(true);
+      const response = await fetchActiveBatchById(batchIdParam);
+      console.log("Fetched batch:", response); // DEBUG
+
+      // Correct field name
+      setBatchName(response?.batchName || "");
+    } catch (err) {
+      console.error("Error fetching batch:", err);
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
+  fetchBatch();
+}, [batchIdParam]);
+
 
   return (
     <div className="flex flex-col max-h-screen bg-white font-sans">
       <div className="flex justify-between items-center px-8 py-2 bg-white shadow-md z-10">
-        <h2 className="text-2xl font-bold text-gray-700">
+        {/* <h2 className="text-2xl font-bold text-gray-700">
           Manage Enrolled Student
-        </h2>
+        </h2> */}
+
+    <h2 className="text-2xl font-bold text-gray-700">
+  {batchLoading ? "Loading batch..." :
+   batchName ? `Enrolled Student list for ${batchName}` : "Manage Enrolled Student"}
+</h2>
+
         {canPerformAction(rolePermissions, "enrollment", "create") && (
           <button
             onClick={() => navigate("/enroll-student")}

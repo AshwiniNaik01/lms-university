@@ -451,7 +451,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
           {/* Course Hierarchy */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Course */}
-            <div className="w-full space-y-1">
+            {/* <div className="w-full space-y-1">
               <label
                 htmlFor="courseId"
                 className="block text-sm font-medium text-gray-700"
@@ -479,18 +479,26 @@ const AddTest = ({ onClose, onTestAdded }) => {
               >
                 <option value="">Select Training</option>
                 {courses.map((course) => (
-                  <option key={course._id} value={course._id}>
+                  // <option key={course._id} value={course._id}>
+                   <option key={`course-${course._id}`} value={course._id}>
                     {course.title}
                   </option>
                 ))}
               </Field>
 
-              <ErrorMessage
-                name="courseId"
-                component="div"
-                className="text-red-500 text-xs font-medium"
-              />
-            </div>
+             
+            </div> */}
+
+            {/* Course */}
+<Dropdown
+  label="Training Program"
+  name="courseId"
+  options={courses}
+  formik={formik}
+  disabled={isPreselected}
+  onChange={(value) => setSelectedCourseId(value)}  // 🔥 now works!
+/>
+
 
             {/* Phase */}
             <Dropdown
