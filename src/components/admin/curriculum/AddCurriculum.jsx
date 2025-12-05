@@ -152,28 +152,62 @@ export default function AddCurriculum() {
   // 2. Fetch phases belonging to that course
   // 3. Fetch weeks belonging to that course
   // 4. Update component state with fetched data
+  // useEffect(() => {
+  //   if (!courseId) return;
+
+  //   const fetchPhasesAndWeeks = async () => {
+  //     setLoading(true);
+  //     try {
+  //       // Fetch phases for the selected course
+  //       const phasesResp = await apiClient.get(`/api/phases/course/${courseId}`);
+  //       setAvailablePhases(phasesResp.data?.data || []);
+
+  //       // Fetch weeks for the selected course
+  //       const weeksResp = await apiClient.get(`/api/weeks/course/${courseId}`);
+  //       setAvailableWeeks(weeksResp.data?.data || []);
+  //     } catch (err) {
+  //       showToast("❌ " + getBackendErrorMessage(err), "error");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchPhasesAndWeeks();
+  // }, [courseId]);
+
+
   useEffect(() => {
-    if (!courseId) return;
+  if (!courseId) return;
 
-    const fetchPhasesAndWeeks = async () => {
-      setLoading(true);
-      try {
-        // Fetch phases for the selected course
-        const phasesResp = await apiClient.get(`/api/phases/course/${courseId}`);
-        setAvailablePhases(phasesResp.data?.data || []);
-
-        // Fetch weeks for the selected course
-        const weeksResp = await apiClient.get(`/api/weeks/course/${courseId}`);
-        setAvailableWeeks(weeksResp.data?.data || []);
-      } catch (err) {
+  const fetchPhasesAndWeeks = async () => {
+    setLoading(true);
+    try {
+      // Fetch phases for the selected course
+      const phasesResp = await apiClient.get(`/api/phases/course/${courseId}`);
+      setAvailablePhases(phasesResp.data?.data || []);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        // No phases exist yet, just set empty array
+        setAvailablePhases([]);
+      } else {
         showToast("❌ " + getBackendErrorMessage(err), "error");
-      } finally {
-        setLoading(false);
       }
-    };
+    }
 
-    fetchPhasesAndWeeks();
-  }, [courseId]);
+    try {
+      // Fetch weeks for the selected course
+      const weeksResp = await apiClient.get(`/api/weeks/course/${courseId}`);
+      setAvailableWeeks(weeksResp.data?.data || []);
+    } catch (err) {
+      showToast("❌ " + getBackendErrorMessage(err), "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPhasesAndWeeks();
+}, [courseId]);
+
 
   // 🔹 Set the selected phase in component state and Formik when phaseId is present
   // This ensures that the dropdown and Formik are pre-filled when editing or navigating via URL

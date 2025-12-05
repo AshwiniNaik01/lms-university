@@ -126,7 +126,7 @@ const ManageFeedback = () => {
     return (
       <div className="space-y-3">
         <p>
-          <strong>Title:</strong> {selectedFeedback.title}
+          <strong>Training Program:</strong> {selectedFeedback.course.title}
         </p>
         {/* <p><strong>Course:</strong> {selectedFeedback.course?._id}</p> */}
         <p>
@@ -154,14 +154,14 @@ const ManageFeedback = () => {
       <ScrollableTable
         columns={columns}
         data={feedbackList}
-        maxHeight="600px"
+        maxHeight="800px"
         emptyMessage={noDataMessage || "No feedback available"}
       />
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        header="Feedback Form Details"
+       header={selectedFeedback?.title || "Feedback Form Details"}
       >
         {renderModalContent()}
       </Modal>

@@ -377,38 +377,49 @@ const ManageBatch = () => {
 
   return (
     <div className="p-8 font-sans bg-white min-h-screen">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-semibold text-gray-800">Manage Batches</h2>
-         {canPerformAction(rolePermissions, "batch", "create") && (
-        <button
-          onClick={() => navigate("/add-batch")}
-          className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 py-2 rounded-lg transition"
-        >
-          + Add Batch
-        </button>
-         )}
-      </div>
+  <div className="flex justify-between items-center mb-8">
 
-      {/* ---------- Filter Section ---------- */}
-      <div className="flex justify-end mb-6">
-        <div className="flex items-center gap-3">
-          <label className="font-semibold text-gray-700">
-            Filter by Training Program:
-          </label>
-          <select
-            value={selectedCourseId}
-            onChange={handleCourseFilterChange}
-            className="p-2 border rounded-md border-gray-300"
-          >
-            <option value="all">All Training Programs</option>
-            {courses.map((course) => (
-              <option key={course._id} value={course._id}>
-                {course.title}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+  <h2 className="text-3xl font-semibold text-gray-800">
+    Manage Batches
+  </h2>
+
+  {/* ---------- Filter + Add Button Section ---------- */}
+  <div className="flex items-center gap-6">
+
+    {/* ---------- Filter Section ---------- */}
+    <div className="flex items-center gap-3">
+      <label className="font-semibold text-gray-700">
+        Filter by Training Program:
+      </label>
+
+      <select
+        value={selectedCourseId}
+        onChange={handleCourseFilterChange}
+        className="p-2 border rounded-md border-gray-300"
+      >
+        <option value="all">All Training Programs</option>
+        {courses.map((course) => (
+          <option key={course._id} value={course._id}>
+            {course.title}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {/* ---------- Add Batch Button ---------- */}
+    {canPerformAction(rolePermissions, "batch", "create") && (
+      <button
+        onClick={() => navigate("/add-batch")}
+        className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 py-2 rounded-lg transition"
+      >
+        + Add Batch
+      </button>
+    )}
+
+  </div>
+</div>
+
+   
 
       {/* ---------- Table Section ---------- */}
       <ScrollableTable

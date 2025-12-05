@@ -20,6 +20,8 @@ const ManageMeeting = () => {
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
   const [attendanceData, setAttendanceData] = useState(null);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("Please select the batch");
+
 
   const navigate = useNavigate();
 
@@ -39,20 +41,49 @@ const ManageMeeting = () => {
   }, []);
 
   // 🧩 Fetch meetings for selected batch
-  useEffect(() => {
-    if (!selectedBatch) {
-      setMeetings([]);
-      return;
-    }
+  // useEffect(() => {
+  //   if (!selectedBatch) {
+  //     setMeetings([]);
+  //     return;
+  //   }
 
-    apiClient
-      .get(`/api/meetings/batch/${selectedBatch}`)
-      .then((res) => {
-        const meetingsArray = Array.isArray(res.data.data) ? res.data.data : [];
-        setMeetings(meetingsArray);
-      })
-      .catch((err) => console.error("Error fetching meetings:", err));
-  }, [selectedBatch]);
+  //   apiClient
+  //     .get(`/api/meetings/batch/${selectedBatch}`)
+  //     .then((res) => {
+  //       const meetingsArray = Array.isArray(res.data.data) ? res.data.data : [];
+  //       setMeetings(meetingsArray);
+  //     })
+  //     .catch((err) => console.error("Error fetching meetings:", err));
+  // }, [selectedBatch]);
+
+  useEffect(() => {
+  if (!selectedBatch) {
+    setMeetings([]);
+    setErrorMessage("Please select the batch"); // reset error message when no batch selected
+    return;
+  }
+
+  apiClient
+    .get(`/api/meetings/batch/${selectedBatch}`)
+    .then((res) => {
+      const meetingsArray = Array.isArray(res.data.data) ? res.data.data : [];
+      setMeetings(meetingsArray);
+      setErrorMessage(meetingsArray.length === 0 ? "No meetings found for this batch" : "");
+    })
+    .catch((err) => {
+      console.error("Error fetching meetings:", err);
+
+      // Check if error response has message and statusCode === 404
+      if (err.response?.status === 404 && err.response?.data?.message) {
+        setMeetings([]);
+        setErrorMessage(err.response.data.message);
+      } else {
+        setMeetings([]);
+        setErrorMessage("Failed to fetch meetings");
+      }
+    });
+}, [selectedBatch]);
+
 
   // 🧩 View meeting details
   const handleView = (meeting) => {
@@ -204,7 +235,7 @@ const ManageMeeting = () => {
           columns={columns}
           data={meetings}
           maxHeight="500px"
-          emptyMessage="Please select the batch"
+          emptyMessage={errorMessage}
         />
       </div>
 

@@ -1,18 +1,17 @@
-
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
+import apiClient from "../../../api/axiosConfig";
 import { createBatch, fetchBatchById, updateBatch } from "../../../api/batch";
 import { getAllCourses } from "../../../api/courses";
 import { fetchAllTrainers } from "../../../pages/admin/trainer-management/trainerApi";
+import { canPerformAction } from "../../../utils/permissionUtils";
 import Dropdown from "../../form/Dropdown";
+import ExcelUploader from "../../form/ExcelUploader";
 import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import TextAreaField from "../../form/TextAreaField";
-import { useSelector } from "react-redux";
-import { canPerformAction } from "../../../utils/permissionUtils";
-import apiClient from "../../../api/axiosConfig";
-import ExcelUploader from "../../form/ExcelUploader";
 import { useCourseParam } from "../../hooks/useCourseParam";
 
 // ⭐ NEW EXCEL UPLOADER
@@ -36,7 +35,7 @@ const AddBatch = ({ onBatchSaved }) => {
     days: [],
     mode: "Online",
     coursesAssigned: "", // single course ID string
-    trainersAssigned: [],
+    trainer: [],
     additionalNotes: "",
   });
 
@@ -57,7 +56,8 @@ const AddBatch = ({ onBatchSaved }) => {
   ];
 
   // -------------------- Use Hook for Preselected Course --------------------
-  const [selectedCourse, setSelectedCourse, isPreselected] = useCourseParam(courses);
+  const [selectedCourse, setSelectedCourse, isPreselected] =
+    useCourseParam(courses);
 
   // -------------------- Handle Cancel --------------------
   const handleCancel = () => {
@@ -68,7 +68,7 @@ const AddBatch = ({ onBatchSaved }) => {
       days: [],
       mode: "Online",
       coursesAssigned: "",
-      trainersAssigned: [],
+      trainer: [],
       additionalNotes: "",
     });
     setExcelFile(null);
@@ -112,7 +112,7 @@ const AddBatch = ({ onBatchSaved }) => {
           days: batch.days || [],
           mode: batch.mode || "Online",
           coursesAssigned: batch.coursesAssigned?.[0]?._id || "",
-          trainersAssigned: batch.trainersAssigned?.map((t) => t._id) || [],
+          trainer: batch.trainer?.map((t) => t._id) || [], // ✅ Corrected
           additionalNotes: batch.additionalNotes || "",
         });
         setSelectedBatchId(id);
@@ -178,7 +178,7 @@ const AddBatch = ({ onBatchSaved }) => {
         coursesAssigned: formData.coursesAssigned
           ? [formData.coursesAssigned]
           : [],
-        trainersAssigned: formData.trainersAssigned,
+        trainer: formData.trainer,
         additionalNotes: formData.additionalNotes,
       };
 
@@ -233,7 +233,9 @@ const AddBatch = ({ onBatchSaved }) => {
           handleCancel();
           break;
         case "SHOW_LIST":
-          navigate(`/manage-batches?courseId=${formData.coursesAssigned || ""}`);
+          navigate(
+            `/manage-batches?courseId=${formData.coursesAssigned || ""}`
+          );
           break;
         case "ADD_STUDENT":
           if (batchId) {
@@ -334,12 +336,12 @@ const AddBatch = ({ onBatchSaved }) => {
                 touched: {},
                 errors: {},
               }}
-               disabled={isPreselected} // <-- Add this
+              disabled={isPreselected} // <-- Add this
             />
 
             <MultiSelectDropdown
               label="Assign Trainer(s)*"
-              name="trainersAssigned"
+              name="trainer"
               options={trainers}
               formik={{
                 values: formData,
@@ -399,6 +401,48 @@ const AddBatch = ({ onBatchSaved }) => {
               setExcelPreview(data);
             }}
           />
+
+          {/* Excel Preview */}
+          {excelPreview.length > 0 && (
+            <div className="mt-6">
+              <h4 className="font-semibold text-gray-700 mb-2">
+                Excel Preview:
+              </h4>
+              <div className="overflow-x-auto border rounded-lg">
+                <table className="min-w-full text-left border-collapse">
+                  <thead className="bg-blue-100">
+                    <tr>
+                      {Object.keys(excelPreview[0]).map((col) => (
+                        <th
+                          key={col}
+                          className="px-4 py-2 border-b border-gray-300 text-gray-700 font-medium"
+                        >
+                          {col}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {excelPreview.map((row, idx) => (
+                      <tr
+                        key={idx}
+                        className={idx % 2 === 0 ? "bg-white" : "bg-blue-50"}
+                      >
+                        {Object.values(row).map((val, i) => (
+                          <td
+                            key={i}
+                            className="px-4 py-2 border-b border-gray-200 text-gray-600"
+                          >
+                            {val}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Buttons */}
           <div className="text-center flex justify-end gap-4">
