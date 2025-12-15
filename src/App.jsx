@@ -221,19 +221,19 @@ function App() {
                 path="/student-register"
                 element={<StudentRegistrationForm />}
               />
-              <Route
+              {/* <Route
                 element={
                   <PrivateRoute
                     requiredModule="trainer"
                     requiredAction="create"
                   />
                 }
-              >
+              > */}
                 <Route
                   path="/trainer-register"
                   element={<TrainerRegistrationForm />}
                 />
-              </Route>
+              {/* </Route> */}
 
               <Route
                 element={

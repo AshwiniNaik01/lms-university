@@ -8,6 +8,7 @@ import videoReducer from "../features/videoSlice";
 import curriculumReducer from "../features/curriculumSlice";
 import permissionsReducer from "../features/permissionsSlice";
 import assignmentReducer from "../features/assignmentSlice";
+import allCoursesReducer from "../features/allCoursesSlice";
 
 const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ const store = configureStore({
     curriculum: curriculumReducer,
     permissions: permissionsReducer,
     assignments: assignmentReducer, // <-- add it here
+     allCourses: allCoursesReducer, // ✅ new, no overwrite
   },
 });
 
