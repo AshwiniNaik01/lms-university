@@ -266,12 +266,12 @@ const HomePage = () => {
             className="flex gap-4 flex-wrap justify-center"
           >
             {/* Explore Courses Button */}
-            <Link
+            {/* <Link
               to="/courses"
               className="bg-white text-indigo-600 font-semibold px-4 py-2 rounded-md shadow-md hover:bg-gray-200"
             >
               Explore Courses
-            </Link>
+            </Link> */}
 
             {/* Conditional Buttons based on authentication & role */}
             {!currentUser && (

@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import { COURSE_NAME } from "../../utils/constants";
 
 /**
  * Dashboard card configurations
@@ -16,7 +17,7 @@ import { Link } from "react-router-dom";
 const dashboardCards = [
   {
     title: "Training Program Management",
-    desc: "Add new courses, update existing ones, and manage curriculum structure.",
+    desc: `Add new ${COURSE_NAME}, update existing ones, and manage curriculum structure.`,
     link: "/manage-courses",
     icon: <FaBook />,
   },
@@ -30,6 +31,12 @@ const dashboardCards = [
     title: "Trainer Management",
     desc: "Manage trainer profiles, assignments, and performance tracking.",
     link: "/trainer-management",
+    icon: <HiOutlineUserGroup />,
+  },
+  {
+    title: "Pre requisite Learning",
+    desc: "Manage trainer profiles, assignments, and performance tracking.",
+    link: "/manage-prerequisite",
     icon: <HiOutlineUserGroup />,
   },
   {
@@ -54,6 +61,12 @@ const dashboardCards = [
     title: "Assignment Management",
     desc: "Create assignments, track submissions, and provide feedback.",
     link: "/manage-assignments",
+    icon: <FaTasks />,
+  },
+  {
+    title: "Feedback Management",
+    desc: "Create assignments, track submissions, and provide feedback.",
+    link: "/manage-feedback",
     icon: <FaTasks />,
   },
   {

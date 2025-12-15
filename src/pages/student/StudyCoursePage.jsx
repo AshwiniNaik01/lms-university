@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   FaArrowLeft,
@@ -9,17 +8,23 @@ import {
   FaListAlt,
   FaStar,
   FaTasks,
-  FaVideo
+  FaVideo,
 } from "react-icons/fa";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { fetchCourseById } from "../../api/courses";
 // import AssignmentsTab from "../../components/student-course/AssignmentsTab";
+import { fetchActiveBatchById } from "../../api/batch";
+import AssignmentsTab from "../../components/student-course/assignmentSection/AssignmentsTab";
 import CurriculumTab from "../../components/student-course/CurriculumTab";
+import FeedbackList from "../../components/student-course/FeedbackList";
 import NotesTab from "../../components/student-course/NotesTab";
 import OutcomesTab from "../../components/student-course/OutcomesTab";
 import OverviewTab from "../../components/student-course/OverviewTab";
 import VideosTab from "../../components/student-course/VideosTab";
-import AssignmentsTab from "../../components/student-course/assignmentSection/AssignmentsTab";
+import MeetingsDropdown from "../../components/student-course/MeetingsDropdown";
+import PrerequisitesTab from "../../components/student-course/PrerequisitesTab";
+import TestsTab from "../../components/student-course/TestsTab";
+import { COURSE_NAME } from "../../utils/constants";
 
 const StudyCoursePage = () => {
   const { courseId } = useParams();
@@ -29,6 +34,10 @@ const StudyCoursePage = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [expandedWeeks, setExpandedWeeks] = useState({});
   const [progress, setProgress] = useState(0);
+  const [searchParams] = useSearchParams();
+  const batchId = searchParams.get("batchId");
+  const [batch, setBatch] = useState(null);
+  const [showMeetings, setShowMeetings] = useState(false);
 
   useEffect(() => {
     if (!courseId) return;
@@ -41,7 +50,7 @@ const StudyCoursePage = () => {
         // Simulate progress calculation
         calculateProgress(courseData);
       } catch (error) {
-        setError(error.message || "Failed to load course content.");
+        setError(error.message || `Failed to load ${COURSE_NAME} content.`);
         setCourse(null);
       } finally {
         setLoading(false);
@@ -50,6 +59,25 @@ const StudyCoursePage = () => {
 
     loadCourseDetails();
   }, [courseId]);
+
+  const selectedBatch = course?.batches?.find((batch) => batch._id === batchId);
+
+  // Fetch batch details when course or batchId changes
+  useEffect(() => {
+    if (!batchId) return;
+
+    const loadBatch = async () => {
+      try {
+        const batchData = await fetchActiveBatchById(batchId);
+        setBatch(batchData);
+      } catch (err) {
+        console.error("Failed to fetch batch:", err);
+        setBatch(null);
+      }
+    };
+
+    loadBatch();
+  }, [batchId]);
 
   const calculateProgress = (courseData) => {
     // Simulate progress calculation based on completed items
@@ -76,26 +104,29 @@ const StudyCoursePage = () => {
     setProgress(totalItems > 0 ? 25 : 0);
   };
 
-  const getLectureCount = (course) => {
-    if (!course?.phases) return 0;
+  const getLectureCount = (batch) => {
+    if (!batch?.lectures) return 0;
+    return batch.lectures.length;
+  };
 
-    return course.phases.reduce((total, phase) => {
-      if (!phase.weeks) return total;
-      return (
-        total +
-        phase.weeks.reduce((weekTotal, week) => {
-          if (!week.chapters) return weekTotal;
-          return (
-            weekTotal +
-            week.chapters.reduce(
-              (chapterTotal, chapter) =>
-                chapterTotal + (chapter.lectures?.length || 0),
-              0
-            )
-          );
-        }, 0)
-      );
-    }, 0);
+  const getAssignmentCount = (batch) => {
+    if (!batch?.assignments) return 0;
+    return batch.assignments.length;
+  };
+
+  const getNotesCount = (batch) => {
+    if (!batch?.notes) return 0;
+    return batch.notes.length;
+  };
+
+  const getFeedbackCount = (batch) => {
+    if (!batch?.feedbacks) return 0;
+    return batch.feedbacks.length;
+  };
+
+  const getOutcomesCount = (course) => {
+    if (!course?.learningOutcomes) return 0;
+    return course.learningOutcomes.length;
   };
 
   const toggleWeek = (phaseIndex, weekIndex) => {
@@ -172,7 +203,7 @@ const StudyCoursePage = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-lg font-medium text-gray-600 animate-pulse">
-            Loading course content...
+            Loading {COURSE_NAME} content...
           </p>
         </div>
       </div>
@@ -187,17 +218,19 @@ const StudyCoursePage = () => {
             <FaBook className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            {error ? "Error Loading Course" : "Course Not Found"}
+            {error
+              ? `Error Loading ${COURSE_NAME}`
+              : `${COURSE_NAME} Not Found`}
           </h2>
           <p className="text-gray-600 mb-6">
-            {error || "The requested course could not be found."}
+            {error || `The requested ${COURSE_NAME} could not be found.`}
           </p>
           <Link
             to="/my-courses"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105"
           >
             <FaArrowLeft className="w-4 h-4" />
-            Back to My Courses
+            Back to My {COURSE_NAME}
           </Link>
         </div>
       </div>
@@ -216,25 +249,109 @@ const StudyCoursePage = () => {
                 className="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-2 transition-all duration-300 hover:gap-3"
               >
                 <FaArrowLeft className="w-4 h-4" />
-                Back to Courses
+                Back to {COURSE_NAME}
               </Link>
               <div className="hidden sm:block h-6 w-px bg-gradient-to-b from-gray-300 to-transparent"></div>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
                   <FaBook className="w-6 h-6" />
                 </div>
+                {/* <h1 className="text-2xl font-bold text-gray-800 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text">
+                  {course.title}
+                </h1> */}
+
                 <h1 className="text-2xl font-bold text-gray-800 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text">
                   {course.title}
+
+                  {selectedBatch && (
+                    <span className="text-gray-800 text-lg font-bold ml-3">
+                      — {selectedBatch.batchName}
+                    </span>
+                  )}
                 </h1>
               </div>
             </div>
 
-            <div className="flex items-center gap-6 text-sm font-semibold">
+            {/* <div className="flex items-center gap-6 text-sm font-semibold">
               <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">
                 <FaStar className="w-4 h-4" />
                 <span>{course.rating} Rating</span>
               </div>
               <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                <FaClock className="w-4 h-4" />
+                <span>{course.duration}</span>
+              </div>
+            </div> */}
+
+            {/* <div className="flex items-center gap-6 text-sm font-semibold relative">
+
+               <div className="relative w-full">
+                <button
+                  onClick={() => setShowMeetings((prev) => !prev)}
+                  className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-semibold hover:bg-blue-100 transition-all"
+                >
+                  View Meetings & Attendance
+                </button>
+
+                {showMeetings && (
+                  <div>
+                    <MeetingsDropdown
+                      batch={batch}
+                      onClose={() => setShowMeetings(false)} // <-- pass close handler
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">
+                <FaStar className="w-4 h-4" />
+                <span>{course.rating} Rating</span>
+              </div>
+              <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                <FaClock className="w-4 h-4" />
+                <span>{course.duration}</span>
+              </div>
+
+              {/* View Meetings & Attendance */}
+            {/* <button
+                onClick={() => setShowMeetings((prev) => !prev)}
+                className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full font-semibold hover:bg-blue-100 transition-all relative"
+              >
+                View Meetings & Attendance
+              </button>
+
+              {showMeetings && <MeetingsDropdown batch={batch} />} */}
+
+            {/* </div> */}
+
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-sm font-semibold relative">
+              {/* Meetings & Attendance */}
+              <div className="relative w-full sm:w-auto">
+                <button
+                  onClick={() => setShowMeetings((prev) => !prev)}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-semibold hover:bg-blue-100 transition-all shadow-sm hover:shadow-md"
+                >
+                  <FaClock className="w-4 h-4" />
+                  View Meetings & Attendance
+                </button>
+
+                {showMeetings && (
+                  <div className="absolute top-full left-0 mt-2 w-full sm:w-80 z-50">
+                    <MeetingsDropdown
+                      batch={batch}
+                      onClose={() => setShowMeetings(false)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Rating */}
+              <div className="flex items-center gap-2 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full shadow-sm">
+                <FaStar className="w-4 h-4" />
+                <span>{course.rating} Rating</span>
+              </div>
+
+              {/* Duration */}
+              <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full shadow-sm">
                 <FaClock className="w-4 h-4" />
                 <span>{course.duration}</span>
               </div>
@@ -277,10 +394,18 @@ const StudyCoursePage = () => {
               /> */}
 
               <TabButton
+                name="Prerequisites"
+                icon={<FaBook className="w-4 h-4" />}
+                isActive={activeTab === "prerequisites"}
+                count={batch?.prerequisites?.length || 0}
+                color="purple"
+              />
+
+              <TabButton
                 name="Videos"
                 icon={<FaVideo className="w-4 h-4" />}
                 isActive={activeTab === "videos"}
-                count={getLectureCount(course)}
+                count={getLectureCount(batch)}
                 color="green"
               />
 
@@ -288,37 +413,37 @@ const StudyCoursePage = () => {
                 name="Assignments"
                 icon={<FaTasks className="w-4 h-4" />}
                 isActive={activeTab === "assignments"}
-                count={
-                  course.phases?.reduce(
-                    (total, phase) =>
-                      total +
-                      phase.weeks.reduce(
-                        (weekTotal, week) =>
-                          weekTotal +
-                          week.chapters.reduce(
-                            (chapterTotal, chapter) =>
-                              chapterTotal + (chapter.assignments?.length || 0),
-                            0
-                          ),
-                        0
-                      ),
-                    0
-                  ) || 0
-                }
+                count={getAssignmentCount(batch)}
                 color="orange"
               />
               <TabButton
                 name="Notes"
                 icon={<FaFileAlt className="w-4 h-4" />}
                 isActive={activeTab === "notes"}
-                count={course.notes?.length || 0}
+                count={getNotesCount(batch)}
                 color="blue"
+              />
+
+              <TabButton
+                name="Assessment"
+                icon={<FaTasks className="w-4 h-4" />}
+                isActive={activeTab === "assessment"}
+                count={batch?.tests?.length || 0}
+                color="orange"
+              />
+
+              <TabButton
+                name="Feedback"
+                icon={<FaVideo className="w-4 h-4" />}
+                isActive={activeTab === "feedback"}
+                count={getFeedbackCount(batch)}
+                color="green"
               />
               <TabButton
                 name="Outcomes"
                 icon={<FaCheckCircle className="w-4 h-4" />}
                 isActive={activeTab === "outcomes"}
-                count={course.learningOutcomes?.length || 0}
+                count={getOutcomesCount(course)}
                 color="green"
               />
             </nav>
@@ -360,9 +485,18 @@ const StudyCoursePage = () => {
                 toggleWeek={toggleWeek}
               />
             )}
-            {activeTab === "notes" && <NotesTab course={course} />}
-            {activeTab === "videos" && <VideosTab course={course} />}
-            {activeTab === "assignments" && <AssignmentsTab course={course} />}
+            {activeTab === "notes" && <NotesTab batch={batch} />}
+            {/* {activeTab === "videos" && <VideosTab course={course} />} */}
+            {activeTab === "prerequisites" && (
+              <PrerequisitesTab batch={batch} />
+            )}
+
+            {activeTab === "videos" && <VideosTab batch={batch} />}
+            {activeTab === "assessment" && <TestsTab batch={batch} />}
+
+            {activeTab === "assignments" && <AssignmentsTab batch={batch} />}
+            {/* {activeTab === "feedback" && <FeedbackTab batch={batch} />} */}
+            {activeTab === "feedback" && <FeedbackList batch={batch} />}
             {activeTab === "outcomes" && <OutcomesTab course={course} />}
           </div>
         </main>

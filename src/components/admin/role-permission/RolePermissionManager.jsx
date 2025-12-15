@@ -1,7 +1,8 @@
-
-import React, { useState, useEffect } from "react";
-import apiClient from "../../../api/axiosConfig";
+import { useEffect, useState } from "react";
 import { FaPlus } from "react-icons/fa";
+import Swal from "sweetalert2";
+import apiClient from "../../../api/axiosConfig";
+import handleApiError from "../../../utils/handleApiError";
 import Modal from "../../popupModal/Modal";
 
 const allActions = ["create", "read", "update", "delete"];
@@ -13,6 +14,7 @@ const RolePermissionManager = () => {
   const [selectedRoleName, setSelectedRoleName] = useState("");
   const [permissions, setPermissions] = useState({});
   const [loading, setLoading] = useState(false);
+  const [creatingRole, setCreatingRole] = useState(false);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,7 +70,10 @@ const RolePermissionManager = () => {
         setSelectedRoleName(role.role);
 
         const formatted = {};
-        if (role.permissions.length === 1 && role.permissions[0].module === "*") {
+        if (
+          role.permissions.length === 1 &&
+          role.permissions[0].module === "*"
+        ) {
           modules.forEach((m) => {
             formatted[m.module] = [...allActions];
           });
@@ -101,6 +106,7 @@ const RolePermissionManager = () => {
   // Submit role permissions
   // --------------------------
   const handleSubmit = async () => {
+    setLoading(true);
     const payload = {
       role: selectedRoleName,
       permissions: Object.entries(permissions)
@@ -115,34 +121,67 @@ const RolePermissionManager = () => {
       } else {
         res = await apiClient.post(`/api/role`, payload);
       }
-      alert("Permissions saved successfully!");
+      // alert("Permissions saved successfully!");
+      Swal.fire({
+        icon: "success",
+        title: `${res?.data?.message}` || "Permissions saved successfully!",
+      });
       console.log(res.data);
     } catch (err) {
       console.error(err);
-      alert("Error saving permissions.");
+      // alert("Error saving permissions.");
+      Swal.fire({
+        icon: "error",
+        title: handleApiError(err),
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   // --------------------------
   // Add new role
   // --------------------------
+
   const handleAddNewRole = async () => {
-    if (!newRoleName.trim()) return alert("Role name is required!");
+    if (!newRoleName.trim()) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Role name is required!",
+      });
+    }
+
+    setCreatingRole(true);
+
     try {
       const payload = { role: newRoleName.trim().toLowerCase() };
       const res = await apiClient.post("/api/role", payload);
-      alert("New role added successfully!");
+
+      Swal.fire({
+        icon: "success",
+        title: `${res?.data?.success}` || "New role added successfully!",
+        // timer: 1500,
+        showConfirmButton: true,
+      });
+
       setRoles((prev) => [...prev, res.data.message]);
       setIsModalOpen(false);
       setNewRoleName("");
     } catch (err) {
       console.error(err);
-      alert("Error creating role.");
+      const errorMessage = handleApiError(err);
+
+      Swal.fire({
+        icon: "error",
+        title: errorMessage || "Error creating role.",
+      });
+    } finally {
+      setCreatingRole(false);
     }
   };
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen relative">
+    <div className="p-8 bg-gray-50 max-h-screen relative">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -163,7 +202,9 @@ const RolePermissionManager = () => {
 
       {/* Role Dropdown */}
       <div className="bg-white shadow-lg rounded-xl p-6 mb-8 border border-gray-200">
-        <label className="block text-gray-700 font-semibold mb-3">Select Role</label>
+        <label className="block text-gray-700 font-semibold mb-3">
+          Select Role
+        </label>
         <select
           value={selectedRoleId}
           onChange={(e) => setSelectedRoleId(e.target.value)}
@@ -200,7 +241,9 @@ const RolePermissionManager = () => {
             <tbody>
               {modules.map((m) => (
                 <tr key={m.module} className="hover:bg-indigo-50 transition">
-                  <td className="px-6 py-4 text-gray-800 font-medium">{m.label}</td>
+                  <td className="px-6 py-4 text-gray-800 font-medium">
+                    {m.label}
+                  </td>
                   {allActions.map((action) => (
                     <td key={action} className="px-6 py-4 text-center">
                       <input
@@ -237,7 +280,11 @@ const RolePermissionManager = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         header="Add New Role"
-        primaryAction={{ label: "Create Role", onClick: handleAddNewRole }}
+        primaryAction={{
+          label: "Create Role",
+          onClick: handleAddNewRole,
+          loading: creatingRole,
+        }}
       >
         <div className="flex flex-col gap-4">
           <label className="text-gray-700 font-medium">Role Name</label>
@@ -255,4 +302,3 @@ const RolePermissionManager = () => {
 };
 
 export default RolePermissionManager;
-

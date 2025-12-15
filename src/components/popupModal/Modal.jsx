@@ -74,7 +74,7 @@ const Modal = ({
             </button>
           )}
 
-          {primaryAction && (
+          {/* {primaryAction && (
             <button
               onClick={primaryAction.onClick}
               className="flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition"
@@ -82,7 +82,32 @@ const Modal = ({
               <FaCheck className="w-4 h-4 text-white" />
               {primaryAction.label}
             </button>
-          )}
+          )} */}
+
+          {primaryAction && (
+  <button
+    onClick={!primaryAction.loading ? primaryAction.onClick : undefined}
+    disabled={primaryAction.loading}
+    className={`flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-md shadow-sm transition
+      ${primaryAction.loading
+        ? "bg-blue-400 cursor-not-allowed text-white"
+        : "bg-blue-600 hover:bg-blue-700 text-white"
+      }`}
+  >
+    {primaryAction.loading ? (
+      <>
+        <span className="loader w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        Processing...
+      </>
+    ) : (
+      <>
+        <FaCheck className="w-4 h-4 text-white" />
+        {primaryAction.label}
+      </>
+    )}
+  </button>
+)}
+
 
           {footer}
         </div>
@@ -114,6 +139,10 @@ const Modal = ({
         .animate-scaleIn {
           animation: scaleIn 0.25s ease-out forwards;
         }
+          .loader {
+  display: inline-block;
+}
+
       `}</style>
     </div>,
     modalRoot

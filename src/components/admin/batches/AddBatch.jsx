@@ -13,6 +13,7 @@ import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import TextAreaField from "../../form/TextAreaField";
 import { useCourseParam } from "../../hooks/useCourseParam";
+import handleApiError from "../../../utils/handleApiError";
 
 // ⭐ NEW EXCEL UPLOADER
 const AddBatch = ({ onBatchSaved }) => {
@@ -121,7 +122,11 @@ const AddBatch = ({ onBatchSaved }) => {
         navigate("/manage-batches");
       }
     } catch (err) {
-      Swal.fire("Error", err.message || "Failed to fetch batch.", "error");
+      Swal.fire(
+        "Error",
+        handleApiError(err) || "Failed to fetch batch.",
+        "error"
+      );
       navigate("/manage-batches");
     } finally {
       setLoading(false);
@@ -253,7 +258,8 @@ const AddBatch = ({ onBatchSaved }) => {
     } catch (err) {
       Swal.fire(
         "Error",
-        err.response?.data?.message ||
+        err?.response?.data?.message ||
+          err?.message ||
           "Failed to save batch. Please try again.",
         "error"
       );

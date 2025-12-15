@@ -17,6 +17,7 @@ import {
   fetchWorkshopById,
   updateWorkshop,
 } from "./upSkillsApi";
+import handleApiError from "../../utils/handleApiError";
 
 const useQuery = () => new URLSearchParams(useLocation().search);
 
@@ -96,7 +97,7 @@ const WorkshopForm = () => {
         }
       } catch (error) {
         console.error("Failed to fetch workshop:", error);
-        Swal.fire("Error", "Failed to load workshop details", "error");
+        Swal.fire("Error", handleApiError(error) || "Failed to load workshop details", "error");
       } finally {
         setLoading(false);
       }
@@ -182,12 +183,10 @@ const WorkshopForm = () => {
         console.error("Error during submission:", error);
          // Show backend error in the form
      // Extract backend message
-    const backendMessage =
-      error.response?.data?.message || "Failed to submit workshop.";
-
+  
     // Show backend message in Swal
-    await Swal.fire("Error", backendMessage, "error");
-        // Swal.fire("Error", "Failed to submit workshop.", "error");
+    // await Swal.fire("Error", backendMessage, "error");
+        Swal.fire("Error", handleApiError(error) || "Failed to submit workshop.", "error");
       } finally {
         setSubmitting(false);
       }

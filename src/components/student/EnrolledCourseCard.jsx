@@ -8,6 +8,7 @@ import {
 import { Link } from 'react-router-dom';
 import { unenrollFromCourseApi } from '../../api/enrollments.js';
 import { useAuth } from '../../contexts/AuthContext.jsx';
+import { COURSE_NAME } from '../../utils/constants.js';
 
 // do not delete without cheking or comparing 
 // const EnrolledCourseCard = ({ enrollment, onUnenrollSuccess }) => {
@@ -170,7 +171,7 @@ const EnrolledCourseCard = ({ enrollment, onUnenrollSuccess }) => {
   if (!enrollment) {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-center h-48">
-        <p className="text-gray-400 italic">Course data is not available.</p>
+        <p className="text-gray-400 italic">{COURSE_NAME} data is not available.</p>
       </div>
     );
   }

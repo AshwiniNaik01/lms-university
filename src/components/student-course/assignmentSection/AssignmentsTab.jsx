@@ -894,91 +894,110 @@
 
 // export default AssignmentsTab;
 
-
-// AssignmentsTab.jsx
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// import apiClient from "../../api/axiosConfig";
 import { FaTasks } from "react-icons/fa";
-import apiClient from "../../../api/axiosConfig";
+import { useDispatch, useSelector } from "react-redux";
+// import {
+//   setAssignments,
+//   setBatchInfo,
+// } from "../store/assignmentSlice"; // import your redux actions
 
-const AssignmentsTab = ({ course }) => {
+import {
+  setAssignments,
+  setBatchInfo,
+} from "../../../features/assignmentSlice";
+// At the top of your file
+import Cookies from "js-cookie";
+
+const AssignmentsTab = ({ batch }) => {
   const navigate = useNavigate();
-  const [assignments, setAssignments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const studentId = Cookies.get("studentId"); // get the logged-in studentId
 
-  // Ensure course exists before loading
+  // Get assignments from Redux
+  const { assignments } = useSelector((state) => state.assignments);
+
+  // Set batch info and assignments in Redux
   useEffect(() => {
-    if (!course?._id) return;
+    if (!batch?._id) return;
 
-    const fetchAssignments = async () => {
-      try {
-        setLoading(true);
-        const { data: assignmentsRes } = await apiClient.get("/api/assignments");
+    dispatch(setBatchInfo({ batchId: batch._id, batchName: batch.batchName }));
+    dispatch(setAssignments(batch.assignments || []));
+  }, [batch, dispatch]);
 
-        const courseAssignments =
-          assignmentsRes?.data?.filter(
-            (a) => a?.course?._id === course._id && a?.isActive
-          ) || [];
+  if (!batch) return <div>Loading batch...</div>;
 
-        setAssignments(courseAssignments);
-      } catch (error) {
-        console.error("Error fetching assignments:", error);
-        setAssignments([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAssignments();
-  }, [course?._id]);
-
-  if (!course) return <div>Loading course...</div>;
-  if (loading) return <div>Loading assignments...</div>;
-
+  {/* Helper: find student's submission */}
   const getSubmissionForAssignment = (a) =>
-    a?.submissions?.length > 0 ? a.submissions[0] : null;
+    a.submissions?.find((s) => s.student === studentId) || null;
 
-  const isAssignmentOverdue = (date) =>
-    new Date(date) < new Date(); // past deadline
+/* Helper: overdue check */
+const isAssignmentOverdue = (deadline) => new Date(deadline) < new Date();
+
+
+  // const getSubmissionForAssignment = (a) =>
+  //   a?.submissions?.length > 0 ? a.submissions[0] : null;
+
+  // const isAssignmentOverdue = (date) => new Date(date) < new Date();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-purple-50 p-8">
-      <div className="bg-white rounded-2xl shadow-lg border p-8 mb-6">
-
-        <div className="flex items-center gap-4 mb-4">
-          <div className="p-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text-white shadow-lg">
-            <FaTasks className="w-6 h-6" />
+      <div className="bg-white rounded-2xl shadow-lg border p-8 mb-6 max-h-fit">
+        <div className="flex items-center gap-6 mb-6 bg-white p-6 rounded-2xl shadow-lg border">
+          <div className="p-4 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl shadow-lg flex items-center justify-center">
+            <FaTasks className="w-8 h-8" />
           </div>
+
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Course Assignments</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Batch Assignments
+            </h1>
             <p className="text-gray-600 mt-1">
-              Track and manage all assignments for {course?.title}
+              Track and manage all assignments for{" "}
+              <span className="font-semibold">{batch?.batchName}</span>
             </p>
+
+            <div className="mt-4 flex items-center gap-3">
+              <span className="text-gray-500 font-medium">
+                Total Assignments:
+              </span>
+              <span className="text-xl md:text-2xl font-bold text-orange-600">
+                {assignments?.length}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-6">
-
-          {/* Total */}
-          <StatCard
-            count={assignments?.length}
-            label="Total Assignments"
-            color="orange"
-            onClick={() => navigate(`/course/${course._id}/assignments?filter=all`)}
-          />
-
-          {/* Submitted */}
-          <StatCard
-            count={assignments.filter((a) => getSubmissionForAssignment(a))?.length}
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+          {/* <StatCard
+            count={
+              assignments.filter((a) => getSubmissionForAssignment(a))?.length
+            }
             label="Submitted"
             color="blue"
             onClick={() =>
-              navigate(`/course/${course._id}/assignments?filter=submitted`)
+              navigate(`/batch/${batch._id}/assignments?filter=submitted`)
             }
-          />
+          /> */}
 
-          {/* Unsubmitted */}
+
+       <StatCard
+  count={
+    assignments.filter((a) => {
+      const s = getSubmissionForAssignment(a);
+      return s && s.status === "check";  // ONLY "check"
+    }).length
+  }
+  label="Submitted"
+  color="blue"
+  onClick={() =>
+    navigate(`/batch/${batch._id}/assignments?filter=submitted`)
+  }
+/>
+
+
           <StatCard
             count={
               assignments.filter((a) => !getSubmissionForAssignment(a))?.length
@@ -986,12 +1005,11 @@ const AssignmentsTab = ({ course }) => {
             label="Unsubmitted"
             color="red"
             onClick={() =>
-              navigate(`/course/${course._id}/assignments?filter=unsubmitted`)
+              navigate(`/batch/${batch._id}/assignments?filter=unsubmitted`)
             }
           />
 
-          {/* Graded */}
-          <StatCard
+          {/* <StatCard
             count={
               assignments.filter(
                 (a) => getSubmissionForAssignment(a)?.status === "checked"
@@ -1000,12 +1018,71 @@ const AssignmentsTab = ({ course }) => {
             label="Graded"
             color="green"
             onClick={() =>
-              navigate(`/course/${course._id}/assignments?filter=graded`)
+              navigate(`/batch/${batch._id}/assignments?filter=graded`)
+            }
+          /> */}
+
+          <StatCard
+            count={
+              assignments.filter((a) => {
+                const submission = getSubmissionForAssignment(a);
+                return (
+                  submission &&
+                  submission.score != null &&
+                  submission.status === "submitted"
+                );
+              }).length
+            }
+            label="Graded"
+            color="green"
+            onClick={() =>
+              navigate(`/batch/${batch._id}/assignments?filter=graded`)
             }
           />
 
-          {/* Overdue */}
-          <StatCard
+          {/* <StatCard
+  count={
+    assignments.filter((a) => {
+      const submission = a.submissions?.find(
+        (s) =>
+          s.student === studentId &&
+          s.mistakePhotos?.length > 0 &&
+          s.status === "unsubmitted"
+      );
+      return submission;
+    }).length
+  }
+  label="Resubmit"
+  color="red"
+  onClick={() =>
+    navigate(`/batch/${batch._id}/assignments?filter=resubmit`) // Use batch._id here
+  }
+/> */}
+
+ <StatCard
+  count={
+    assignments.filter((a) => {
+      const submission = a.submissions?.find(
+        (s) => s.student === studentId
+      );
+
+      // Only consider assignments where:
+      // 1️⃣ Submission exists
+      // 2️⃣ Status is "unsubmitted"
+      // 3️⃣ Mistake photos exist
+      return submission && submission.status === "unsubmitted" && submission.mistakePhotos?.length > 0;
+    }).length
+  }
+  label="ReSubmit"
+  color="red"
+  onClick={() =>
+    navigate(`/batch/${batch._id}/assignments?filter=resubmit`)
+  }
+/>
+
+
+
+          {/* <StatCard
             count={
               assignments.filter((a) =>
                 isAssignmentOverdue(a.deadline || a.dueDate)
@@ -1014,9 +1091,9 @@ const AssignmentsTab = ({ course }) => {
             label="Overdue"
             color="purple"
             onClick={() =>
-              navigate(`/course/${course._id}/assignments?filter=overdue`)
+              navigate(`/batch/${batch._id}/assignments?filter=overdue`)
             }
-          />
+          /> */}
         </div>
       </div>
     </div>
@@ -1034,4 +1111,3 @@ const StatCard = ({ count, label, color, onClick }) => (
 );
 
 export default AssignmentsTab;
-

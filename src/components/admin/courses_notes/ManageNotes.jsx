@@ -1,13 +1,12 @@
-
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { deleteNote, fetchAllNotes } from "../../../api/notes";
 import { DIR } from "../../../utils/constants";
+import { canPerformAction } from "../../../utils/permissionUtils";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
-import { useSelector } from "react-redux";
-import { canPerformAction } from "../../../utils/permissionUtils";
 // import Modal from "../../modal/Modal"; // Import your modal
 
 const ManageNotes = () => {
@@ -16,7 +15,7 @@ const ManageNotes = () => {
   const [error, setError] = useState(null);
   const [selectedNote, setSelectedNote] = useState(null); // For modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-    const { rolePermissions } = useSelector((state) => state.permissions);
+  const { rolePermissions } = useSelector((state) => state.permissions);
 
   const navigate = useNavigate();
 
@@ -99,20 +98,20 @@ const ManageNotes = () => {
             View
           </button>
           {canPerformAction(rolePermissions, "note", "update") && (
-          <button
-            onClick={() => handleEdit(row._id)}
-            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-          >
-            Edit
-          </button>
+            <button
+              onClick={() => handleEdit(row._id)}
+              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+            >
+              Edit
+            </button>
           )}
           {canPerformAction(rolePermissions, "note", "delete") && (
-          <button
-            onClick={() => handleDelete(row._id)}
-            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-          >
-            Delete
-          </button>
+            <button
+              onClick={() => handleDelete(row._id)}
+              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+            >
+              Delete
+            </button>
           )}
         </div>
       ),
@@ -126,14 +125,16 @@ const ManageNotes = () => {
     <div className="flex flex-col max-h-screen bg-white font-sans">
       {/* Header */}
       <div className="flex justify-between items-center px-8 py-2 bg-white shadow-md z-10">
-        <h2 className="text-2xl font-bold text-gray-700">Manage Study Material</h2>
+        <h2 className="text-2xl font-bold text-gray-700">
+          Manage Study Material
+        </h2>
         {canPerformAction(rolePermissions, "note", "create") && (
-        <button
-          onClick={() => navigate("/add-notes")}
-          className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
-        >
-          + Add Study Material
-        </button>
+          <button
+            onClick={() => navigate("/add-notes")}
+            className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
+          >
+            + Add Reference Material
+          </button>
         )}
       </div>
 
@@ -145,69 +146,71 @@ const ManageNotes = () => {
       </div>
 
       {/* Modal */}
-     {/* Modal */}
-<Modal
-  isOpen={isModalOpen}
-  onClose={() => setIsModalOpen(false)}
-  header={selectedNote?.title || "Note Details"}
-  // primaryAction={{
-  //   label: "Close",
-  //   onClick: () => setIsModalOpen(false),
-  // }}
->
-{selectedNote && (
-  <div className="space-y-4">
-    {/* Details Table */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div className="flex flex-col">
-        <span className="text-gray-500 font-medium">Title</span>
-        <span className="text-gray-800">{selectedNote.title}</span>
-      </div>
+      {/* Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        header={selectedNote?.title || "Note Details"}
+        // primaryAction={{
+        //   label: "Close",
+        //   onClick: () => setIsModalOpen(false),
+        // }}
+      >
+        {selectedNote && (
+          <div className="space-y-4">
+            {/* Details Table */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Title</span>
+                <span className="text-gray-800">{selectedNote.title}</span>
+              </div>
 
-      <div className="flex flex-col">
-        <span className="text-gray-500 font-medium">Chapter</span>
-        <span className="text-gray-800">{selectedNote.chapter?.title || selectedNote.chapter || "-"}</span>
-      </div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Chapter</span>
+                <span className="text-gray-800">
+                  {selectedNote.chapter?.title || selectedNote.chapter || "-"}
+                </span>
+              </div>
 
-      {/* <div className="flex flex-col">
+              {/* <div className="flex flex-col">
         <span className="text-gray-500 font-medium">Duration</span>
         <span className="text-gray-800">{selectedNote.duration || "-"}</span>
       </div> */}
 
-      <div className="flex flex-col">
-        <span className="text-gray-500 font-medium">Content</span>
-        <span className="text-gray-800">{selectedNote.content || "No description available."}</span>
-      </div>
-    </div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 font-medium">Content</span>
+                <span className="text-gray-800">
+                  {selectedNote.content || "No description available."}
+                </span>
+              </div>
+            </div>
 
-    {/* File Section */}
-    {selectedNote.file && (
-      <div className="flex flex-col mt-4">
-        <span className="text-gray-500 font-medium">File</span>
-        <div className="mt-2">
-          <a
-            href={DIR.COURSE_NOTES + selectedNote.file}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline font-medium"
-          >
-            View PDF
-          </a>
+            {/* File Section */}
+            {selectedNote.file && (
+              <div className="flex flex-col mt-4">
+                <span className="text-gray-500 font-medium">File</span>
+                <div className="mt-2">
+                  <a
+                    href={DIR.COURSE_NOTES + selectedNote.file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    View PDF
+                  </a>
 
-          {/* Optional inline preview */}
-          <iframe
-            src={DIR.COURSE_NOTES + selectedNote.file}
-            title="Training Note PDF"
-            className="w-full h-64 mt-2 border rounded shadow-sm"
-          ></iframe>
-        </div>
-      </div>
-    )}
-  </div>
-)}
-
-</Modal>
-
+                  {/* Optional inline preview */}
+                  <iframe
+                    src={DIR.COURSE_NOTES + selectedNote.file}
+                    title="Training Note PDF"
+                    className="w-full h-64 mt-2 border rounded shadow-sm"
+                  ></iframe>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

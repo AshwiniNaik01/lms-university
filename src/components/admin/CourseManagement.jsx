@@ -11,6 +11,7 @@ import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
 import * as Yup from "yup";
 import apiClient from "../../api/axiosConfig.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
+import { COURSE_NAME } from "../../utils/constants.js";
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);
@@ -152,7 +153,7 @@ const CourseManagement = () => {
       setEditingCourseData(response.data.data);
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch course details.");
+      setError(`Failed to fetch ${COURSE_NAME} details.`);
     }
 
     setIsLoading(false);
@@ -162,7 +163,7 @@ const CourseManagement = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-100 py-12 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold text-center text-indigo-700 mb-12">
-          Course Management
+          {COURSE_NAME} Management
         </h1>
 
         {error && (
@@ -180,7 +181,7 @@ const CourseManagement = () => {
           {/* Form Section */}
           <div className="bg-white shadow-md rounded-lg p-8">
             <h2 className="text-2xl font-semibold text-indigo-600 mb-6">
-              {isEditing ? "Edit Course" : "Create New Course"}
+              {isEditing ? `Edit ${COURSE_NAME}` : `Create New ${COURSE_NAME}`}
             </h2>
 
             <Formik
@@ -695,8 +696,6 @@ const CourseManagement = () => {
 };
 
 export default CourseManagement;
-
-
 
 // import { useState } from "react";
 // import CourseForm from "./courses/CourseForm";

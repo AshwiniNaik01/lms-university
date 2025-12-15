@@ -7,12 +7,16 @@ import { deleteFeedback, getAllFeedback } from "../../../api/feedback";
 import { canPerformAction } from "../../../utils/permissionUtils";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
+import { useSearchParams } from "react-router-dom";
 
 const ManageFeedback = () => {
   const [feedbackList, setFeedbackList] = useState([]);
   const [noDataMessage, setNoDataMessage] = useState("");
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const batchId = searchParams.get("b_id");
+  const courseId = searchParams.get("courseId");
 
   const { rolePermissions } = useSelector((state) => state.permissions);
   const navigate = useNavigate();
@@ -22,7 +26,19 @@ const ManageFeedback = () => {
       const res = await getAllFeedback();
       const data = res?.data || [];
 
-      setFeedbackList(data);
+      // setFeedbackList(data);
+      let filtered = data;
+
+      if (batchId) {
+        filtered = filtered.filter((fb) => fb.batch?._id === batchId);
+      }
+
+      if (courseId) {
+        filtered = filtered.filter((fb) => fb.course?._id === courseId);
+      }
+
+      setFeedbackList(filtered);
+
       setNoDataMessage(data.length === 0 ? "No feedback forms found" : "");
     } catch (err) {
       setNoDataMessage("Failed to fetch feedback");
@@ -146,9 +162,28 @@ const ManageFeedback = () => {
   };
 
   return (
-    <div className="p-8 bg-white min-h-screen">
+    <div className="p-8 bg-white max-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800">Manage Feedback</h2>
+
+        {canPerformAction(rolePermissions, "feedback", "create") && (
+          <button
+            onClick={() => {
+              // Construct query params if available
+              let url = "/create-feedback";
+              const params = new URLSearchParams();
+              if (batchId) params.set("batchId", batchId);
+              if (courseId) params.set("courseId", courseId);
+              if ([...params].length > 0) {
+                url += `?${params.toString()}`;
+              }
+              navigate(url);
+            }}
+            className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
+          >
+            Create Feedback
+          </button>
+        )}
       </div>
 
       <ScrollableTable
@@ -161,7 +196,7 @@ const ManageFeedback = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-       header={selectedFeedback?.title || "Feedback Form Details"}
+        header={selectedFeedback?.title || "Feedback Form Details"}
       >
         {renderModalContent()}
       </Modal>

@@ -8,6 +8,7 @@ import {
   FaTasks,
   FaVideo
 } from "react-icons/fa";
+import { COURSE_NAME } from "../../utils/constants";
 
 const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
   const [expandedPhases, setExpandedPhases] = useState({});
@@ -71,7 +72,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
             <FaBook className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Course Curriculum</h2>
+            <h2 className="text-3xl font-bold text-gray-900">{COURSE_NAME} Curriculum</h2>
             <p className="text-gray-600 mt-1 text-lg">
               Master {course.title} through {course.phases?.length || 0} structured phases
             </p>
@@ -79,7 +80,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
         </div>
         
         {/* Overall Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
           <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
             <div className="text-2xl font-bold text-purple-600">{course.phases?.length || 0}</div>
             <div className="text-sm text-gray-600">Phases</div>
@@ -98,7 +99,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
             </div>
             <div className="text-sm text-gray-600">Chapters</div>
           </div>
-          <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
+          {/* <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
             <div className="text-2xl font-bold text-orange-600">
               {course.phases?.reduce((total, phase) => 
                 total + phase.weeks.reduce((weekTotal, week) => 
@@ -106,7 +107,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                     chapterTotal + (chapter.lectures?.length || 0), 0), 0), 0) || 0}
             </div>
             <div className="text-sm text-gray-600">Lectures</div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -152,10 +153,10 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                         <FaBook className="w-3 h-3" />
                         {phaseStats.totalChapters} chapters
                       </span>
-                      <span className="flex items-center gap-1 bg-purple-100 px-2 py-1 rounded-full">
+                      {/* <span className="flex items-center gap-1 bg-purple-100 px-2 py-1 rounded-full">
                         <FaVideo className="w-3 h-3" />
                         {phaseStats.totalLectures} lectures
-                      </span>
+                      </span> */}
                     </div>
                   </div>
                 </div>
@@ -205,14 +206,14 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                                     <FaBook className="w-3 h-3" />
                                     {week.chapters.length} chapters
                                   </span>
-                                  <span className="flex items-center gap-1">
+                                  {/* <span className="flex items-center gap-1">
                                     <FaVideo className="w-3 h-3" />
                                     {weekStats.lectures} lectures
                                   </span>
                                   <span className="flex items-center gap-1">
                                     <FaTasks className="w-3 h-3" />
                                     {weekStats.assignments} assignments
-                                  </span>
+                                  </span> */}
                                 
                                 </div>
                               </div>
@@ -251,7 +252,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                                           </div>
 
                                           {/* Chapter Stats */}
-                                          {chapterStats.totalItems > 0 && (
+                                          {/* {chapterStats.totalItems > 0 && (
                                             <div className="flex items-center gap-3 mb-3 text-sm">
                                               {chapterStats.lectures > 0 && (
                                                 <span className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
@@ -266,7 +267,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                                                 </span>
                                               )}
                                             </div>
-                                          )}
+                                          )} */}
 
                                           {/* Learning Points */}
                                           {chapter.points?.length > 0 && (

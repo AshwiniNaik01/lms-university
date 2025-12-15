@@ -13,6 +13,7 @@ import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
 import { useSelector } from "react-redux";
 import { canPerformAction } from "../../../utils/permissionUtils";
+import { COURSE_NAME } from "../../../utils/constants";
 
 const ManageBatch = () => {
   const [batches, setBatches] = useState([]);
@@ -71,75 +72,49 @@ const ManageBatch = () => {
       setNoBatchesMessage(err.message);
       Swal.fire({
         icon: "error",
-        title: "Error Fetching Course Batches",
+        title: `Error Fetching ${COURSE_NAME} Batches`,
         text: err.message,
         confirmButtonColor: "#d33",
       });
     }
   };
 
+  // -------------------- Fetch Courses --------------------
 
-   // -------------------- Fetch Courses --------------------
-  // const loadCourses = async () => {
-  //   try {
-  //     const coursesData = await getAllCourses(); 
-  //     setCourses(coursesData || []);
-
-  //     // -------------------- Handle URL param pre-fill --------------------
-  //     const queryParams = new URLSearchParams(location.search);
-  //     const courseIdFromURL = queryParams.get("courseId");
-  //     if (courseIdFromURL && coursesData.some(c => c._id === courseIdFromURL)) {
-  //       setSelectedCourseId(courseIdFromURL);
-  //       loadBatchesByCourse(courseIdFromURL);
-  //     } else {
-  //       setSelectedCourseId("all");
-  //       fetchBatches();
-  //     }
-
-  //   } catch (err) {
-  //     const errorMessage =
-  //       err.response?.data?.message || "Failed to fetch Training Programs";
-  //     Swal.fire({
-  //       icon: "error",
-  //       title: "Error Fetching Training Programs",
-  //       text: errorMessage,
-  //       confirmButtonColor: "#d33",
-  //     });
-  //   }
-  // };
 
   useEffect(() => {
-  const initialize = async () => {
-    try {
-      // Fetch courses
-      const coursesData = await getAllCourses();
-      setCourses(coursesData || []);
+    const initialize = async () => {
+      try {
+        // Fetch courses
+        const coursesData = await getAllCourses();
+        setCourses(coursesData || []);
 
-      // Get query param
-      const queryParams = new URLSearchParams(location.search);
-      const courseIdFromURL = queryParams.get("courseId");
+        // Get query param
+        const queryParams = new URLSearchParams(location.search);
+        const courseIdFromURL = queryParams.get("courseId");
 
-      if (courseIdFromURL && coursesData.some(c => c._id === courseIdFromURL)) {
-        setSelectedCourseId(courseIdFromURL);
-        await loadBatchesByCourse(courseIdFromURL);
-      } else {
-        setSelectedCourseId("all");
-        await fetchBatches();
+        if (
+          courseIdFromURL &&
+          coursesData.some((c) => c._id === courseIdFromURL)
+        ) {
+          setSelectedCourseId(courseIdFromURL);
+          await loadBatchesByCourse(courseIdFromURL);
+        } else {
+          setSelectedCourseId("all");
+          await fetchBatches();
+        }
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error Fetching Training Programs",
+          text: err.response?.data?.message || err.message,
+          confirmButtonColor: "#d33",
+        });
       }
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error Fetching Training Programs",
-        text: err.response?.data?.message || err.message,
-        confirmButtonColor: "#d33",
-      });
-    }
-  };
+    };
 
-  initialize();
-}, [location.search]); // optional dependency if you want it to respond to URL changes
-
-
+    initialize();
+  }, [location.search]); // optional dependency if you want it to respond to URL changes
 
   // -------------------- Handle Delete --------------------
   const handleDelete = async (id) => {
@@ -200,8 +175,6 @@ const ManageBatch = () => {
   // -------------------- Navigation Handler --------------------
   const handleEdit = (batchId) => navigate(`/add-batch/${batchId}`);
 
-
-  
   // -------------------- Handle Course Filter --------------------
   const handleCourseFilterChange = (e) => {
     const courseId = e.target.value;
@@ -223,203 +196,165 @@ const ManageBatch = () => {
       accessor: (row) => `${row.time?.start || "-"} - ${row.time?.end || "-"}`,
     },
     { header: "Mode", accessor: (row) => row.mode || "-" },
-    {
-      header: "Trainers",
-      accessor: (row) =>
-        row.trainersAssigned?.map((t) => t?.fullName).join(", ") || "-",
-    },
-    { header: "Status", accessor: (row) => row.status || "-" },
     // {
-    //   header: "Actions",
-    //   accessor: (row) => (
-    //     <div className="flex gap-2">
-    //       <button
-    //         onClick={() => handleView(row._id)}
-    //         className="px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 text-sm"
-    //       >
-    //         View
-    //       </button>
-    //       {canPerformAction(rolePermissions, "batch", "update") && (
-    //       <button
-    //         onClick={() => handleEdit(row._id)}
-    //         className="px-2 py-1 rounded-md bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
-    //       >
-    //         Edit
-    //       </button>
-    //       )}
-
-    //       {canPerformAction(rolePermissions, "batch", "delete") && (
-    //       <button
-    //         onClick={() => handleDelete(row._id)}
-    //         className="px-2 py-1 rounded-md bg-red-500 text-white hover:bg-red-600 text-sm"
-    //       >
-    //         Delete
-    //       </button>
-    //       )}
-    //     </div>
-    //   ),
+    //   header: "Trainers",
+    //   accessor: (row) =>
+    //     row.trainersAssigned?.map((t) => t?.fullName).join(", ") || "-",
     // },
-
-{
-  header: "Actions",
-  accessor: (row) => {
-    const batchId = row._id;
-    const courseIds = row.coursesAssigned?.map(c => c._id).join(","); // get all assigned course IDs
-
-    return (
-      <div className="flex gap-2">
-        <button
-          onClick={() => handleView(batchId)}
-          className="px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 text-sm"
-        >
-          View
-        </button>
-
-        {canPerformAction(rolePermissions, "batch", "update") && (
-          <button
-            onClick={() => handleEdit(batchId)}
-            className="px-2 py-1 rounded-md bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
-          >
-            Edit
-          </button>
-        )}
-
-        {canPerformAction(rolePermissions, "batch", "delete") && (
-          <button
-            onClick={() => handleDelete(batchId)}
-            className="px-2 py-1 rounded-md bg-red-500 text-white hover:bg-red-600 text-sm"
-          >
-            Delete
-          </button>
-        )}
-
-        {canPerformAction(rolePermissions, "batch", "update") && (
-          <button
-            onClick={() =>
-              navigate(
-                `/enrollments/upload-excel?batchId=${batchId}&courseIds=${courseIds}`
-              )
-            }
-            className="px-2 py-1 rounded-md bg-green-500 text-white hover:bg-green-600 text-sm"
-          >
-            Add Candidate
-          </button>
-        )}
-
-        {/* ---------- View Candidate Button ---------- */}
-        <button
-          onClick={() =>
-            navigate(`/enrolled-student-list?b_id=${batchId}`)
-          }
-          className="px-2 py-1 rounded-md bg-purple-500 text-white hover:bg-purple-600 text-sm"
-        >
-          View Candidate
-        </button>
-      </div>
-    );
-  },
-}
+    { header: "Status", accessor: (row) => row.status || "-" },
 
 
+    {
+      header: "Actions",
+      accessor: (row) => {
+        const batchId = row._id;
+        const courseIds = row.coursesAssigned?.map((c) => c._id).join(","); // get all assigned course IDs
 
-//     {
-//   header: "Actions",
-//   accessor: (row) => {
-//     const batchId = row._id;
-//     const courseIds = row.coursesAssigned?.map(c => c._id).join(","); // get all assigned course IDs
+        return (
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleView(batchId)}
+              className="px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 text-sm"
+            >
+              View
+            </button>
 
-//     return (
-//       <div className="flex gap-2">
-//         <button
-//           onClick={() => handleView(batchId)}
-//           className="px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 text-sm"
-//         >
-//           View
-//         </button>
+            {canPerformAction(rolePermissions, "batch", "update") && (
+              <button
+                onClick={() => handleEdit(batchId)}
+                className="px-2 py-1 rounded-md bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
+              >
+                Edit
+              </button>
+            )}
 
-//         {canPerformAction(rolePermissions, "batch", "update") && (
-//           <button
-//             onClick={() => handleEdit(batchId)}
-//             className="px-2 py-1 rounded-md bg-yellow-500 text-white hover:bg-yellow-600 text-sm"
-//           >
-//             Edit
-//           </button>
-//         )}
+            {canPerformAction(rolePermissions, "batch", "delete") && (
+              <button
+                onClick={() => handleDelete(batchId)}
+                className="px-2 py-1 rounded-md bg-red-500 text-white hover:bg-red-600 text-sm"
+              >
+                Delete
+              </button>
+            )}
 
-//         {canPerformAction(rolePermissions, "batch", "delete") && (
-//           <button
-//             onClick={() => handleDelete(batchId)}
-//             className="px-2 py-1 rounded-md bg-red-500 text-white hover:bg-red-600 text-sm"
-//           >
-//             Delete
-//           </button>
-//         )}
+            {canPerformAction(rolePermissions, "enrollment", "create") && (
+              <button
+                onClick={() =>
+                  navigate(
+                    `/enrollments/upload-excel?batchId=${batchId}&courseIds=${courseIds}`
+                  )
+                }
+                className="px-2 py-1 rounded-md bg-green-500 text-white hover:bg-green-600 text-sm"
+              >
+                Add Candidate
+              </button>
+            )}
 
-//         {/* ---------- Add Candidate Button ---------- */}
-//         {canPerformAction(rolePermissions, "batch", "update") && (
-//           <button
-//             onClick={() =>
-//               navigate(
-//                 `/enrollments/upload-excel?batchId=${batchId}&courseIds=${courseIds}`
-//               )
-//             }
-//             className="px-2 py-1 rounded-md bg-green-500 text-white hover:bg-green-600 text-sm"
-//           >
-//             Add Candidate
-//           </button>
-//         )}
-//       </div>
-//     );
-//   },
-// }
+            {/* ---------- View Candidate Button ---------- */}
+            {canPerformAction(rolePermissions, "enrollment", "read") && (
+              <button
+                onClick={() =>
+                  navigate(`/enrolled-student-list?b_id=${batchId}`)
+                }
+                className="px-2 py-1 rounded-md bg-purple-500 text-white hover:bg-purple-600 text-sm"
+              >
+                View Candidate
+              </button>
+            )}
 
+            {/* ---------- Create Feedback Button ---------- */}
+            {canPerformAction(rolePermissions, "feedback", "create") && (
+              <button
+                onClick={() =>
+                  (window.location.href = `/create-feedback?batchId=${batchId}&courseId=${courseIds}`)
+                }
+                className="px-2 py-1 rounded-md bg-indigo-500 text-white hover:bg-indigo-600 text-sm"
+              >
+                Create Feedback
+              </button>
+            )}
+
+            {/* ---------- View Feedback Button ---------- */}
+            {canPerformAction(rolePermissions, "enrollment", "read") && (
+              <button
+                onClick={() =>
+                  navigate(
+                    `/manage-feedback?b_id=${batchId}&courseId=${courseIds}`
+                  )
+                }
+                className="px-2 py-1 rounded-md bg-orange-500 text-white hover:bg-orange-600 text-sm"
+              >
+                View Feedback
+              </button>
+            )}
+
+            {canPerformAction(rolePermissions, "assignment", "read") && (
+              <button
+                onClick={() =>
+                  navigate(
+                    `/manage-assignments?b_id=${batchId}&courseId=${courseIds}`
+                  )
+                }
+                className="px-2 py-1 rounded-md bg-pink-500 text-white hover:bg-pink-600 text-sm"
+              >
+                View Assignment
+              </button>
+            )}
+
+            {canPerformAction(rolePermissions, "test", "read") && (
+              <button
+                onClick={() => navigate(`/view-tests/batch/${batchId}`)}
+                className="px-2 py-1 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 text-sm"
+              >
+                View Assessment
+              </button>
+            )}
+
+      
+          </div>
+        );
+      },
+    },
   ];
 
   return (
-    <div className="p-8 font-sans bg-white min-h-screen">
-  <div className="flex justify-between items-center mb-8">
+    <div className="p-8 font-sans bg-white max-h-screen">
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-3xl font-semibold text-gray-800">Manage Batches</h2>
 
-  <h2 className="text-3xl font-semibold text-gray-800">
-    Manage Batches
-  </h2>
+        {/* ---------- Filter + Add Button Section ---------- */}
+        <div className="flex items-center gap-6">
+          {/* ---------- Filter Section ---------- */}
+          <div className="flex items-center gap-3">
+            <label className="font-semibold text-gray-700">
+              Filter by Training Program:
+            </label>
 
-  {/* ---------- Filter + Add Button Section ---------- */}
-  <div className="flex items-center gap-6">
+            <select
+              value={selectedCourseId}
+              onChange={handleCourseFilterChange}
+              className="p-2 border rounded-md border-gray-300"
+            >
+              <option value="all">All Training Programs</option>
+              {courses.map((course) => (
+                <option key={course._id} value={course._id}>
+                  {course.title}
+                </option>
+              ))}
+            </select>
+          </div>
 
-    {/* ---------- Filter Section ---------- */}
-    <div className="flex items-center gap-3">
-      <label className="font-semibold text-gray-700">
-        Filter by Training Program:
-      </label>
-
-      <select
-        value={selectedCourseId}
-        onChange={handleCourseFilterChange}
-        className="p-2 border rounded-md border-gray-300"
-      >
-        <option value="all">All Training Programs</option>
-        {courses.map((course) => (
-          <option key={course._id} value={course._id}>
-            {course.title}
-          </option>
-        ))}
-      </select>
-    </div>
-
-    {/* ---------- Add Batch Button ---------- */}
-    {canPerformAction(rolePermissions, "batch", "create") && (
-      <button
-        onClick={() => navigate("/add-batch")}
-        className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 py-2 rounded-lg transition"
-      >
-        + Add Batch
-      </button>
-    )}
-
-  </div>
-</div>
-
-   
+          {/* ---------- Add Batch Button ---------- */}
+          {canPerformAction(rolePermissions, "batch", "create") && (
+            <button
+              onClick={() => navigate("/add-batch")}
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 py-2 rounded-lg transition"
+            >
+              + Add Batch
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* ---------- Table Section ---------- */}
       <ScrollableTable
@@ -462,12 +397,12 @@ const ManageBatch = () => {
                   ?.map((c) => c?.title)
                   .join(", ") || "-"}
               </p>
-              <p className="text-gray-600">
+              {/* <p className="text-gray-600">
                 <strong>Trainers:</strong>{" "}
                 {selectedBatch.trainersAssigned
                   ?.map((t) => t?.fullName)
                   .join(", ") || "-"}
-              </p>
+              </p> */}
             </div>
 
             <div>

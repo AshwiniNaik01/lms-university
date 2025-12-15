@@ -7,6 +7,7 @@ import branchesReducer from "../features/branchesSlice";
 import videoReducer from "../features/videoSlice";
 import curriculumReducer from "../features/curriculumSlice";
 import permissionsReducer from "../features/permissionsSlice";
+import assignmentReducer from "../features/assignmentSlice";
 
 const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ const store = configureStore({
     videos: videoReducer,
     curriculum: curriculumReducer,
     permissions: permissionsReducer,
+    assignments: assignmentReducer, // <-- add it here
   },
 });
 

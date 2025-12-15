@@ -15,7 +15,7 @@ import AdminSidebar from "./AdminSidebar";
 
 const AdminLayout = () => {
   return (
-    <div className="flex h-[600px] overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       {/* =================== Fixed Sidebar =================== */}
       <aside className="w-64 bg-white border-r shadow-md fixed h-full left-0 z-20">
         <AdminSidebar />
@@ -23,7 +23,7 @@ const AdminLayout = () => {
 
       {/* =================== Scrollable Main Section =================== */}
       <main
-        className="flex-1 ml-67 bg-blue-50 max-h-[600px] overflow-y-auto p-4 transition-all duration-300">
+        className="flex-1 ml-67 bg-blue-50  max-h-screen overflow-y-auto p-4 transition-all duration-300">
         {/* 
           <Outlet /> dynamically renders the nested route component.
           Example: AddNotes, ManageLectures, etc.

@@ -1,11 +1,11 @@
 import Cookies from "js-cookie";
-import { Link, useNavigate } from "react-router-dom";
-import logo from "../../../public/images/codedrift-main-logo.png";
-import { useAuth } from "../../contexts/AuthContext.jsx";
-import { STUDENT_PORTAL_URL } from "../../utils/constants.js";
 import { useEffect, useState } from "react";
-import { DIR } from "../../utils/constants.js";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import logo from "../../../public/images/codedrift-main-logo.png";
 import apiClient from "../../api/axiosConfig.js";
+import { useAuth } from "../../contexts/AuthContext.jsx";
+import { DIR, STUDENT_PORTAL_URL } from "../../utils/constants.js";
 
 const Navbar = () => {
   const { currentUser, logout, isAdmin, isTrainer } = useAuth();
@@ -47,26 +47,48 @@ const Navbar = () => {
   // };
 
   const handleLogout = () => {
-    // 1️⃣ Clear cookies & reset auth state
-    logout(); // clears cookies and sets currentUser to null
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // 1️⃣ Clear cookies & reset auth state
+        logout(); // clears cookies and sets currentUser to null
 
-    // 2️⃣ Redirect based on previous role
-    // Note: currentUser is still available in closure here
-    if (currentUser?.user?.role === "student") {
-      // Student → redirect to external portal
-      window.location.href = STUDENT_PORTAL_URL;
-    } else {
-      // Admin/Trainer → navigate inside app
-      navigate("/login");
-    }
+        // 2️⃣ Redirect based on previous role
+        if (currentUser?.user?.role === "student") {
+          navigate("/student-login"); // Student portal login
+        } else {
+          navigate("/login"); // Admin/Trainer login
+        }
+
+        Swal.fire(
+          "Logged out!",
+          "You have been successfully logged out.",
+          "success"
+        );
+      }
+    });
   };
 
   // const handleLogout = () => {
-  //   logout();
+  //   // 1️⃣ Clear cookies & reset auth state
+  //   logout(); // clears cookies and sets currentUser to null
 
+  //   // 2️⃣ Redirect based on previous role
+  //   // Note: currentUser is still available in closure here
   //   if (currentUser?.user?.role === "student") {
-  //     window.location.href = STUDENT_PORTAL_URL; // ← Clean and centralized
+  //     // Student → redirect to external portal
+  //     // window.location.href = STUDENT_PORTAL_URL;
+  //      navigate("/student-login");
   //   } else {
+  //     // Admin/Trainer → navigate inside app
   //     navigate("/login");
   //   }
   // };
@@ -74,7 +96,7 @@ const Navbar = () => {
   return (
     <nav className="relative w-full h-16 shadow-md overflow-hidden font-sans">
       {/* Left Side */}
-      <div className="absolute top-0 left-0 w-[70%] h-full z-10 flex items-center space-x-6 px-6 py-2">
+      <div className="absolute bg-white top-0 left-0 w-[70%] h-full z-10 flex items-center space-x-6 px-6 py-2">
         {/* <img
           src={logo}
           alt="Code Drift Logo"
@@ -85,12 +107,12 @@ const Navbar = () => {
           src={
             contactInfo?.logo ? `${DIR.LOGO}${contactInfo.logo}` : logo // fallback to default logo
           }
-          alt={contactInfo?.companyName || "Code Drift Logo"}
+          alt={contactInfo?.companyName || ""}
           className="h-13 w-auto object-contain"
         />
 
         <Link className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5ec2f4] via-[#485DAC] to-[#E9577C]">
-          {contactInfo?.companyName || "Code Drift's Falcon"}
+          {contactInfo?.companyName || ""}
         </Link>
       </div>
 
@@ -131,26 +153,26 @@ const Navbar = () => {
                 >
                   My Courses
                 </Link> */}
-                <Link
+                {/* <Link
                   to="/trainer-profile"
                   className="hover:underline text-white"
                 >
                   Trainer Profile
-                </Link>
+                </Link> */}
               </>
             )}
 
             {/* Student links */}
             {!isAdmin && !isTrainer && (
               <>
-                <a
+                {/* <a
                   href={courseUrl}
                   className="hover:underline text-white font-bold text-xl animate-bounce"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   Explore Courses
-                </a>
+                </a> */}
                 <Link
                   to="/student/dashboard"
                   className="hover:underline text-white"

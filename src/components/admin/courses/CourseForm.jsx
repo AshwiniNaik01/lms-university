@@ -11,16 +11,14 @@ import {
 } from "../../../api/courses.js";
 import { useAuth } from "../../../contexts/AuthContext.jsx";
 import { fetchAllTrainerProfiles } from "../../../pages/admin/trainer-management/trainerApi.js";
-import { DIR } from "../../../utils/constants.js";
+import { COURSE_NAME, DIR } from "../../../utils/constants.js";
+import DateRangePicker from "../../form/DateRangePicker.jsx";
 import Dropdown from "../../form/Dropdown.jsx";
 import DynamicInputFields from "../../form/DynamicInputFields.jsx";
 import InputField from "../../form/InputField.jsx";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown.jsx";
 import TextAreaField from "../../form/TextAreaField.jsx";
 import ToggleSwitch from "../../form/ToggleSwitch.jsx";
-import DateRangePicker from "../../form/DateRangePicker.jsx";
-
-// import { canPerformAction } from "../../../utils/permissions"; // your helper
 
 const CourseForm = () => {
   const [editCourseData, setEditCourseData] = useState(null);
@@ -32,7 +30,6 @@ const CourseForm = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams();
-  // const { rolePermissions } = useSelector((state) => state.permissions);
 
   // Initial Form Values
   const initialValues = {
@@ -128,8 +125,8 @@ const CourseForm = () => {
   const CourseSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     description: Yup.string().required("Description is required"),
-    rating: Yup.number().min(0).max(5).required("Rating is required"),
-    enrolledCount: Yup.number().min(0).required("Enrolled count is required"),
+    // rating: Yup.number().min(0).max(5).required("Rating is required"),
+    // enrolledCount: Yup.number().min(0).required("Enrolled count is required"),
     // overview: Yup.string().required("Overview is required"),
     // learningOutcomes: Yup.array().of(Yup.string().required("Required")),
     // benefits: Yup.array().of(Yup.string().required("Required")),
@@ -145,11 +142,11 @@ const CourseForm = () => {
     //     subPoints: Yup.array().of(Yup.string().required("Sub-point required")),
     //   })
     // ),
-    isActive: Yup.boolean(),
-    // trainer: Yup.string().required("Trainer is required"),
-    cloudLabsLink: Yup.string()
-      .url("Must be a valid link")
-      .required("Cloud Labs Link is required"),
+    // isActive: Yup.boolean(),
+    // // trainer: Yup.string().required("Trainer is required"),
+    // cloudLabsLink: Yup.string()
+    //   .url("Must be a valid link")
+    //   .required("Cloud Labs Link is required"),
     // trainingPlan: Yup.mixed()
     //   .required("Training plan file is required")
     //   .test("fileType", "Only PDF, DOCX, XLSX allowed", (value) => {
@@ -247,18 +244,18 @@ const CourseForm = () => {
       }
 
       // Call API
-       let response;
+      let response;
       if (id && editCourseData) {
         // await updateCourse(id, formData);
         response = await updateCourse(id, formData);
         Swal.fire({
           icon: "success",
           title: "Updated!",
-          text: "Course updated successfully!",
+          text: `${COURSE_NAME} updated successfully!`,
         });
       } else {
         // await createCourse(formData);
-         response = await createCourse(formData);
+        response = await createCourse(formData);
         Swal.fire({
           icon: "success",
           title: "Created!",
@@ -266,40 +263,41 @@ const CourseForm = () => {
         });
       }
 
-       // Get the newly created course ID
-  const courseId = response?.data?._id;
+      // Get the newly created course ID
+      const courseId = response?.data?._id;
 
-  // Show next action Swal
-  const result = await Swal.fire({
-    title: "Training Program created successfully! What would you like to do next?",
-    showDenyButton: true,
-    showCancelButton: true,
-    confirmButtonText: "Add New Training Program",
-    denyButtonText: "Show List",
-    cancelButtonText: "Add Batch",
-    // icon: "question",
-  });
+      // Show next action Swal
+      const result = await Swal.fire({
+        title:
+          "Training Program created successfully! What would you like to do next?",
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Add New Training Program",
+        denyButtonText: "Show List",
+        cancelButtonText: "Add Batch",
+        // icon: "question",
+      });
 
-  // Handle actions using switch
- // Map Swal result to custom action names
-let action;
-if (result.isConfirmed) action = "ADD_NEW";
-else if (result.isDenied) action = "SHOW_LIST";
-else if (result.isDismissed) action = "ADD_BATCH";
+      // Handle actions using switch
+      // Map Swal result to custom action names
+      let action;
+      if (result.isConfirmed) action = "ADD_NEW";
+      else if (result.isDenied) action = "SHOW_LIST";
+      else if (result.isDismissed) action = "ADD_BATCH";
 
-switch (action) {
-  case "ADD_NEW":
-    navigate("/add-courses"); // Add new training program
-    break;
-  case "SHOW_LIST":
-    navigate("/manage-courses"); // Show list
-    break;
-   case "ADD_BATCH":
-    if (courseId) navigate(`/add-batch?courseId=${courseId}`); // Pass courseId as query param
-    break;
-  default:
-    console.log("No action taken");
-}
+      switch (action) {
+        case "ADD_NEW":
+          navigate("/add-courses"); // Add new training program
+          break;
+        case "SHOW_LIST":
+          navigate("/manage-courses"); // Show list
+          break;
+        case "ADD_BATCH":
+          if (courseId) navigate(`/add-batch?courseId=${courseId}`); // Pass courseId as query param
+          break;
+        default:
+          console.log("No action taken");
+      }
       resetForm();
       // navigate("/manage-courses");
     } catch (err) {
@@ -316,123 +314,6 @@ switch (action) {
     setIsLoading(false);
     setSubmitting(false);
   };
-
-
-//   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-//   setError("");
-//   setSuccess("");
-//   setIsLoading(true);
-
-//   try {
-//     const formData = new FormData();
-
-//     // Basic fields
-//     formData.append("title", values.title);
-//     formData.append("description", values.description);
-//     formData.append(
-//       "duration",
-//       `${values.durationValue} ${values.durationUnit}`
-//     );
-//     formData.append("rating", values.rating);
-//     formData.append("enrolledCount", values.enrolledCount);
-//     formData.append("overview", values.overview);
-//     formData.append("fees", values.fees);
-//     formData.append("cloudLabsLink", values.cloudLabsLink || "");
-//     formData.append("isActive", values.isActive);
-//     formData.append("startDate", values.startDate);
-//     formData.append("endDate", values.endDate);
-
-//     // Arrays of strings
-//     formData.append("keyFeatures", JSON.stringify(values.keyFeatures));
-//     formData.append("features", JSON.stringify(values.features));
-//     formData.append(
-//       "learningOutcomes",
-//       JSON.stringify(values.learningOutcomes)
-//     );
-//     formData.append("benefits", JSON.stringify(values.benefits));
-
-//     // File upload (trainingPlan)
-//     if (values.trainingPlan) {
-//       formData.append("trainingPlan", values.trainingPlan);
-//     }
-
-//     if (values.trainer) {
-//       formData.append("trainer", JSON.stringify(values.trainer));
-//     }
-
-//     // Call API
-//     let response;
-//   if (id && editCourseData) {
-//     response = await updateCourse(id, formData);
-//     Swal.fire({
-//       icon: "success",
-//       title: "Updated!",
-//       text: "Course updated successfully!",
-//     });
-//   } else {
-//     response = await createCourse(formData);
-//     Swal.fire({
-//       icon: "success",
-//       title: "Created!",
-//       text: "Training Program created successfully!",
-//     });
-//   }
-
-//    // Get the newly created course ID
-//   const courseId = response?.data?._id;
-
-//   // Show next action Swal
-//   const result = await Swal.fire({
-//     title: "What would you like to do next?",
-//     showDenyButton: true,
-//     showCancelButton: true,
-//     confirmButtonText: "Add New Training Program",
-//     denyButtonText: "Show List",
-//     cancelButtonText: "Add Batch",
-//     icon: "question",
-//   });
-
-//   // Handle actions using switch
-//  // Map Swal result to custom action names
-// let action;
-// if (result.isConfirmed) action = "ADD_NEW";
-// else if (result.isDenied) action = "SHOW_LIST";
-// else if (result.isDismissed) action = "ADD_BATCH";
-
-// switch (action) {
-//   case "ADD_NEW":
-//     navigate("/add-courses"); // Add new training program
-//     break;
-//   case "SHOW_LIST":
-//     navigate("/manage-courses"); // Show list
-//     break;
-//    case "ADD_BATCH":
-//     if (courseId) navigate(`/add-batch?courseId=${courseId}`); // Pass courseId as query param
-//     break;
-//   default:
-//     console.log("No action taken");
-// }
-
-
-
-//     resetForm();
-
-
-
-//   } catch (err) {
-//     const errorMsg =
-//       err?.message || err?.response?.data?.message || "Operation failed.";
-//     Swal.fire({
-//       icon: "error",
-//       title: "Oops...",
-//       text: errorMsg,
-//     });
-//     console.error("Error submitting Training Program:", err);
-//   }
-
-//   setIsLoading(false);
-//   setSubmitting(false);
-// };
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-white shadow-xl rounded-xl border-2 border-blue-700 border-opacity-80">
@@ -520,7 +401,7 @@ switch (action) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {/* Rating */}
                 <InputField
-                  label="Rating*"
+                  label="Rating (optional)"
                   name="rating"
                   type="number"
                   formik={formik}
@@ -528,7 +409,7 @@ switch (action) {
 
                 {/* Enrolled Count */}
                 <InputField
-                  label="Enrolled Count*"
+                  label="Enrolled Count (optional)"
                   name="enrolledCount"
                   type="number"
                   formik={formik}
@@ -556,9 +437,9 @@ switch (action) {
                   name="endDate"
                   type="date"
                   formik={formik}
-                /> */} 
+                /> */}
 
-                 <DateRangePicker formik={formik} />
+                <DateRangePicker formik={formik} />
 
                 {/* Cloud Labs Link */}
                 <InputField
@@ -655,7 +536,7 @@ switch (action) {
 
               {/* Overview */}
               <TextAreaField
-                label="Overview(optional)"
+                label="Overview (optional)"
                 name="overview"
                 rows={4}
                 formik={formik}
@@ -671,7 +552,7 @@ switch (action) {
               <DynamicInputFields
                 formik={formik}
                 name="learningOutcomes"
-                label="Learning Outcomes(optional)"
+                label="Learning Outcomes (optional)"
               />
             </section>
 
@@ -684,14 +565,14 @@ switch (action) {
               <DynamicInputFields
                 formik={formik}
                 name="benefits"
-                label="Benefits(optional)"
+                label="Benefits (optional)"
               />
             </section>
 
             {/* ================= FEATURES ================= */}
             <section className="space-y-6 bg-blue-50 p-6 rounded-lg shadow-md">
               <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
-                Features(optional)
+                Features (optional)
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -765,7 +646,7 @@ switch (action) {
                         {/* Feature Title */}
                         <div className="mb-3">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Title(optional)
+                            Title (optional)
                           </label>
                           <Field
                             name={`keyFeatures[${idx}].title`}
@@ -792,7 +673,7 @@ switch (action) {
                         {/* Feature Description */}
                         <div className="mb-3">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Description(optional)
+                            Description (optional)
                           </label>
                           <Field
                             as="textarea"
@@ -816,7 +697,7 @@ switch (action) {
                         {/* Sub Points */}
                         <div>
                           <label className="block mb-1 font-medium text-gray-700">
-                            Sub Points(optional)
+                            Sub Points (optional)
                           </label>
                           <FieldArray name={`keyFeatures[${idx}].subPoints`}>
                             {({ push: pushSP, remove: removeSP }) => (
@@ -840,7 +721,7 @@ switch (action) {
                                       onClick={() => removeSP(spIdx)}
                                       disabled={feature.subPoints.length === 1}
                                     >
-                                      <FaMinus/>
+                                      <FaMinus />
                                     </button>
                                     {spIdx === feature.subPoints.length - 1 && (
                                       <button
@@ -848,7 +729,7 @@ switch (action) {
                                         className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                                         onClick={() => pushSP("")}
                                       >
-                                        <FaPlus/>
+                                        <FaPlus />
                                       </button>
                                     )}
                                   </div>
@@ -880,13 +761,18 @@ switch (action) {
             </section>
 
             {/* ================= SUBMIT BUTTON ================= */}
+
             <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
               <button
                 type="submit"
                 disabled={formik.isSubmitting || isLoading}
                 className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg transition disabled:opacity-50"
               >
-                {editCourseData
+                {formik.isSubmitting || isLoading
+                  ? editCourseData
+                    ? "Updating..."
+                    : "Creating..."
+                  : editCourseData
                   ? "Update Training Program"
                   : "Create Training Program"}
               </button>
