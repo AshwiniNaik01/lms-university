@@ -1,6 +1,6 @@
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
@@ -17,13 +17,20 @@ export default function Create() {
   const [availableBatches, setAvailableBatches] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Get query params
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+
+  const prefillCourseId = queryParams.get("courseId") || "";
+  const prefillBatchId = queryParams.get("batchId") || "";
+
   console.log("DEBUG: feedbackId from params:", feedbackId);
 
   const formik = useFormik({
     initialValues: {
       title: "",
-      courseId: "",
-      batchId: "",
+      courseId: prefillCourseId,
+      batchId: prefillBatchId,
       questions: [""],
     },
 
@@ -82,65 +89,11 @@ export default function Create() {
     })();
   }, []);
 
-  // Fetch feedback for editing
+  // Fetch batches whenever courseId changes or prefill/edit scenario
+  // Fetch batches whenever courseId changes (user selects a course)
   useEffect(() => {
-    if (!feedbackId) return;
-
-    (async () => {
-      setLoading(true);
-      try {
-        console.log("DEBUG: Fetching feedback for ID:", feedbackId);
-        const res = await apiClient.get(
-          `/api/feedback-questions/${feedbackId}`
-        );
-        console.log("DEBUG: API response for feedback:", res.data);
-
-        const fb = res.data.data;
-        const courseId =
-          typeof fb.course === "string" ? fb.course : fb.course?._id || "";
-        const batchId =
-          typeof fb.batch === "string" ? fb.batch : fb.batch?._id || "";
-
-        console.log("DEBUG: Prefilling form values:", {
-          title: fb.title,
-          courseId,
-          batchId,
-          questions: fb.questions?.map((q) => q.question),
-        });
-
-        formik.setValues({
-          title: fb.title || "",
-          courseId,
-          batchId: "", // temporarily blank, set after batches load
-          questions: fb.questions?.map((q) => q.question) || [""],
-        });
-
-        if (courseId) {
-          const batchRes = await apiClient.get(
-            `/api/batches/course/${courseId}`
-          );
-          console.log("DEBUG: Fetched batches for course:", batchRes.data.data);
-          // setAvailableBatches(batchRes.data.data);
-          // Remove duplicates by _id
-          const uniqueBatches = Array.from(
-            new Map(batchRes.data.data.map((b) => [b._id, b])).values()
-          );
-          setAvailableBatches(uniqueBatches);
-
-          // Now set batchId
-          formik.setFieldValue("batchId", batchId);
-        }
-      } catch (err) {
-        // console.error("DEBUG: Failed to load feedback:", err);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [feedbackId]);
-
-  // Fetch batches when course changes
-  useEffect(() => {
-    if (!formik.values.courseId) {
+    const courseId = formik.values.courseId;
+    if (!courseId) {
       setAvailableBatches([]);
       formik.setFieldValue("batchId", "");
       return;
@@ -148,23 +101,74 @@ export default function Create() {
 
     (async () => {
       try {
-        const res = await apiClient.get(
-          `/api/batches/course/${formik.values.courseId}`
-        );
-        const mapped = res.data.data.map((b) => ({ ...b, name: b.batchName }));
-        console.log("DEBUG: Batches updated due to course change:", mapped);
-        // setAvailableBatches(mapped);
-        // Remove duplicates by _id
+        const res = await apiClient.get(`/api/batches/course/${courseId}`);
         const uniqueBatches = Array.from(
-          new Map(mapped.map((b) => [b._id, b])).values()
+          new Map(
+            res.data.data.map((b) => [b._id, { ...b, name: b.batchName }])
+          ).values()
         );
         setAvailableBatches(uniqueBatches);
+
+        // Set batchId only if not already set
+        if (!formik.values.batchId && uniqueBatches.length > 0) {
+          formik.setFieldValue("batchId", uniqueBatches[0]._id);
+        }
       } catch (err) {
-        console.error("DEBUG: Failed to fetch batches:", err);
+        console.error("Failed to fetch batches:", err);
         setAvailableBatches([]);
+        formik.setFieldValue("batchId", "");
       }
     })();
   }, [formik.values.courseId]);
+
+  useEffect(() => {
+    if (!feedbackId) return;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await apiClient.get(
+          `/api/feedback-questions/${feedbackId}`
+        );
+        const fb = res.data.data;
+        const courseId = fb.course?._id || fb.course || "";
+        const batchId = fb.batch?._id || fb.batch || "";
+
+        // Set initial form values
+        formik.setValues({
+          title: fb.title || "",
+          courseId,
+          batchId: "", // temporarily blank; will set after batches load
+          questions: fb.questions?.map((q) => q.question) || [""],
+        });
+
+        if (courseId) {
+          const batchRes = await apiClient.get(
+            `/api/batches/course/${courseId}`
+          );
+
+          const uniqueBatches = Array.from(
+            new Map(
+              batchRes.data.data.map((b) => [
+                b._id,
+                { ...b, name: b.batchName },
+              ])
+            ).values()
+          );
+          setAvailableBatches(uniqueBatches);
+
+          // Set batchId after batches loaded
+          if (uniqueBatches.some((b) => b._id === batchId)) {
+            formik.setFieldValue("batchId", batchId);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch feedback:", err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [feedbackId]);
 
   if (loading)
     return (
@@ -198,13 +202,14 @@ export default function Create() {
             name="courseId"
             options={availableCourses}
             formik={formik}
+            disabled={!!prefillCourseId} // disable if prefilled
           />
           <Dropdown
             label="Batch"
             name="batchId"
             options={availableBatches}
             formik={formik}
-            disabled={!formik.values.courseId}
+            disabled={!formik.values.courseId || !!prefillBatchId}
           />
         </div>
 
@@ -222,20 +227,29 @@ export default function Create() {
           >
             Preview
           </button>
-        </div>
-        <div className="text-center">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-10 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300"
+            disabled={loading} // replace with your form's submitting state
+            className="bg-blue-600 text-white px-10 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {feedbackId ? "Update Feedback" : "Submit Feedback"}
+            {loading
+              ? feedbackId
+                ? "Updating..."
+                : "Submitting..."
+              : feedbackId
+              ? "Update Feedback"
+              : "Submit Feedback"}
           </button>
         </div>
 
         {/* ----------------- Preview Modal ----------------- */}
         {showPreview && (
-          <div className="fixed inset-0 z-50 flex justify-center items-start pt-10 bg-black/70 backdrop-blur-sm transition-all duration-300 animate-fadeIn">
-            <div className="bg-gradient-to-br from-white to-blue-50 w-11/12 lg:w-4/5 xl:w-3/4 max-h-[80vh] overflow-y-auto rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] p-6 md:p-8 relative border border-blue-100">
+          // <div className="fixed inset-0 z-50 flex justify-center items-start pt-10 bg-black/70 backdrop-blur-sm transition-all duration-300 animate-fadeIn">
+          //   <div className="bg-gradient-to-br from-white to-blue-50 w-11/12 lg:w-4/5 xl:w-3/4 max-h-[80vh] overflow-y-auto rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] p-6 md:p-8 relative border border-blue-100">
+          //     {/* Close button - Elegant */}
+
+          <div className="fixed inset-0 z-50 flex justify-center items-start bg-black/70 backdrop-blur-sm transition-all duration-300 animate-fadeIn">
+            <div className="bg-white w-full h-full overflow-y-auto p-6 md:p-8 relative">
               {/* Close button - Elegant */}
               <button
                 onClick={() => setShowPreview(false)}
@@ -257,45 +271,6 @@ export default function Create() {
                   <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mt-4"></div>
                 </div>
               </div>
-
-              {/* Course & Batch - Card Style */}
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
-                <div className="bg-white rounded-xl p-2 shadow-lg border-l-4 border-blue-500 transform transition-transform hover:scale-[1.02]">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-600 text-xl">📚</span>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                        Course
-                      </label>
-                      <p className="text-xl font-bold text-gray-800 mt-1">
-                        {availableCourses.find(
-                          (c) => c._id === formik.values.courseId
-                        )?.name || "Not Selected"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-5 shadow-lg border-l-4 border-purple-500 transform transition-transform hover:scale-[1.02]">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <span className="text-purple-600 text-xl">👥</span>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                        Batch
-                      </label>
-                      <p className="text-xl font-bold text-gray-800 mt-1">
-                        {availableBatches.find(
-                          (b) => b._id === formik.values.batchId
-                        )?.batchName || "Not Selected"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div> */}
 
               {/* Feedback Questions - Enhanced */}
               <div className="space-y-3 mb-5">

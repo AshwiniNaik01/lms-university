@@ -1,17 +1,17 @@
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useRef, useState } from "react";
 import { FaUpload } from "react-icons/fa";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
 import { getAllCourses } from "../../../api/courses";
 import { DIR } from "../../../utils/constants";
+import { canPerformAction } from "../../../utils/permissionUtils";
 import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import ToggleSwitch from "../../form/ToggleSwitch";
-import { useSelector } from "react-redux";
-import { canPerformAction } from "../../../utils/permissionUtils";
 
 const EnrollStudentForm = () => {
   const { enrollmentId } = useParams(); // optional ID for edit
@@ -54,48 +54,15 @@ const EnrollStudentForm = () => {
       // designation: Yup.string().required("Designation is required"),
       // collegeName: Yup.string().required("College name is required"),
     }),
-    // onSubmit: async (values, { resetForm }) => {
-    //   try {
-    //     setLoading(true);
-    //     let res;
-
-    //     if (enrollmentId) {
-    //       // Update existing enrollment
-    //       res = await apiClient.put(`/api/enrollments/${enrollmentId}`, values);
-    //     } else {
-    //       // Create new enrollment
-    //       res = await apiClient.post(`/api/enrollments/admin/enroll`, values);
-    //     }
-
-    //     if (res.data.success) {
-    //       Swal.fire("✅ Success", res.data.message, "success");
-    //         // Navigate after user clicks OK
-    //         // navigate("/admin/enrolled-student-list");
-
-    //       resetForm();
-    //       setFilteredBatches([]);
-    //     } else {
-    //       Swal.fire(
-    //         "⚠️ Warning",
-    //         res.data.message || "Operation failed",
-    //         "warning"
-    //       );
-    //     }
-    //   } catch (err) {
-    //     console.error(err);
-    //     Swal.fire(
-    //       "Warning",
-    //       err.response?.data?.message || "Please Try Again!",
-    //       "warning"
-    //     );
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // },
 
     onSubmit: async (values, { resetForm }) => {
       try {
         setLoading(true);
+
+        // ✅ ADD THIS HERE
+        await apiClient.post("/api/otp/send-email", {
+          email: values.email,
+        });
 
         // REQUIRED CHANGE HERE 👇
         values.enrolledBatches = [
@@ -175,54 +142,6 @@ const EnrollStudentForm = () => {
   });
 
   // Prefill data if editing
-  // useEffect(() => {
-  //   if (!enrollmentId) return;
-
-  //   const fetchEnrollment = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const res = await apiClient.get(`/api/enrollments/${enrollmentId}`);
-  //       if (res.data.success && res.data.data) {
-  //         const enrollment = res.data.data;
-
-  //         // Prefill form values
-  //         formik.setValues({
-  //           fullName: enrollment.fullName || "",
-  //           mobileNo: enrollment.mobileNo || "",
-  //           email: enrollment.email || "",
-  //           coursesInterested:
-  //             enrollment.enrolledCourses?.map((c) => c._id) || [],
-  //           enrolledBatches:
-  //             enrollment.enrolledBatches?.map((b) => b._id) || [],
-  //         });
-
-  //         // Populate filteredBatches based on enrolled courses
-  //         const batchList =
-  //           enrollment.enrolledCourses?.flatMap(
-  //             (course) => course.batches || []
-  //           ) || [];
-  //         setFilteredBatches(batchList);
-  //       } else {
-  //         Swal.fire(
-  //           "⚠️ Warning",
-  //           res.data.message || "Enrollment not found",
-  //           "warning"
-  //         );
-  //       }
-  //     } catch (err) {
-  //       console.error(err);
-  //       Swal.fire(
-  //         "⚠️ Error",
-  //         err.response?.data?.message || "Failed to fetch enrollment",
-  //         "error"
-  //       );
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchEnrollment();
-  // }, [enrollmentId]);
 
   useEffect(() => {
     if (!enrollmentId) return;
@@ -241,7 +160,12 @@ const EnrollStudentForm = () => {
             email: enrollment.email || "",
             designation: enrollment.designation || "",
             collegeName: enrollment.collegeName || "",
-            enrolledCourses: enrollment.enrolledCourses || [],
+            // enrolledCourses: enrollment.enrolledCourses || [],
+
+             // ✅ FIX HERE
+  enrolledCourses:
+    enrollment.enrolledCourses?.map((c) => c._id) || [],
+
             enrolledBatches:
               enrollment.enrolledBatches?.map((b) => b._id) || [],
             profilePhotoStudent: null, // File input cannot be prefilled
@@ -255,12 +179,24 @@ const EnrollStudentForm = () => {
           }
 
           // Set filtered batches based on enrolled courses
+          // const batchesFromCourses = enrollment.enrolledCourses.flatMap(
+          //   (courseId) => {
+          //     const course = courses.find((c) => c._id === courseId);
+          //     return course?.batches || [];
+          //   }
+          // );
+
           const batchesFromCourses = enrollment.enrolledCourses.flatMap(
-            (courseId) => {
-              const course = courses.find((c) => c._id === courseId);
-              return course?.batches || [];
-            }
-          );
+  (course) => {
+    const foundCourse = courses.find(
+      (c) => c._id === course._id
+    );
+    return foundCourse?.batches || [];
+  }
+);
+
+setFilteredBatches(batchesFromCourses);
+
 
           setFilteredBatches(batchesFromCourses);
         } else {
@@ -286,18 +222,6 @@ const EnrollStudentForm = () => {
   }, [enrollmentId, courses]);
 
   // Filter batches when courses change
-  // useEffect(() => {
-  //   const selectedCourses = formik.values.coursesInterested;
-  //   if (selectedCourses.length > 0) {
-  //     const batches = selectedCourses.flatMap((id) => {
-  //       const course = courses.find((c) => c._id === id);
-  //       return course?.batches || [];
-  //     });
-  //     setFilteredBatches(batches);
-  //   } else {
-  //     setFilteredBatches([]);
-  //   }
-  // }, [formik.values.coursesInterested, courses]);
 
   useEffect(() => {
     const selectedCourses = formik.values.enrolledCourses;
@@ -435,37 +359,6 @@ const EnrollStudentForm = () => {
           </div>
           <ToggleSwitch label="Send Notification" name="certification" />
         </div>
-
-        {/* <div className="text-center pt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-10 py-3 rounded-xl shadow-lg text-white font-semibold transition duration-300 ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-[rgba(14,85,200,0.83)] hover:bg-[rgba(14,85,200,1)]"
-            }`}
-          >
-            {loading
-              ? enrollmentId
-                ? "Updating..."
-                : "Enrolling..."
-              : enrollmentId
-              ? "Update Enrollment"
-              : "Add Student"}
-          </button>
-
-          <div className="flex justify-end mb-6">
-  <button
-    type="button"
-    onClick={() => navigate("/admin/enrollments/upload-excel")}
-    className="px-6 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
-  >
-    Upload Students via Excel
-  </button>
-</div>
-
-        </div> */}
 
         <div className="pt-4 flex flex-col md:flex-row md:justify-end items-center gap-4">
           {/* Submit Button */}

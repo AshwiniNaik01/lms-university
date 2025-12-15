@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { FaPlus, FaTimes } from "react-icons/fa";
 
@@ -35,53 +34,59 @@ const DynamicInputFields = ({ formik, name, label }) => {
       </label>
 
       {values.map((val, index) => {
-        // Safely access errors/touched
         const error =
           formik.touched[name]?.[index] && formik.errors[name]?.[index];
+
+        const isLast = index === values.length - 1; // check if this is the last input
 
         return (
           <div
             key={index}
             className={`flex items-center gap-2 ${index === 0 ? "" : "pl-6"}`}
           >
-           <input
-  type="text"
-  name={`${name}[${index}]`}
-  value={val}
-  onChange={(e) => handleInputChange(index, e.target.value)}
-  onBlur={formik.handleBlur}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // prevent form submit
-      addInput(); // optionally add a new field
-    }
-  }}
-  placeholder={`Enter ${label.toLowerCase()} ${index + 1}`}
-  className={`flex-1 px-4 py-2 rounded-lg border transition duration-300 outline-none bg-white
-    ${error ? "border-red-500 focus:border-red-500" : "border-blue-400 focus:border-blue-500"}
-    focus:ring-2 focus:ring-opacity-50
-    ${error ? "focus:ring-red-300" : "focus:ring-blue-300"}
-  `}
-/>
+            <input
+              type="text"
+              name={`${name}[${index}]`}
+              value={val}
+              onChange={(e) => handleInputChange(index, e.target.value)}
+              onBlur={formik.handleBlur}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault(); // prevent form submit
+                  addInput(); // optionally add a new field
+                }
+              }}
+              placeholder={`Enter ${label.toLowerCase()} ${index + 1}`}
+              className={`flex-1 px-4 py-2 rounded-lg border transition duration-300 outline-none bg-white
+          ${
+            error
+              ? "border-red-500 focus:border-red-500"
+              : "border-blue-400 focus:border-blue-500"
+          }
+          focus:ring-2 focus:ring-opacity-50
+          ${error ? "focus:ring-red-300" : "focus:ring-blue-300"}
+        `}
+            />
 
-
-            {index === 0 && (
+            {/* Add (+) button only on the last input */}
+            {isLast && (
               <button
                 type="button"
                 onClick={addInput}
                 className="px-3 py-2 text-white bg-sky-600 rounded hover:bg-sky-500"
               >
-                <FaPlus/>
+                <FaPlus />
               </button>
             )}
 
+            {/* Remove (x) button for all except first */}
             {values.length > 1 && (
               <button
                 type="button"
                 onClick={() => removeInput(index)}
                 className="px-3 py-2 text-white bg-rose-500 rounded hover:bg-rose-400"
               >
-                <FaTimes/>
+                <FaTimes />
               </button>
             )}
           </div>

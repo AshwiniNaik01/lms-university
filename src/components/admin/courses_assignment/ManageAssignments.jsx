@@ -1,20 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../../../api/axiosConfig";
-import ScrollableTable from "../../table/ScrollableTable";
-import Modal from "../../popupModal/Modal";
 import Swal from "sweetalert2";
+import apiClient from "../../../api/axiosConfig";
 import { useAuth } from "../../../contexts/AuthContext";
+import Modal from "../../popupModal/Modal";
+import ScrollableTable from "../../table/ScrollableTable";
 // import { useAuth } from "../../../contexts/AuthContext";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 // import { fetchPermissions } from "../../../redux/slices/permissionsSlice";
-import {
-  canPerformAction,
-  canAccessModule,
-} from "../../../utils/permissionUtils";
-import { setPermissions  } from "../../../features/permissionsSlice";
-
-// import { useAuth } from "../../../context/AuthContext";
+import { DIR } from "../../../utils/constants";
+import { canPerformAction } from "../../../utils/permissionUtils";
 
 export default function ManageAssignments() {
   const [assignments, setAssignments] = useState([]);
@@ -23,6 +18,8 @@ export default function ManageAssignments() {
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const navigate = useNavigate();
   const permissions = JSON.parse(localStorage.getItem("permissions")) || [];
+  const searchParams = new URLSearchParams(window.location.search);
+  const batchId = searchParams.get("b_id");
 
   const { currentUser } = useAuth();
   const userRole = currentUser?.user?.role;
@@ -32,13 +29,21 @@ export default function ManageAssignments() {
     (state) => state.permissions
   );
 
-
   const fetchAssignments = async () => {
     setLoading(true);
     try {
       const res = await apiClient.get("/api/assignments");
       if (res.data.success) {
-        setAssignments(res.data.data || []);
+        let filteredAssignments = res.data.data;
+
+        // Filter only if batchId is present
+        if (batchId) {
+          filteredAssignments = res.data.data.filter((assignment) =>
+            assignment.batches?.includes(batchId)
+          );
+        }
+
+        setAssignments(filteredAssignments || []);
       } else {
         setError(res.data.message || "Failed to fetch assignments");
       }
@@ -52,42 +57,6 @@ export default function ManageAssignments() {
   useEffect(() => {
     fetchAssignments();
   }, []);
-
-  // useEffect(() => {
-  //   const fetchPermissions = async () => {
-  //     try {
-  //       const res = await apiClient.get("/api/role");
-  //       const roles = res?.data?.message || [];
-
-  //       const matchedRole = roles.find((r) => r.role === userRole);
-
-  //       if (matchedRole) {
-  //         const permMap = {};
-  //         matchedRole.permissions.forEach((p) => {
-  //           permMap[p.module] = p.actions;
-  //         });
-  //         setRolePermissions(permMap);
-  //       }
-  //     } catch (err) {
-  //       console.error("Failed to fetch permissions", err);
-  //     }
-  //   };
-
-  //   if (userRole) fetchPermissions();
-  // }, [userRole]);
-
-  // const canAccessModule = (module) => {
-  //   if (!module) return false;
-  //   return !!rolePermissions[module] || !!rolePermissions["*"];
-  // };
-
-  // const canPerformAction = (module, action) => {
-  //   if (!module || !action) return false;
-  //   return (
-  //     rolePermissions["*"]?.includes(action) ||
-  //     rolePermissions[module]?.includes(action)
-  //   );
-  // };
 
   const hasPermission = (module, action) => {
     const permissions = JSON.parse(localStorage.getItem("permissions")) || [];
@@ -162,84 +131,9 @@ export default function ManageAssignments() {
   const handleView = (assignment) => setSelectedAssignment(assignment);
   const closeModal = () => setSelectedAssignment(null);
 
-  if (loading || permLoading) return <p className="text-center mt-10">Loading...</p>;
+  if (loading || permLoading)
+    return <p className="text-center mt-10">Loading...</p>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
-
-
-  // const fetchAssignments = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await apiClient.get("/api/assignments");
-  //     if (res.data.success) {
-  //       setAssignments(res.data.data || []);
-  //     } else {
-  //       setError(res.data.message || "Failed to fetch assignments");
-  //     }
-  //   } catch (err) {
-  //     setError(err.response?.data?.message || err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchAssignments();
-  // }, []);
-
-  // const handleEdit = (id) => navigate(`/edit-assignment/${id}`);
-
-  // const handleEdit = (id) => {
-  //   if (!canPerformAction("assignment", "update")) {
-  //     Swal.fire({
-  //       icon: "error",
-  //       title: "Access Denied",
-  //       text: "You do not have permission to update assignments.",
-  //     });
-  //     return;
-  //   }
-
-  //   navigate(`/edit-assignment/${id}`);
-  // };
-
-  // const handleDelete = async (id) => {
-  //   const result = await Swal.fire({
-  //     title: "Are you sure?",
-  //     text: "This action cannot be undone!",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#d33",
-  //     cancelButtonColor: "#3085d6",
-  //     confirmButtonText: "Yes, delete it!",
-  //     cancelButtonText: "Cancel",
-  //   });
-
-  //   if (!result.isConfirmed) return;
-
-  //   try {
-  //     await apiClient.delete(`/api/assignments/${id}`);
-
-  //     await Swal.fire({
-  //       icon: "success",
-  //       title: "Deleted!",
-  //       text: "The assignment has been deleted successfully.",
-  //       confirmButtonColor: "#0E55C8",
-  //       timer: 2000,
-  //     });
-
-  //     fetchAssignments();
-  //   } catch (err) {
-  //     console.error(err);
-  //     Swal.fire({
-  //       icon: "error",
-  //       title: "Failed!",
-  //       text: err.response?.data?.message || "Failed to delete assignment.",
-  //       confirmButtonColor: "#0E55C8",
-  //     });
-  //   }
-  // };
-
-  // const handleView = (assignment) => setSelectedAssignment(assignment);
-  // const closeModal = () => setSelectedAssignment(null);
 
   const columns = [
     { header: "Title", accessor: "title" },
@@ -268,6 +162,18 @@ export default function ManageAssignments() {
               Edit
             </button>
           )}
+          {canPerformAction(rolePermissions, "assignment", "create") && (
+            <button
+              onClick={() =>
+                navigate(
+                  `/evaluate-assignment?assignmentId=${row._id}&batchId=${batchId}`
+                )
+              }
+              className="px-3 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition"
+            >
+              Evaluate
+            </button>
+          )}
 
           {/* Delete button → only if user has delete permission */}
           {canPerformAction(rolePermissions, "assignment", "delete") && (
@@ -288,30 +194,23 @@ export default function ManageAssignments() {
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
 
   return (
-    <div className="p-8 min-h-screen bg-white font-sans">
+    <div className="p-8 max-h-screen bg-white font-sans">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-700">
             Manage Assignments
           </h2>
-          {/* <button
-            onClick={() => navigate("/add-assignment")}
-            className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
-          >
-            + Add Assignment
-          </button> */}
 
           {/* Add Assignment button → only if user has CREATE permission */}
-{canPerformAction(rolePermissions, "assignment", "create") && (
-  <button
-    onClick={() => navigate("/add-assignment")}
-    className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
-  >
-    + Add Assignment
-  </button>
-)}
-
+          {canPerformAction(rolePermissions, "assignment", "create") && (
+            <button
+              onClick={() => navigate("/add-assignment")}
+              className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
+            >
+              + Add Assignment
+            </button>
+          )}
         </div>
 
         {/* Scrollable Table */}
@@ -323,13 +222,15 @@ export default function ManageAssignments() {
         />
 
         {/* View Modal */}
+
         <Modal
           isOpen={!!selectedAssignment}
           onClose={closeModal}
           header={selectedAssignment?.title || "Assignment Details"}
         >
           {selectedAssignment ? (
-            <div className="space-y-4 grid grid-cols-2">
+            <div className="space-y-4 grid grid-cols-2 gap-6">
+              {/* Title */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase">
                   Title
@@ -339,6 +240,7 @@ export default function ManageAssignments() {
                 </p>
               </div>
 
+              {/* Chapter */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase">
                   Chapter
@@ -348,34 +250,47 @@ export default function ManageAssignments() {
                 </p>
               </div>
 
-              <div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase">
-                  Description
-                </h3>
-                <p className="text-gray-800 whitespace-pre-line">
-                  {selectedAssignment.description || "No description available"}
-                </p>
-              </div>
+              {/* Description */}
+              {/* <div className="col-span-2">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase">
+          Description
+        </h3>
+        <p className="text-gray-800 whitespace-pre-line">
+          {selectedAssignment.description || "No description available"}
+        </p>
+      </div> */}
 
+              {/* Deadline */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase">
                   Deadline
                 </h3>
                 <p className="text-gray-800">
                   {selectedAssignment.deadline
-                    ? new Date(selectedAssignment.deadline).toLocaleString()
+                    ? new Date(selectedAssignment.deadline).toLocaleDateString()
                     : "No deadline"}
                 </p>
               </div>
 
-              {/* <div>
+              {/* 📎 Assignment File */}
+              <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase">
-                  Created At
+                  Assignment File
                 </h3>
-                <p className="text-gray-800">
-                  {new Date(selectedAssignment.createdAt).toLocaleString()}
-                </p>
-              </div> */}
+
+                {selectedAssignment.fileUrl ? (
+                  <a
+                    href={`${DIR.ASSIGNMENT_FILES}${selectedAssignment.fileUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+                  >
+                    📄 View Assignment File
+                  </a>
+                ) : (
+                  <p className="text-gray-400 italic">No file uploaded</p>
+                )}
+              </div>
             </div>
           ) : (
             <p>Loading...</p>

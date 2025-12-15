@@ -8,6 +8,7 @@ import {
   FaTrophy,
   FaUsers,
 } from "react-icons/fa";
+import { COURSE_NAME } from "../../utils/constants";
 
 const OverviewTab = ({ course, setActiveTab }) => {
   const stats = [
@@ -78,7 +79,7 @@ const OverviewTab = ({ course, setActiveTab }) => {
               <FaTrophy className="w-6 h-6" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900">
-              Why Take This Course?
+              Why Take This {COURSE_NAME}?
             </h2>
           </div>
           <div className="grid gap-4">

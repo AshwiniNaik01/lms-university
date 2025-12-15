@@ -1,6 +1,7 @@
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { Form, Formik } from "formik";
 import { useEffect, useRef, useState } from "react";
-import { FiDownload, FiSave, FiUpload, FiXCircle } from "react-icons/fi";
+import { FiDownload, FiUpload } from "react-icons/fi";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
@@ -8,12 +9,12 @@ import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
 import { fetchBatchesByCourseId } from "../../../api/batch";
 import { getAllCourses } from "../../../api/courses";
+import handleApiError from "../../../utils/handleApiError";
+import { canPerformAction } from "../../../utils/permissionUtils";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import RadioButtonGroup from "../../form/RadioButtonGroup";
 import { useCourseParam } from "../../hooks/useCourseParam";
-import { useSelector } from "react-redux";
-import { canPerformAction } from "../../../utils/permissionUtils";
 
 const AddTest = ({ onClose, onTestAdded }) => {
   const formikRef = useRef(null);
@@ -27,7 +28,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
   const [chapters, setChapters] = useState([]);
   const [batches, setBatches] = useState([]);
   // const [selectedCourseId, setSelectedCourseId] = useState(initialValues.courseId);
-      const { rolePermissions } = useSelector((state) => state.permissions);
+  const { rolePermissions } = useSelector((state) => state.permissions);
 
   const testLevelOptions = [
     { _id: "Beginner", title: "Beginner" },
@@ -52,10 +53,6 @@ const AddTest = ({ onClose, onTestAdded }) => {
     reportType: "1",
     excelFile: null,
   };
-
-  // const [selectedCourseId, setSelectedCourseId] = useState(
-  //   initialValues.courseId
-  // );
 
   // Load courses from API
   const [selectedCourseId, setSelectedCourseId, isPreselected] =
@@ -94,7 +91,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
         console.error("Error fetching training program:", error);
         Swal.fire({
           icon: "error",
-          title: "Failed to load Training Program",
+          title: handleApiError(error) || "Failed to load Training Program",
           text: "Please try again later",
         });
       }
@@ -115,7 +112,9 @@ const AddTest = ({ onClose, onTestAdded }) => {
       if (!selectedCourseId) return; // use state that updates when user selects a course
 
       try {
-        const response = await apiClient.get(`/api/phases/course/${selectedCourseId}`);
+        const response = await apiClient.get(
+          `/api/phases/course/${selectedCourseId}`
+        );
         setPhases(response.data?.data || []);
       } catch (error) {
         console.error("Error fetching phases:", error);
@@ -157,7 +156,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
         console.error("Error fetching batches:", error);
         Swal.fire({
           icon: "error",
-          title: "Failed to load batches",
+          title: handleApiError(error) || "Failed to load batches",
           text: error.message || "Please try again later",
         });
         setBatches([]);
@@ -252,82 +251,6 @@ const AddTest = ({ onClose, onTestAdded }) => {
     });
   };
 
-  // Handle form submission
-  // const handleSubmit = async (values, { setSubmitting }) => {
-  //   setLoading(true);
-
-  //   try {
-  //     if (!values.excelFile) {
-  //       Swal.fire({
-  //         icon: "warning",
-  //         title: "No File",
-  //         text: "Please upload an Excel file to create a test.",
-  //         confirmButtonColor: "#f0ad4e",
-  //       });
-  //       setSubmitting(false);
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     // Upload Excel file
-  //     const formData = new FormData();
-  //     formData.append("file", values.excelFile);
-  //     formData.append("title", values.title);
-  //     formData.append("testLevel", values.testLevel);
-  //     formData.append("courseId", values.courseId || "");
-  //     formData.append("chapterId", values.chapterId || "");
-  //     formData.append("batchId", values.batchId || "");
-  //     formData.append("phaseId", values.phaseId || "");
-  //     formData.append("totalMarks", values.totalMarks);
-  //     formData.append("minutes", values.minutes);
-  //     formData.append("seconds", values.seconds);
-  //     formData.append("userType", values.userType);
-  //     formData.append("reportType", values.reportType || ""); // ✅ Added this line
-
-  //     const response = await apiClient.post(
-  //       `/api/tests/upload-excel`,
-  //       formData,
-  //       { headers: { "Content-Type": "multipart/form-data" } }
-  //     );
-
-  //     if (response.data.success) {
-  //       Swal.fire({
-  //         icon: "success",
-  //         title: "Test Created!",
-  //         text:
-  //           response.data.message ||
-  //           "Test created successfully via Excel upload!",
-  //         confirmButtonColor: "#28a745",
-  //       });
-
-  //       // Optionally call parent callbacks
-  //       onTestAdded?.();
-  //       onClose?.();
-  //     } else {
-  //       Swal.fire({
-  //         icon: "error",
-  //         title: "Creation Failed",
-  //         text:
-  //           response.data.message || "Failed to create test. Please try again.",
-  //         confirmButtonColor: "#d33",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error creating test:", error);
-  //     Swal.fire({
-  //       icon: "error",
-  //       title: "Creation Failed",
-  //       text:
-  //         error.response?.data?.message ||
-  //         "Failed to create test. Please try again.",
-  //       confirmButtonColor: "#d33",
-  //     });
-  //   } finally {
-  //     setSubmitting(false);
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setLoading(true);
 
@@ -358,6 +281,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
       formData.append("seconds", values.seconds);
       formData.append("userType", values.userType);
       formData.append("reportType", values.reportType || "");
+      formData.append("passingMarks", values.passingMarks);
 
       const response = await apiClient.post(
         `/api/tests/upload-excel`,
@@ -385,9 +309,9 @@ const AddTest = ({ onClose, onTestAdded }) => {
         onClose?.();
 
         // Navigate to ManageTest page
-         if (canPerformAction(rolePermissions, "test", "read")) {
-        navigate("/manage-test");
-         }
+        if (canPerformAction(rolePermissions, "test", "read")) {
+          navigate("/manage-test");
+        }
       } else {
         Swal.fire({
           icon: "warning",
@@ -451,54 +375,14 @@ const AddTest = ({ onClose, onTestAdded }) => {
           {/* Course Hierarchy */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Course */}
-            {/* <div className="w-full space-y-1">
-              <label
-                htmlFor="courseId"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Training Program
-              </label>
-
-              <Field
-                as="select"
-                id="courseId"
-                name="courseId"
-                disabled={isPreselected} // ⬅️ disable if URL param is used
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSelectedCourseId(value);
-                  formik.setFieldValue("courseId", value);
-                }}
-                className={`w-full px-4 py-2 rounded-lg border transition duration-300 outline-none bg-white
-                ${
-                  formik.touched.courseId && formik.errors.courseId
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-300"
-                    : "border-gray-300 focus:border-[rgba(14,85,200,0.83)] focus:ring-[rgba(14,85,200,0.3)]"
-                }
-                focus:ring-2 focus:ring-opacity-50 shadow-sm`}
-              >
-                <option value="">Select Training</option>
-                {courses.map((course) => (
-                  // <option key={course._id} value={course._id}>
-                   <option key={`course-${course._id}`} value={course._id}>
-                    {course.title}
-                  </option>
-                ))}
-              </Field>
-
-             
-            </div> */}
-
-            {/* Course */}
-<Dropdown
-  label="Training Program"
-  name="courseId"
-  options={courses}
-  formik={formik}
-  disabled={isPreselected}
-  onChange={(value) => setSelectedCourseId(value)}  // 🔥 now works!
-/>
-
+            <Dropdown
+              label="Training Program"
+              name="courseId"
+              options={courses}
+              formik={formik}
+              disabled={isPreselected}
+              onChange={(value) => setSelectedCourseId(value)} // 🔥 now works!
+            />
 
             {/* Phase */}
             <Dropdown

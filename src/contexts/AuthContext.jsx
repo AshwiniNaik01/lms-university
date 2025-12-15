@@ -392,11 +392,32 @@ export const AuthProvider = ({ children }) => {
       Cookies.set('role', user.role, { expires: 1 });
       Cookies.set('userId', user._id, { expires: 1 });
 
-      if (user.role === 'student') {
-        Cookies.set('studentId', user.studentId, { expires: 1 });
-      } else if (user.role === 'trainer') {
-        Cookies.set('trainerId', user._id, { expires: 1 });
-      }
+      // if (user.role === 'student') {
+      //   Cookies.set('studentId', user.studentId, { expires: 1 });
+      // } else if (user.role === 'trainer') {
+      //   Cookies.set('trainerId', user._id, { expires: 1 });
+      // }
+
+       // -----------------------------
+    // ✅ ROLE-SPECIFIC COOKIES
+    // -----------------------------
+    if (user.role === "student") {
+      /**
+       * EMAIL LOGIN:
+       * studentId DOES NOT exist → use user._id
+       *
+       * OTP LOGIN:
+       * studentId exists → use it
+       */
+      Cookies.set(
+        "studentId",
+        user.studentId || user._id, // ⭐ FIX
+        { expires: 1 }
+      );
+    } 
+    else if (user.role === "trainer") {
+      Cookies.set("trainerId", user._id, { expires: 1 });
+    }
 
       setCurrentUser({ token, user });
 
@@ -409,6 +430,27 @@ export const AuthProvider = ({ children }) => {
 
     return { success: false, message: response.message };
   };
+
+const otpLogin = ({ studentId, mobileNo, courseId, role, token }) => {
+  // Save token and user info in cookies
+  Cookies.set("token", token, { expires: 1 });
+  Cookies.set("role", role, { expires: 1 });
+  Cookies.set("mobileNo", mobileNo, { expires: 1 });
+  Cookies.set("studentId", studentId);
+  Cookies.set("courseId", courseId);
+
+  // Build user object
+  const user = { studentId, mobileNo, courseId, role };
+
+  Cookies.set("user", JSON.stringify(user), { expires: 1 });
+
+  // Update context state
+  setCurrentUser({ token, user });
+
+  // Fetch permissions for this role
+  fetchRolePermissions(role);
+};
+
 
   // ---------------------------------------------------
   // 🔓 Logout
@@ -445,6 +487,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     register: authApi.register,
     login,
+     otpLogin, // ✅ Add this
     logout,
     updateUserContext,
     isAuthenticated: !!currentUser?.token,

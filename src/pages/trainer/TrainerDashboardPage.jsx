@@ -21,7 +21,7 @@ import {
   FaUser,
   FaUsers,
 } from "react-icons/fa";
-import { DIR } from "../../utils/constants";
+import { COURSE_NAME, DIR } from "../../utils/constants";
 import { fetchTrainerById } from "../admin/trainer-management/trainerApi";
 
 // ===============================================
@@ -462,7 +462,7 @@ const TrainerDashboardPage = () => {
             </div>
           </div>
           <h4 className="font-semibold text-gray-800 mb-1">
-            {trainer.courses.length} Courses
+            {trainer.courses.length} {COURSE_NAME}
           </h4>
           <p className="text-gray-500 text-sm">Assigned to teach</p>
 
@@ -478,7 +478,7 @@ const TrainerDashboardPage = () => {
             ))}
             {trainer.courses.length > 3 && (
               <p className="text-indigo-600 text-sm font-medium">
-                +{trainer.courses.length - 3} more courses
+                +{trainer.courses.length - 3} more {COURSE_NAME}
               </p>
             )}
           </div>
@@ -573,7 +573,7 @@ const TrainerDashboardPage = () => {
             <p className="text-2xl font-bold text-gray-800">
               {trainer.courses.length}
             </p>
-            <p className="text-sm text-gray-600">Courses</p>
+            <p className="text-sm text-gray-600">{COURSE_NAME}</p>
           </div>
 
           <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center transition-all hover:shadow-md">

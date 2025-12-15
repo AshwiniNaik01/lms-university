@@ -1,5 +1,6 @@
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
@@ -8,16 +9,16 @@ import {
   getAssignmentById,
   updateAssignment,
 } from "../../../api/assignment";
+import { fetchBatchesByCourseId } from "../../../api/batch";
 import { getChaptersByCourse } from "../../../api/chapters";
 import { getAllCourses } from "../../../api/courses";
 import { DIR } from "../../../utils/constants";
+import { canPerformAction } from "../../../utils/permissionUtils";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import PDFUploadField from "../../form/PDFUploadField";
 import TextAreaField from "../../form/TextAreaField";
 import { useCourseParam } from "../../hooks/useCourseParam";
-import { useSelector } from "react-redux";
-import { canPerformAction } from "../../../utils/permissionUtils";
 
 export default function AddAssignment() {
   const { assignmentId } = useParams();
@@ -25,7 +26,10 @@ export default function AddAssignment() {
 
   const [availableCourses, setAvailableCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState("");
-  const rolePermissions = useSelector((state) => state.permissions.rolePermissions);
+  const rolePermissions = useSelector(
+    (state) => state.permissions.rolePermissions
+  );
+  const [availableBatches, setAvailableBatches] = useState([]);
 
   const [availableChapters, setAvailableChapters] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,10 +44,10 @@ export default function AddAssignment() {
         const res = await getAllCourses();
         // setAvailableCourses(res);
         // Remove duplicate courses by _id
-      const uniqueCourses = Array.from(
-        new Map(res.map((c) => [c._id, c])).values()
-      );
-      setAvailableCourses(uniqueCourses);
+        const uniqueCourses = Array.from(
+          new Map(res.map((c) => [c._id, c])).values()
+        );
+        setAvailableCourses(uniqueCourses);
       } catch (err) {
         console.error("Error fetching training program:", err);
       }
@@ -65,6 +69,7 @@ export default function AddAssignment() {
     initialValues: {
       course: "",
       chapter: "",
+      batches: "", // <-- multi-select for batches
       title: "",
       description: "",
       deadline: "",
@@ -77,102 +82,99 @@ export default function AddAssignment() {
       // description: Yup.string().required("Description is required"),
       // deadline: Yup.string().required("Deadline is required"),
     }),
-    // onSubmit: async (values, { resetForm }) => {
-    //   try {
-    //     const formData = new FormData();
-    //     Object.entries(values).forEach(([key, value]) => {
-    //       if (value) formData.append(key, value);
-    //     });
 
-    //     if (assignmentId) {
-    //       const res = await updateAssignment(assignmentId, formData);
-    //       Swal.fire({
-    //         // toast: true,
-    //         // position: "top-end",
-    //         icon: "success",
-    //         title: res.message || "Assignment updated successfully!",
-    //         showConfirmButton: true,
-    //         // timer: 3000,
-    //         // timerProgressBar: true,
-    //       });
-    //     } else {
-    //       const res = await createAssignment(formData);
-    //       Swal.fire({
-    //         // toast: true,
-    //         // position: "top-end",
-    //         icon: "success",
-    //         title: res.message || "Assignment created successfully!",
-    //         showConfirmButton: true,
-    //         // timer: 3000,
-    //         // timerProgressBar: true,
-    //       });
-    //     }
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        // const formData = new FormData();
+        // Object.entries(values).forEach(([key, value]) => {
+        //   if (value) formData.append(key, value);
+        // });
 
-    //     resetForm();
-    //     navigate("/manage-assignments");
-    //   } catch (err) {
-    //     Swal.fire({
-    //       icon: "error",
-    //       title: "Submission failed!",
-    //       text:
-    //         err.response?.data?.message || err.message || "Please Try Again !",
-    //     });
-    //   }
-    // },
+        const formData = new FormData();
+        Object.entries(values).forEach(([key, value]) => {
+          if (key === "batches") {
+            formData.append("batches", value); // single batch ID
+          } else if (value) {
+            formData.append(key, value);
+          }
+        });
+        let res;
 
-    
-onSubmit: async (values, { resetForm }) => {
-  try {
-    const formData = new FormData();
-    Object.entries(values).forEach(([key, value]) => {
-      if (value) formData.append(key, value);
-    });
+        if (assignmentId) {
+          res = await updateAssignment(assignmentId, formData);
+          Swal.fire({
+            icon: "success",
+            title: res.message || "Assignment updated successfully!",
+            showConfirmButton: true,
+          });
+        } else {
+          res = await createAssignment(formData);
+          Swal.fire({
+            icon: "success",
+            title: res.message || "Assignment created successfully!",
+            showConfirmButton: true,
+          });
+        }
 
-    let res;
+        // ⛔ Permission Check BEFORE redirect
+        const hasReadPermission = canPerformAction(
+          rolePermissions,
+          "assignment",
+          "read"
+        );
 
-    if (assignmentId) {
-      res = await updateAssignment(assignmentId, formData);
-      Swal.fire({
-        icon: "success",
-        title: res.message || "Assignment updated successfully!",
-        showConfirmButton: true,
-      });
-    } else {
-      res = await createAssignment(formData);
-      Swal.fire({
-        icon: "success",
-        title: res.message || "Assignment created successfully!",
-        showConfirmButton: true,
-      });
-    }
+        if (!hasReadPermission) {
+          Swal.fire({
+            icon: "warning",
+            title:
+              "Assignment created successfully, but you don't have permission to view assignments.",
+            // text: "You will stay on this page.",
+          });
 
-    // ⛔ Permission Check BEFORE redirect
-    const hasReadPermission = canPerformAction(rolePermissions, "assignment", "read");
+          resetForm(); // optional
+          return; // ⛔ STOP - DO NOT NAVIGATE
+        }
 
-    if (!hasReadPermission) {
-      Swal.fire({
-        icon: "warning",
-        title: "Assignment created successfully, but you don't have permission to view assignments.",
-        // text: "You will stay on this page.",
-      });
-
-      resetForm(); // optional
-      return; // ⛔ STOP - DO NOT NAVIGATE
-    }
-
-    // ✅ user has permission → navigate
-    resetForm();
-    navigate("/manage-assignments");
-
-  } catch (err) {
-    Swal.fire({
-      icon: "error",
-      title: "Submission failed!",
-      text: err.response?.data?.message || err.message || "Please Try Again!",
-    });
-  }
-},
+        // ✅ user has permission → navigate
+        resetForm();
+        navigate("/manage-assignments");
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Submission failed!",
+          text:
+            err.response?.data?.message || err.message || "Please Try Again!",
+        });
+      }
+    },
   });
+
+  useEffect(() => {
+    const loadBatches = async () => {
+      const courseId = formik.values.course;
+
+      if (!courseId) {
+        setAvailableBatches([]);
+        return;
+      }
+
+      try {
+        const batches = await fetchBatchesByCourseId(courseId);
+
+        // Remove duplicate batches by _id
+        const uniqueBatches = Array.from(
+          new Map(batches.map((b) => [b._id, b])).values()
+        );
+
+        setAvailableBatches(uniqueBatches);
+      } catch (err) {
+        console.error("Error loading batches:", err);
+        setAvailableBatches([]);
+      }
+    };
+
+    loadBatches();
+  }, [formik.values.course]);
 
   // Fetch chapters when course changes
   useEffect(() => {
@@ -187,11 +189,11 @@ onSubmit: async (values, { resetForm }) => {
         const res = await getChaptersByCourse(courseId);
         // setAvailableChapters(res.data || []);
 
-         // Remove duplicate chapters by _id
-      const uniqueChapters = Array.from(
-        new Map(res.data.map((c) => [c._id, c])).values()
-      );
-      setAvailableChapters(uniqueChapters);
+        // Remove duplicate chapters by _id
+        const uniqueChapters = Array.from(
+          new Map(res.data.map((c) => [c._id, c])).values()
+        );
+        setAvailableChapters(uniqueChapters);
       } catch (err) {
         console.error("Error fetching chapters for training program:", err);
         setAvailableChapters([]);
@@ -215,6 +217,7 @@ onSubmit: async (values, { resetForm }) => {
           formik.setValues({
             course: assignment.chapter?.course || assignment.course || "",
             chapter: assignment.chapter?._id || "",
+            batches: assignment.batches?._id || "",
             title: assignment.title || "",
             description: assignment.description || "",
             deadline: assignment.deadline?.split("T")[0] || "",
@@ -302,6 +305,19 @@ onSubmit: async (values, { resetForm }) => {
             multiple={false}
           />
 
+          <Dropdown
+            label="Batch (optional)"
+            name="batches"
+            formik={formik}
+            options={availableBatches.map((b) => ({
+              _id: b._id,
+              title: `${b.batchName} (${b.mode} - ${b.status})`,
+            }))}
+            onChange={(value) => {
+              formik.setFieldValue("batches", value);
+            }}
+          />
+
           <div className="flex flex-col">
             <PDFUploadField
               label="Assignment File (PDF)"
@@ -342,11 +358,25 @@ onSubmit: async (values, { resetForm }) => {
           >
             Cancel
           </button>
-          <button
+          {/* <button
             type="submit"
             className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
           >
             {assignmentId ? "Update Assignment" : "Add Assignment"}
+          </button> */}
+
+          <button
+            type="submit"
+            disabled={formik.isSubmitting || loading} // prevent multiple clicks
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50"
+          >
+            {formik.isSubmitting || loading
+              ? assignmentId
+                ? "Updating..."
+                : "Creating..."
+              : assignmentId
+              ? "Update Assignment"
+              : "Add Assignment"}
           </button>
         </div>
       </form>

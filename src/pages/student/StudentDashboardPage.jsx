@@ -8,7 +8,7 @@ import {
   FaLightbulb,
   FaPhone,
   FaStar,
-  FaUser
+  FaUser,
 } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +17,7 @@ import { fetchUserProfile as getUserProfile } from "../../api/profile";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BatchesComingSoon from "../../components/popupModal/BatchesComingSoon";
-import { BASE_URL, STUDENT_PORTAL_URL } from "../../utils/constants";
+import { BASE_URL, COURSE_NAME, STUDENT_PORTAL_URL } from "../../utils/constants";
 // import student_dashboard_img from "../../../public/images";
 
 // Single stat card
@@ -33,7 +33,7 @@ const StatCard = ({ title, value, icon, bgColor, iconBg }) => (
   </div>
 );
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, onCourseClick }) => {
   const navigate = useNavigate();
   const progress = course?.progress || 0;
 
@@ -51,8 +51,11 @@ const CourseCard = ({ course }) => {
     return `${percentage}% complete`;
   };
 
+  // const handleCourseClick = () => {
+  //   navigate(`/courses/${course._id}/study`);
+  // };
   const handleCourseClick = () => {
-    navigate(`/courses/${course._id}/study`);
+    onCourseClick(course); // open popup for this course
   };
 
   return (
@@ -121,6 +124,13 @@ const StudentDashboardPage = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // Batch selection states
+  const [showBatchPopup, setShowBatchPopup] = useState(false);
+  const [assignedBatches, setAssignedBatches] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const [selectedCourseBatches, setSelectedCourseBatches] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
 
@@ -131,13 +141,50 @@ const StudentDashboardPage = () => {
 
   const courseUrl = `${STUDENT_PORTAL_URL}courses`;
 
+  const handleCourseSelect = (course) => {
+    const batches = course.batches || [];
+    setSelectedCourseBatches(batches);
+
+    if (batches.length > 0) {
+      setShowBatchPopup(true);
+    }
+  };
+
   // Fetch profile function
+  // const fetchUserProfile = useCallback(async () => {
+  //   setLoading(true);
+  //   try {
+  //     const resp = await getUserProfile();
+  //     setUserData(resp.data);
+  //     setError("");
+  //   } catch (err) {
+  //     setError(
+  //       err.response?.data?.message ||
+  //         err.message ||
+  //         "Failed to fetch user data"
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
+
   const fetchUserProfile = useCallback(async () => {
     setLoading(true);
     try {
       const resp = await getUserProfile();
       setUserData(resp.data);
       setError("");
+
+      const allBatches = resp.data.enrolledCourses
+        ?.flatMap((c) => c.batches || [])
+        ?.filter((b) => b !== null);
+
+      // setAssignedBatches(allBatches);
+
+      // ❗ Only auto-select if exactly one batch exists, otherwise do nothing
+      if (allBatches.length === 1) {
+        setSelectedBatch(allBatches[0]);
+      }
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -191,6 +238,136 @@ const StudentDashboardPage = () => {
   if (!userData) {
     return null; // or a fallback UI
   }
+
+  // const BatchSelectionPopup = () => (
+  //   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  //     <div className="bg-white p-6 rounded-xl shadow-xl w-[90%] max-w-md">
+  //       <h2 className="text-xl font-bold mb-4 text-gray-800">
+  //         Select Your Batch
+  //       </h2>
+
+  //       <div className="space-y-3">
+  //         {/* {assignedBatches.map((batch) => (
+  //         <button
+  //           key={batch._id}
+  //           onClick={() => {
+  //             setSelectedBatch(batch);
+  //             setShowBatchPopup(false);
+  //           }}
+  //           className="w-full p-4 border rounded-lg hover:bg-indigo-50 text-left"
+  //         >
+  //           <p className="font-semibold">{batch.batchName}</p>
+  //           <p className="text-sm text-gray-600">
+  //             Time: {batch.time.start} - {batch.time.end}
+  //           </p>
+  //           <p className="text-sm text-gray-600">
+  //             Days: {batch.days.join(", ")}
+  //           </p>
+  //         </button>
+  //       ))} */}
+
+  //         {selectedCourseBatches.map((batch) => (
+  //           <button
+  //             key={batch._id}
+  //             onClick={() => {
+  //               setSelectedBatch(batch);
+  //               setShowBatchPopup(false);
+
+  //               // ⬇️ navigate immediately with selected batchId
+  //               navigate(
+  //                 `/courses/${selectedCourse._id}/study?batchId=${batch._id}`
+  //               );
+  //             }}
+  //             className="w-full p-4 border rounded-lg hover:bg-indigo-50 text-left"
+  //           >
+  //             <p className="font-semibold">{batch.batchName}</p>
+  //             <p className="text-sm text-gray-600">
+  //               Time: {batch.time.start} - {batch.time.end}
+  //             </p>
+  //             <p className="text-sm text-gray-600">
+  //               Days: {batch.days.join(", ")}
+  //             </p>
+  //           </button>
+  //         ))}
+  //       </div>
+
+  //       <button
+  //         onClick={() => setShowBatchPopup(false)}
+  //         className="mt-6 w-full bg-gray-200 py-2 rounded-lg hover:bg-gray-300"
+  //       >
+  //         Close
+  //       </button>
+  //     </div>
+  //   </div>
+  // );
+
+const BatchSelectionPopup = () => (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md overflow-hidden animate-scaleIn">
+      
+      {/* Header */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-5">
+        <h2 className="text-xl font-bold text-white">
+          Choose Your Batch
+        </h2>
+        <p className="text-sm text-indigo-100">
+          Select a batch to start your learning journey
+        </p>
+      </div>
+
+      {/* Content */}
+      <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+        {selectedCourseBatches.map((batch) => (
+          <button
+            key={batch._id}
+            onClick={() => {
+              setSelectedBatch(batch);
+              setShowBatchPopup(false);
+              navigate(
+                `/courses/${selectedCourse._id}/study?batchId=${batch._id}`
+              );
+            }}
+            className="group w-full p-4 border rounded-xl text-left transition-all
+                       hover:border-indigo-500 hover:bg-indigo-50
+                       hover:shadow-md"
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-semibold text-gray-800 group-hover:text-indigo-600">
+                {batch.batchName}
+              </p>
+              <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
+                Active
+              </span>
+            </div>
+
+            <div className="mt-2 text-sm text-gray-600 space-y-1">
+              <p>
+                ⏰ <span className="font-medium">Time:</span>{" "}
+                {batch.time.start} – {batch.time.end}
+              </p>
+              <p>
+                📅 <span className="font-medium">Days:</span>{" "}
+                {batch.days.join(", ")}
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t">
+        <button
+          onClick={() => setShowBatchPopup(false)}
+          className="w-full py-2 rounded-lg bg-gray-100 hover:bg-gray-200
+                     font-medium text-gray-700 transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 
   const ProfileHeader = () => (
     // <div className="bg-gradient-to-r from-blue-900 via-indigo-800 to-purple-800 text-white rounded-2xl p- mb-10 relative overflow-hidden shadow-lg">
@@ -290,10 +467,11 @@ const StudentDashboardPage = () => {
 
   const OverviewTab = () => {
     const coursesWithBatch = userData.enrolledCourses?.filter(
-      (course) => course.batch !== null
+      (course) => course.batches && course.batches.length > 0
     );
+
     const coursesWithoutBatch = userData.enrolledCourses?.filter(
-      (course) => course.batch === null
+      (course) => !course.batches || course.batches.length === 0
     );
 
     return (
@@ -301,25 +479,34 @@ const StudentDashboardPage = () => {
         {/* Courses with Batches */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">My Courses</h2>
-            <a
+            <h2 className="text-2xl font-bold text-gray-800">My {COURSE_NAME}</h2>
+            {/* <a
               href={courseUrl}
               className="text-white bg-indigo-500 hover:bg-blue-600 text-lg font-semibold flex items-center gap-2 border border-blue-600 rounded-md p-3 transition-transform duration-200 hover:scale-105"
               target="_blank"
               rel="noopener noreferrer"
             >
               Explore Courses <FaArrowRight className="w-4 h-4" />
-            </a>
+            </a> */}
           </div>
 
           {coursesWithBatch.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {coursesWithBatch.map((course) => (
-                <CourseCard key={course._id} course={course} />
+                // <CourseCard key={course._id} course={course} />
+                <CourseCard
+                  key={course._id}
+                  course={course}
+                  onCourseClick={(course) => {
+                    setSelectedCourse(course);
+                    setSelectedCourseBatches(course.batches || []);
+                    setShowBatchPopup(true);
+                  }}
+                />
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500">No active courses yet.</p>
+            <p className="text-center text-gray-500">No active {COURSE_NAME} yet.</p>
           )}
         </div>
 
@@ -327,7 +514,7 @@ const StudentDashboardPage = () => {
         {coursesWithoutBatch.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-2xl shadow-lg p-6">
             <h2 className="text-2xl font-bold text-yellow-700 mb-4">
-              Courses You're Interested In
+              {COURSE_NAME} You're Interested In
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {coursesWithoutBatch.map((course) => (
@@ -447,12 +634,14 @@ const StudentDashboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-100 py-6 px-4 sm:px-6 lg:px-6">
+    <div className="max-h-fit bg-blue-100 py-6 px-4 sm:px-6 lg:px-6">
+      {showBatchPopup && <BatchSelectionPopup />}
       <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
       />
+
       <ProfileHeader />
 
       {/* Tab Switcher with Sliding Effect */}
@@ -472,7 +661,7 @@ const StudentDashboardPage = () => {
           }`}
         >
           <RiDashboardFill className="inline-block mr-1" />
-          My Courses
+          My {COURSE_NAME}
         </button>
 
         <button
@@ -485,7 +674,6 @@ const StudentDashboardPage = () => {
           Profile
         </button>
       </div>
-      
 
       {/* Tab Content */}
       <div>

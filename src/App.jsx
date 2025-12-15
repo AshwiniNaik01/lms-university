@@ -15,6 +15,14 @@ import ManagePrerequisites from "./components/admin/prerequisite/ManagePrerequis
 import AssignmentsPage from "./components/student-course/assignmentSection/AssignmentPage.jsx";
 import CreateFeedback from "./components/admin/feedback/CreateFeedback.jsx";
 import ManageFeedback from "./components/admin/feedback/ManageFeedback.jsx";
+import StudentLoginForm from "./components/auth/StudentLoginForm.jsx";
+import FeedbackTab from "./components/student-course/FeedbackTab.jsx";
+import TestDetail from "./components/student-course/testSection/TestDetail.jsx";
+import EvaluateAssignment from "./components/admin/courses_assignment/EvaluateAssignment.jsx";
+import PublicRoute from "./components/layout/PublicRoute.jsx";
+import NoAccessPage from "./pages/NoAccessPage.jsx";
+import BatchTests from "./components/admin/batches/BatchTests.jsx";
+import StudentsListForTest from "./components/admin/batches/StudentsListForTest.jsx";
 // import AssignmentsPage from "./components/student-course/AssignmentPage.jsx";
 const CourseForm = lazy(() =>
   import("./components/admin/courses/CourseForm.jsx")
@@ -182,7 +190,7 @@ function App() {
         {/* Scrollable Main Content */}
         <div
           id="main-scroll-container"
-          className="flex-1 my-[64px] overflow-auto"
+          className="flex-1 pt-[64px] overflow-auto bg-blue-50"
         >
           {" "}
           {/* Adjust margin-top as per your Navbar height */}
@@ -190,17 +198,25 @@ function App() {
             <Routes>
               {/* Public Routes */}
               {/* Saare Routes jaise the waise hi rahenge */}
-              {/* <Route path="/" element={<HomePage />} /> */}
-              <Route path="/" element={<LoginPage />} />
+              <Route path="/home" element={<HomePage />} />
+              {/* <Route path="/" element={<LoginPage />} /> */}
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/login" element={<LoginPage />} />
+
+        <Route element={<PublicRoute />}>
+  <Route path="/" element={<LoginPage />} />
+  <Route path="/login" element={<LoginPage />} />
+  <Route path="/student-login" element={<StudentLoginForm />} />
+</Route>
+
+              {/* <Route path="/login" element={<LoginPage />} />
+              <Route path="/student-login" element={<StudentLoginForm />} /> */}
               <Route path="/branches" element={<BranchListPage />} />
               <Route path="/courses" element={<CourseListPage />} />
               <Route path="/courses/:courseId" element={<CourseDetailPage />} />
               <Route
                 path="/verify-email/:token"
                 element={<VerifyEmailPage />}
-              />
+              />      
               <Route
                 path="/student-register"
                 element={<StudentRegistrationForm />}
@@ -252,8 +268,16 @@ function App() {
                 <Route path="/my-courses" element={<MyCoursesPage />} />
 
                 <Route
-                  path="/course/:courseId/assignments"
+                  path="/batch/:batchId/assignments"
                   element={<AssignmentsPage />}
+                />
+
+                <Route path="/test/:testID" element={<TestDetail />} />
+
+
+                <Route
+                  path="/courses/:courseId/study/feedback/:feedbackId"
+                  element={<FeedbackTab />}
                 />
 
                 <Route
@@ -274,7 +298,7 @@ function App() {
                   element={<StudentProfilePage />}
                 />
                 <Route
-                  path="/course/:courseId/video/:videoId"
+                  path="/batch/:batchId/video/:videoId"
                   element={<VideoPlayerPage />}
                 />
                 {/* <Route
@@ -368,6 +392,17 @@ function App() {
                     }
                   >
                     <Route path="courses/edit/:id" element={<CourseForm />} />
+                  </Route>
+
+                   <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="test"
+                        requiredAction="read"
+                      />
+                    }
+                  >
+                    <Route path="/view-tests/batch/:batchId" element={<BatchTests />} />
                   </Route>
 
                   <Route
@@ -612,6 +647,9 @@ function App() {
                     />
                   </Route>
 
+                  <Route path="/tests/:testId/students" element={<StudentsListForTest />} />
+
+
                   <Route
                     element={
                       <PrivateRoute
@@ -690,6 +728,18 @@ function App() {
                       path="manage-assignments"
                       element={<ManageAssignments />}
                     />
+                  </Route>
+
+                     <Route
+                    element={
+                      <PrivateRoute
+                        requiredModule="assignment"
+                        requiredAction="create"
+                      />
+                    }
+                  >
+                    <Route path="/evaluate-assignment" element={<EvaluateAssignment />} />
+
                   </Route>
 
                   <Route
@@ -902,9 +952,9 @@ function App() {
         </div>
         {/* </main> */}
         {/* Fixed Footer */}
-        <div className="fixed bottom-0 left-0 right-0 z-50">
+        {/* <div className="fixed bottom-0 left-0 right-0 z-10">
           <Footer />
-        </div>
+        </div> */}
       </div>
 
       <ToastContainer

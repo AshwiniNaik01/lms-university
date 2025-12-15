@@ -1,7 +1,6 @@
 // ========================= AdminSidebar.jsx ===============================
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import {
   FaBookOpen,
   FaCalendarAlt,
@@ -27,13 +26,12 @@ import {
 } from "react-icons/md";
 import { RiBook2Line, RiFolderSettingsLine } from "react-icons/ri";
 import { NavLink } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext.jsx";
 import apiClient from "../../api/axiosConfig.js";
+import { useAuth } from "../../contexts/AuthContext.jsx";
 // import { fetchPermissions } from "../../redux/slices/permissionsSlice";
-import { canAccessModule, canPerformAction } from "../../utils/permissionUtils";
 import { useDispatch, useSelector } from "react-redux";
-import { setPermissions  } from "../../features/permissionsSlice.js";
-
+import { setPermissions } from "../../features/permissionsSlice.js";
+import { canAccessModule, canPerformAction } from "../../utils/permissionUtils";
 
 // ----------------------- MENU CONFIG ------------------------------
 const menuItems = [
@@ -42,22 +40,22 @@ const menuItems = [
     path: "/dashboard",
     icon: <MdOutlineDashboard />,
     module: "*",
-    adminOnly: true,  
+    adminOnly: true,
   },
   {
     label: "User Management",
     path: "/users",
     icon: <FaUserCog />,
     module: "user",
-     action: "read",
-     adminOnly: true,  
+    action: "read",
+    adminOnly: true,
   },
   {
     label: "Role Based Permissions",
     path: "/role-permission",
     icon: <FaUserCog />,
     module: "role",
-    adminOnly: true,  
+    adminOnly: true,
   },
   {
     label: "Sessions - Upskilling",
@@ -162,27 +160,27 @@ const menuItems = [
         ],
       },
 
-  {
-    label: "Prerequisite",
-    icon: <FaTasks />,
-    module: "prerequisite",
-    children: [
       {
-        label: "Add Prerequisite",
-        icon: <FaRegFileAlt />,
-        path: "/add-prerequisite",
-        action: "create",
+        label: "Prerequisite",
+        icon: <FaTasks />,
         module: "prerequisite",
+        children: [
+          {
+            label: "Add Prerequisite",
+            icon: <FaRegFileAlt />,
+            path: "/add-prerequisite",
+            action: "create",
+            module: "prerequisite",
+          },
+          {
+            label: "Manage Prerequisite",
+            icon: <FaLayerGroup />,
+            path: "/manage-prerequisite",
+            action: "read",
+            module: "prerequisite",
+          },
+        ],
       },
-      {
-        label: "Manage Prerequisite",
-        icon: <FaLayerGroup />,
-        path: "/manage-prerequisite",
-        action: "read",
-        module: "prerequisite",
-      },
-    ],
-  },
 
       // ASSIGNMENT
       {
@@ -275,9 +273,8 @@ const menuItems = [
           },
         ],
       },
-      
 
-       // Feedback
+      // Feedback
       {
         label: "Feedback",
         icon: <FaStickyNote />,
@@ -331,8 +328,8 @@ const menuItems = [
     path: "/trainer-management",
     icon: <FaUserTie />,
     module: "trainer",
-     action: "read",
-     adminOnly: true,  
+    action: "read",
+    adminOnly: true,
   },
 ];
 
@@ -340,12 +337,11 @@ const menuItems = [
 const AdminSidebar = () => {
   const { currentUser } = useAuth();
   const userRole = currentUser?.user?.role;
-  
 
   const dispatch = useDispatch();
   const { rolePermissions } = useSelector((state) => state.permissions);
   const [expandedMenus, setExpandedMenus] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRolePermissions = async () => {
@@ -395,13 +391,13 @@ const AdminSidebar = () => {
       {/* Sidebar Header */}
       <div className="px-6 py-5 border-b bg-white sticky top-0 z-10 shadow-sm">
         <h2 className="text-2xl font-extrabold text-indigo-600 tracking-tight">
-          Admin Panel
+          Management Panel
         </h2>
         <p className="text-sm text-gray-500 mt-1">Role: {userRole}</p>
       </div>
 
       {/* Scrollable Menu */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-100 mb-40">
+      <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-100 mb-20">
         {menuItems.map((item, idx) => (
           <SidebarItem
             key={idx}
@@ -417,8 +413,14 @@ const AdminSidebar = () => {
 };
 
 // ------------------ Sidebar Item (Recursive) -------------------
-const SidebarItem = ({ item, expandedMenus, toggleSubmenu, rolePermissions, level = 0 }) => {
- const { currentUser } = useAuth();
+const SidebarItem = ({
+  item,
+  expandedMenus,
+  toggleSubmenu,
+  rolePermissions,
+  level = 0,
+}) => {
+  const { currentUser } = useAuth();
   const userRole = currentUser?.user?.role;
 
   // ⛔ HARD-CODED ADMIN ONLY
@@ -433,10 +435,14 @@ const SidebarItem = ({ item, expandedMenus, toggleSubmenu, rolePermissions, leve
     const hasAccessibleChild = item.children.some((child) => {
       if (child.children) {
         return child.children.some((nested) =>
-          nested.action ? canPerformAction(rolePermissions, nested.module, nested.action) : true
+          nested.action
+            ? canPerformAction(rolePermissions, nested.module, nested.action)
+            : true
         );
       }
-      return child.action ? canPerformAction(rolePermissions, child.module, child.action) : true;
+      return child.action
+        ? canPerformAction(rolePermissions, child.module, child.action)
+        : true;
     });
 
     if (!hasAccessibleChild) return null;
@@ -448,16 +454,26 @@ const SidebarItem = ({ item, expandedMenus, toggleSubmenu, rolePermissions, leve
           onClick={() => toggleSubmenu(item.label)}
           style={{ paddingLeft }}
           className={`w-full flex items-center justify-between py-2.5 px-3 rounded-lg font-medium transition-all duration-200
-            ${isExpanded ? "text-indigo-600 bg-indigo-50" : "text-gray-700 hover:bg-indigo-50"}`}
+            ${
+              isExpanded
+                ? "text-indigo-600 bg-indigo-50"
+                : "text-gray-700 hover:bg-indigo-50"
+            }`}
         >
           <div className="flex items-center gap-3">
             <span className="text-lg">{item.icon}</span>
             {item.label}
           </div>
-          <span className="text-sm">{isExpanded ? <FaChevronUp /> : <FaChevronDown />}</span>
+          <span className="text-sm">
+            {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+          </span>
         </button>
 
-        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-fit mt-1" : "max-h-0"}`}>
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isExpanded ? "max-h-fit mt-1" : "max-h-0"
+          }`}
+        >
           {item.children.map((child, idx) => (
             <SidebarItem
               key={idx}
@@ -475,7 +491,11 @@ const SidebarItem = ({ item, expandedMenus, toggleSubmenu, rolePermissions, leve
 
   // Leaf menu item: check permissions
   if (!canAccessModule(rolePermissions, item.module)) return null;
-  if (item.action && !canPerformAction(rolePermissions, item.module, item.action)) return null;
+  if (
+    item.action &&
+    !canPerformAction(rolePermissions, item.module, item.action)
+  )
+    return null;
 
   return (
     <NavLink
@@ -483,7 +503,11 @@ const SidebarItem = ({ item, expandedMenus, toggleSubmenu, rolePermissions, leve
       style={{ paddingLeft }}
       className={({ isActive }) =>
         `flex items-center gap-3 py-2.5 px-3 rounded-lg font-medium transition-all duration-200
-          ${isActive ? "bg-indigo-600 text-white shadow-md" : "text-gray-700 hover:bg-indigo-50"}`
+          ${
+            isActive
+              ? "bg-indigo-600 text-white shadow-md"
+              : "text-gray-700 hover:bg-indigo-50"
+          }`
       }
     >
       <span className="text-lg">{item.icon}</span>
@@ -491,6 +515,5 @@ const SidebarItem = ({ item, expandedMenus, toggleSubmenu, rolePermissions, leve
     </NavLink>
   );
 };
-
 
 export default AdminSidebar;

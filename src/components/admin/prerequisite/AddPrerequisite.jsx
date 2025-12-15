@@ -9,6 +9,7 @@ import { fetchBatchesByCourseId } from "../../../api/batch";
 import { getAllCourses } from "../../../api/courses";
 
 import { DIR } from "../../../utils/constants";
+import handleApiError from "../../../utils/handleApiError";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import MultiPDFFileUpload from "../../form/MultiPDFFileUpload";
@@ -17,12 +18,12 @@ import TextAreaField from "../../form/TextAreaField";
 export default function AddPrerequisite() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
 
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [existingFiles, setExistingFiles] = useState({}); // now per topic index
+  const [inputKey, setInputKey] = useState(Date.now());
 
   // ------------------ Fetch Courses ------------------
   useEffect(() => {
@@ -53,247 +54,109 @@ export default function AddPrerequisite() {
     },
     validationSchema: Yup.object({
       courseId: Yup.string().required("Training Program is required"),
-      batchId: Yup.string().required("Batch is required"),
-      title: Yup.string().required("Title is required"),
-      description: Yup.string().required("Description is required"),
-      topics: Yup.array().of(
-        Yup.object({
-          name: Yup.string().required("Topic name is required"),
-          videoLinks: Yup.string().url("Invalid URL"),
-        })
-      ),
     }),
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        const formData = new FormData();
+        formData.append("courseId", values.courseId);
+        formData.append("batchId", values.batchId);
+        formData.append("title", values.title);
+        formData.append("description", values.description);
 
+        // Prepare topics payload
+        const topicsPayload = values.topics.map((topic, idx) => {
+          const existing = existingFiles[idx] || [];
+          const newFiles =
+            topic.materialFiles
+              ?.filter((f) => f instanceof File)
+              .map((f) => f.name) || [];
+          const finalFiles = [...existing, ...newFiles];
 
-// onSubmit: async (values) => {
-//   try {
-//     const formData = new FormData();
+          return {
+            name: topic.name,
+            videoLinks: topic.videoLinks || "",
+            materialFiles: finalFiles.length > 0 ? finalFiles : undefined,
+          };
+        });
 
-//     formData.append("courseId", values.courseId);
-//     formData.append("batchId", values.batchId);
-//     formData.append("title", values.title);
-//     formData.append("description", values.description);
+        formData.append("topics", JSON.stringify(topicsPayload));
 
-//     // --- Build Topics Payload ---
-//     const topicsPayload = values.topics.map((topic, idx) => {
-//       const existing = existingFiles[idx] || []; // array of strings (old)
-
-//       const newFiles = topic.materialFiles
-//         ?.filter((f) => f instanceof File)
-//         .map((f) => f.name) || [];
-
-//       const finalFiles = [...existing, ...newFiles];
-
-//       return {
-//         name: topic.name,
-//         videoLinks: topic.videoLinks || "",
-//         materialFiles: finalFiles.length > 0 ? finalFiles : undefined,
-//       };
-//     });
-
-//     formData.append("topics", JSON.stringify(topicsPayload));
-
-//     // --- Append New Uploaded Files ---
-//     values.topics.forEach((topic) => {
-//       if (topic.materialFiles?.length) {
-//         topic.materialFiles.forEach((file) => {
-//           if (file instanceof File) {
-//             formData.append("materialFiles", file);
-//           }
-//         });
-//       }
-//     });
-
-//     const response = id
-//       ? await apiClient.put(`/api/prerequisite/${id}`, formData, {
-//           headers: { "Content-Type": "multipart/form-data" },
-//         })
-//       : await apiClient.post(`/api/prerequisite`, formData, {
-//           headers: { "Content-Type": "multipart/form-data" },
-//         });
-
-//     if (response.data.success) {
-//       Swal.fire("Success", response.data.message, "success");
-//       navigate("/manage-prerequisite");
-//     } else {
-//       Swal.fire("Warning", response.data.message || "Try again!", "warning");
-//     }
-//   } catch (err) {
-//     Swal.fire("Error", err.response?.data?.message || err.message, "error");
-//   }
-// }
-
-
-onSubmit: async (values, { resetForm }) => {
-  try {
-    const formData = new FormData();
-    formData.append("courseId", values.courseId);
-    formData.append("batchId", values.batchId);
-    formData.append("title", values.title);
-    formData.append("description", values.description);
-
-    const topicsPayload = values.topics.map((topic, idx) => {
-      const existing = existingFiles[idx] || [];
-      const newFiles = topic.materialFiles
-        ?.filter((f) => f instanceof File)
-        .map((f) => f.name) || [];
-      const finalFiles = [...existing, ...newFiles];
-
-      return {
-        name: topic.name,
-        videoLinks: topic.videoLinks || "",
-        materialFiles: finalFiles.length > 0 ? finalFiles : undefined,
-      };
-    });
-
-    formData.append("topics", JSON.stringify(topicsPayload));
-
-    // Append new files
-    values.topics.forEach((topic) => {
-      if (topic.materialFiles?.length) {
-        topic.materialFiles.forEach((file) => {
-          if (file instanceof File) {
-            formData.append("materialFiles", file);
+        // Append new files
+        values.topics.forEach((topic) => {
+          if (topic.materialFiles?.length) {
+            topic.materialFiles.forEach((file) => {
+              if (file instanceof File) {
+                formData.append("materialFiles", file);
+              }
+            });
           }
         });
+
+        const response = id
+          ? await apiClient.put(`/api/prerequisite/${id}`, formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            })
+          : await apiClient.post(`/api/prerequisite`, formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+
+        if (response.data.success) {
+          if (!id) {
+            // Creating new prerequisite
+            Swal.fire({
+              title: "Success",
+              text: response.data.message,
+              icon: "success",
+              showDenyButton: true,
+              showCancelButton: false,
+              confirmButtonText: "Add New Prerequisite",
+              denyButtonText: "Manage Prerequisite",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // Reset form for new entry
+                const emptyTopic = {
+                  name: "",
+                  videoLinks: "",
+                  materialFiles: [],
+                };
+
+                resetForm({
+                  values: {
+                    courseId: values.courseId,
+                    batchId: values.batchId,
+                    title: "",
+                    description: "",
+                    topics: [emptyTopic],
+                  },
+                });
+
+                // Clear existing files
+                setExistingFiles({});
+                setInputKey(Date.now()); // forces all <MultiPDFFileUpload> to remount
+
+                // Force MultiPDFFileUpload reset
+                // setInputKey(Date.now());
+              } else if (result.isDenied) {
+                navigate("/manage-prerequisite");
+              }
+            });
+          } else {
+            // Updating existing prerequisite
+            Swal.fire("Success", response.data.message, "success").then(() => {
+              navigate("/manage-prerequisite"); // Navigate after update
+            });
+          }
+        } else {
+          Swal.fire(
+            "Warning",
+            response.data.message || "Try again!",
+            "warning"
+          );
+        }
+      } catch (err) {
+        Swal.fire("Error", err.response?.data?.message || err.message, "error");
       }
-    });
-
-    const response = id
-      ? await apiClient.put(`/api/prerequisite/${id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        })
-      : await apiClient.post(`/api/prerequisite`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-
-  if (response.data.success) {
-  if (!id) {
-    // Creating new prerequisite
-    Swal.fire({
-      title: "Success",
-      text: response.data.message,
-      icon: "success",
-      showDenyButton: true,
-      showCancelButton: false,
-      confirmButtonText: "Add New Prerequisite",
-      denyButtonText: "Manage Prerequisite",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Reset form for new entry
-       resetForm({
-  values: {
-    courseId: values.courseId,
-    batchId: values.batchId,
-    title: "",
-    description: "",
-    topics: [{ name: "", videoLinks: "", materialFiles: [] }],
-  },
-});
-// Also clear existing files
-setExistingFiles({});
-setInputKey(Date.now()); // <-- force input reset
-formik.setFieldValue(`topics[0].materialFiles`, []); // <-- clear Formik files explicitly
-
-      } else if (result.isDenied) {
-        navigate("/manage-prerequisite");
-      }
-    });
-  } else {
-    // Updating existing prerequisite
-    Swal.fire("Success", response.data.message, "success").then(() => {
-      navigate("/manage-prerequisite"); // Navigate after update
-    });
-  }
-} else {
-  Swal.fire("Warning", response.data.message || "Try again!", "warning");
-}
-
-  } catch (err) {
-    Swal.fire("Error", err.response?.data?.message || err.message, "error");
-  }
-}
-
-
-// onSubmit: async (values, { resetForm }) => {
-//   try {
-//     const formData = new FormData();
-//     formData.append("courseId", values.courseId);
-//     formData.append("batchId", values.batchId);
-//     formData.append("title", values.title);
-//     formData.append("description", values.description);
-
-//     const topicsPayload = values.topics.map((topic, idx) => {
-//       const existing = existingFiles[idx] || [];
-//       const newFiles = topic.materialFiles
-//         ?.filter((f) => f instanceof File)
-//         .map((f) => f.name) || [];
-//       const finalFiles = [...existing, ...newFiles];
-
-//       return {
-//         name: topic.name,
-//         videoLinks: topic.videoLinks || "",
-//         materialFiles: finalFiles.length > 0 ? finalFiles : undefined,
-//       };
-//     });
-
-//     formData.append("topics", JSON.stringify(topicsPayload));
-
-//     values.topics.forEach((topic) => {
-//       if (topic.materialFiles?.length) {
-//         topic.materialFiles.forEach((file) => {
-//           if (file instanceof File) {
-//             formData.append("materialFiles", file);
-//           }
-//         });
-//       }
-//     });
-
-//     const response = id
-//       ? await apiClient.put(`/api/prerequisite/${id}`, formData, {
-//           headers: { "Content-Type": "multipart/form-data" },
-//         })
-//       : await apiClient.post(`/api/prerequisite`, formData, {
-//           headers: { "Content-Type": "multipart/form-data" },
-//         });
-
-//     if (response.data.success) {
-//       Swal.fire({
-//         title: "Success",
-//         text: response.data.message,
-//         icon: "success",
-//         showDenyButton: true,
-//         showCancelButton: false,
-//         confirmButtonText: "Add New Prerequisite",
-//         denyButtonText: "Manage Prerequisite",
-//       }).then((result) => {
-//         if (result.isConfirmed) {
-//           resetForm({
-//             values: {
-//               courseId: values.courseId,
-//               batchId: values.batchId,
-//               title: "",
-//               description: "",
-//               topics: [{
-//           name: "",
-//           videoLinks: "",
-//           materialFiles: [],
-//         },],
-//             },
-//           });
-//         } else if (result.isDenied) {
-//           navigate("/manage-prerequisite");
-//         }
-//       });
-//     } else {
-//       Swal.fire("Warning", response.data.message || "Try again!", "warning");
-//     }
-//   } catch (err) {
-//     Swal.fire("Error", err.response?.data?.message || err.message, "error");
-//   }
-// }
-
-
+    },
   });
 
   // ------------------ Fetch Batches by Course ------------------
@@ -351,7 +214,11 @@ formik.setFieldValue(`topics[0].materialFiles`, []); // <-- clear Formik files e
           topics,
         });
       } catch (err) {
-        Swal.fire("Error", "Failed to load prerequisite details", "error");
+        Swal.fire(
+          "Error",
+          handleApiError(err) || "Failed to load prerequisite details",
+          "error"
+        );
       } finally {
         setLoading(false);
       }
@@ -377,12 +244,27 @@ formik.setFieldValue(`topics[0].materialFiles`, []); // <-- clear Formik files e
 
         {/* Main Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Dropdown label="Training Program" name="courseId" options={courses} formik={formik} />
-          <Dropdown label="Batch" name="batchId" options={batches} formik={formik} />
           <InputField label="Title" name="title" type="text" formik={formik} />
+          <Dropdown
+            label="Training Program"
+            name="courseId"
+            options={courses}
+            formik={formik}
+          />
+          <Dropdown
+            label="Batch"
+            name="batchId"
+            options={batches}
+            formik={formik}
+          />
         </div>
 
-        <TextAreaField label="Description" name="description" rows={4} formik={formik} />
+        <TextAreaField
+          label="Description"
+          name="description"
+          rows={4}
+          formik={formik}
+        />
 
         {/* Topics */}
         <FieldArray
@@ -396,7 +278,11 @@ formik.setFieldValue(`topics[0].materialFiles`, []); // <-- clear Formik files e
                   key={idx}
                   className="border border-blue-500 p-6 rounded-xl space-y-5 shadow-md bg-white"
                 >
-                  <InputField label="Topic Name" name={`topics.${idx}.name`} formik={formik} />
+                  <InputField
+                    label="Topic Name"
+                    name={`topics.${idx}.name`}
+                    formik={formik}
+                  />
                   <InputField
                     label="Video Link"
                     name={`topics.${idx}.videoLinks`}
@@ -405,18 +291,19 @@ formik.setFieldValue(`topics[0].materialFiles`, []); // <-- clear Formik files e
                     placeholder="https://youtube.com/..."
                   />
 
-                
-
                   <MultiPDFFileUpload
+                    key={inputKey + idx} // each topic gets a new key when inputKey changes
                     label="Upload Topic Files"
                     name={`topics.${idx}.materialFiles`}
                     formik={formik}
                     multiple
                   />
-                    {/* Existing files for this topic */}
+                  {/* Existing files for this topic */}
                   {existingFiles[idx]?.length > 0 && (
                     <div className="bg-gray-100 p-3 rounded border">
-                      <h4 className="font-semibold text-blue-700 mb-1">Existing Files</h4>
+                      <h4 className="font-semibold text-blue-700 mb-1">
+                        Existing Files
+                      </h4>
                       <ul className="space-y-1">
                         {existingFiles[idx].map((file, fIdx) => (
                           <li key={fIdx}>
@@ -446,7 +333,13 @@ formik.setFieldValue(`topics[0].materialFiles`, []); // <-- clear Formik files e
 
               <button
                 type="button"
-                onClick={() => topicHelpers.push({ name: "", videoLinks: "", materialFiles: [] })}
+                onClick={() =>
+                  topicHelpers.push({
+                    name: "",
+                    videoLinks: "",
+                    materialFiles: [],
+                  })
+                }
                 className="bg-blue-600 text-white px-5 py-2 rounded"
               >
                 + Add Topic
@@ -456,12 +349,20 @@ formik.setFieldValue(`topics[0].materialFiles`, []); // <-- clear Formik files e
         />
 
         {/* Submit */}
+
         <div className="text-center">
           <button
             type="submit"
-            className="bg-blue-700 text-white font-semibold px-10 py-3 rounded-md shadow-lg hover:bg-blue-800"
+            disabled={formik.isSubmitting || loading} // disable while submitting
+            className="bg-blue-700 text-white font-semibold px-10 py-3 rounded-md shadow-lg hover:bg-blue-800 disabled:opacity-50"
           >
-            {id ? "Update Prerequisite" : "Add Prerequisite"}
+            {formik.isSubmitting || loading
+              ? id
+                ? "Updating..."
+                : "Adding..."
+              : id
+              ? "Update Prerequisite"
+              : "Add Prerequisite"}
           </button>
         </div>
       </form>

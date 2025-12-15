@@ -1,9 +1,9 @@
-
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../../api/axiosConfig";
 import { useAuth } from "../../contexts/AuthContext";
 import { setRole } from "../../features/roleSlice";
 
@@ -12,15 +12,42 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState([]); // ✅ NEW
 
   const dispatch = useDispatch();
   const role = useSelector((state) => state.role.selectedRole);
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // ---------------------------------------------------
+  // 🔄 Fetch roles dynamically
+  // ---------------------------------------------------
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await apiClient.get("/api/role");
+
+        if (res.data?.message) {
+          // Optional filter: hide empty / unwanted roles
+          const validRoles = res.data.message.filter(
+            (r) => r.role && r.permissions?.length >= 0
+          );
+
+          setRoles(validRoles);
+        }
+      } catch (err) {
+        console.error("Failed to fetch roles", err);
+      }
+    };
+
+    fetchRoles();
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const result = await login(email, password, role);
@@ -31,18 +58,19 @@ export default function LoginForm() {
         // Single dashboard route for all roles
         // navigate("/dashboard");
 
-         // ✔ Role Based Navigation
-      if (userRole === "trainer") {
-        navigate("/trainer/dashboard");
-      } else {
-        navigate("/dashboard"); // admin, manager, student, etc.
-      }
-
+        // ✔ Role Based Navigation
+        if (userRole === "trainer") {
+          navigate("/trainer/dashboard");
+        } else {
+          navigate("/dashboard"); // admin, manager, student, etc.
+        }
       } else {
         setError(result.message || "Login failed.");
       }
     } catch (err) {
       setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setLoading(false); // ✔ Always stop loading
     }
   };
 
@@ -56,7 +84,9 @@ export default function LoginForm() {
       >
         {/* Left Panel */}
         <div className="md:w-1/2 p-10 bg-white/10 text-gray-800 flex flex-col items-center justify-center backdrop-blur-md">
-          <h2 className="text-4xl font-bold mb-4 text-center">Welcome Back 👋</h2>
+          <h2 className="text-4xl font-bold mb-4 text-center">
+            Welcome Back 👋
+          </h2>
           <p className="text-lg mb-8 text-center max-w-sm">
             Login to access your dashboard and manage your account.
           </p>
@@ -118,7 +148,28 @@ export default function LoginForm() {
             </div>
 
             {/* Role */}
+
+            {/* ✅ Dynamic Role Dropdown */}
             <div>
+              <label className="block mb-1 font-medium text-gray-700">
+                Select Role <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={role}
+                onChange={(e) => dispatch(setRole(e.target.value))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                required
+              >
+                <option value="">Choose a role</option>
+                {roles.map((r) => (
+                  <option key={r._id} value={r.role}>
+                    {r.role.charAt(0).toUpperCase() + r.role.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* <div>
               <label className="block mb-1 font-medium text-gray-700">
                 Select Role <span className="text-red-500">*</span>
               </label>
@@ -132,17 +183,32 @@ export default function LoginForm() {
                 <option value="admin">Admin</option>
                 <option value="trainer">Trainer</option>
                 {/* <option value="student">Student</option> */}
-              </select>
-            </div>
+            {/* </select>
+            </div> */}
 
             {/* Submit */}
-            <motion.button
+            {/* <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
               className="w-full bg-gradient-to-r from-blue-400 to-indigo-500 text-white px-4 py-2 rounded-xl shadow-md hover:from-blue-500 hover:to-indigo-600 transition-all"
             >
               Login
+            </motion.button> */}
+
+            <motion.button
+              whileHover={!loading ? { scale: 1.05 } : {}}
+              whileTap={!loading ? { scale: 0.98 } : {}}
+              type="submit"
+              disabled={loading}
+              className={`w-full px-4 py-2 rounded-xl text-white shadow-md transition-all
+    ${
+      loading
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600"
+    }`}
+            >
+              {loading ? "Logging in..." : "Login"}
             </motion.button>
 
             {/* Error */}
@@ -155,12 +221,12 @@ export default function LoginForm() {
 
           {/* Footer */}
           <p className="text-sm text-center text-gray-500 mt-6">
-            Don’t have an account?{" "}
+            Are you a student ?{" "}
             <a
-              href="/register"
+              href="/student-login"
               className="text-indigo-600 hover:underline font-medium"
             >
-              Register here
+              Login here
             </a>
           </p>
         </div>
@@ -168,4 +234,3 @@ export default function LoginForm() {
     </div>
   );
 }
-

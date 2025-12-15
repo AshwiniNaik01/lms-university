@@ -22,6 +22,7 @@ import {
   getInternshipSessionById,
   updateInternshipSession,
 } from "./upSkillsApi";
+import handleApiError from "../../utils/handleApiError";
 
 // ======================================================
 // 🚀 Component
@@ -61,8 +62,8 @@ const InternshipSessionForm = () => {
     validationSchema: Yup.object({
       title: Yup.string().required("Title is required"),
       duration: Yup.string().required("Duration is required"),
-      mode: Yup.string().required("Mode is required"),
-      location: Yup.string().required("Location is required"),
+      // mode: Yup.string().required("Mode is required"),
+      // location: Yup.string().required("Location is required"),
     }),
 
     onSubmit: async (values, { resetForm, setSubmitting }) => {
@@ -104,8 +105,8 @@ const InternshipSessionForm = () => {
         console.error("❌ Error submitting internship session:", error);
         Swal.fire({
           icon: "error",
-          title: "Submission Failed",
-          text: "Something went wrong while saving the session.",
+          title: handleApiError(error) || "Submission Failed",
+          // text: "Please Try Again.",
           confirmButtonColor: "#dc2626",
         });
       } finally {
@@ -183,7 +184,7 @@ const InternshipSessionForm = () => {
         console.error("❌ Failed to fetch internship session:", error);
         Swal.fire({
           icon: "error",
-          title: "Fetch Error",
+          title: handleApiError(error) || "Fetch Error",
           text: "Unable to load session details.",
         });
       }

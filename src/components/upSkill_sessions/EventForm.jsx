@@ -13,6 +13,7 @@ import MultiImageUpload from "../form/MultiImageUpload";
 import TextAreaField from "../form/TextAreaField";
 import TimeRangePicker from "../form/TimeRangePicker";
 import ToggleSwitch from "../form/ToggleSwitch";
+import handleApiError from "../../utils/handleApiError";
 
 import { DIR } from "../../utils/constants";
 import { createEvent, getEventById, updateEvent } from "./upSkillsApi";
@@ -71,7 +72,7 @@ const EventForm = () => {
           const fetchedEvent = resp?.data?.data;
 
           if (!fetchedEvent) {
-            Swal.fire("Error", "Event not found", "error");
+            Swal.fire("Warning", "Event not found", "warning");
             return;
           }
 
@@ -116,7 +117,7 @@ const EventForm = () => {
           });
         } catch (error) {
           console.error(error);
-          Swal.fire("Error", "Failed to load event data", "error");
+          Swal.fire("Error", handleApiError(error) || "Failed to load event data", "error");
         } finally {
           setLoading(false);
         }
@@ -193,7 +194,7 @@ const EventForm = () => {
         }
       } catch (error) {
         console.error(error);
-        Swal.fire("Error", "Failed to submit event", "error");
+        Swal.fire("Error", handleApiError(error) || "Failed to submit event", "error");
       } finally {
         setLoading(false);
       }

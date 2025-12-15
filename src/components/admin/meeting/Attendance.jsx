@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FiAlertTriangle } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
@@ -10,36 +11,6 @@ const Attendance = () => {
   const [attendees, setAttendees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [markAll, setMarkAll] = useState(false);
-
-  // Fetch meeting + students
-  // useEffect(() => {
-  //   if (!meetingId) {
-  //     console.error("No meetingId found in URL");
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   apiClient
-  //     .get(`/api/meetings/${meetingId}`)
-  //     .then((res) => {
-  //       const meetingData = res.data?.data;
-  //       setMeeting(meetingData);
-
-  //       const students = meetingData?.batch?.students || [];
-
-  //       const initialAttendees = students.map((student) => ({
-  //         studentId: student.studentId,
-  //         batchId: meetingData.batch._id,
-  //         fullName: student.fullName,
-  //         email: student.email,
-  //         present: false,
-  //       }));
-
-  //       setAttendees(initialAttendees);
-  //     })
-  //     .catch((err) => console.error("Failed to fetch meeting details:", err))
-  //     .finally(() => setLoading(false));
-  // }, [meetingId]);
 
   useEffect(() => {
     if (!meetingId) {
@@ -94,61 +65,74 @@ const Attendance = () => {
   };
 
   const handleSubmit = () => {
-  if (!meetingId || attendees.length === 0) return;
+    if (!meetingId || attendees.length === 0) return;
 
-  // Step 1️⃣ — Show confirmation alert
-  Swal.fire({
-    icon: "warning",
-    title: "Are you sure?",
-    text: "Once submitted, you won’t be able to update or change attendance!",
-    showCancelButton: true,
-    confirmButtonColor: "#2563eb",
-    cancelButtonColor: "#9ca3af",
-    confirmButtonText: "Yes, Submit",
-    cancelButtonText: "Cancel",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Step 2️⃣ — If confirmed, proceed to API call
-      const payload = {
-        attendees: attendees.map(({ studentId, batchId, present }) => ({
-          studentId,
-          batchId,
-          present,
-        })),
-      };
+    // Step 1️⃣ — Show confirmation alert
+    Swal.fire({
+      icon: "warning",
+      title: "Are you sure?",
+      text: "Once submitted, you won’t be able to update or change attendance!",
+      showCancelButton: true,
+      confirmButtonColor: "#2563eb",
+      cancelButtonColor: "#9ca3af",
+      confirmButtonText: "Yes, Submit",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Step 2️⃣ — If confirmed, proceed to API call
+        const payload = {
+          attendees: attendees.map(({ studentId, batchId, present }) => ({
+            studentId,
+            batchId,
+            present,
+          })),
+        };
 
-      apiClient
-        .post(`/api/attendance/mark/${meetingId}`, payload)
-        .then((res) => {
-          // ✅ Success Alert
-          Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: res.data?.message || "Attendance marked successfully!",
-            confirmButtonText: "OK",
-          }).then(() => {
-            navigate(-1); // Go back after closing alert
+        apiClient
+          .post(`/api/attendance/mark/${meetingId}`, payload)
+          .then((res) => {
+            // ✅ Success Alert
+            Swal.fire({
+              icon: "success",
+              title: "Success",
+              text: res.data?.message || "Attendance marked successfully!",
+              confirmButtonText: "OK",
+            }).then(() => {
+              navigate(-1); // Go back after closing alert
+            });
+          })
+          .catch((err) => {
+            // ⚠️ Error Alert
+            const errorMessage =
+              err.response?.data?.message || "Please try again!";
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: errorMessage,
+              confirmButtonText: "OK",
+            });
           });
-        })
-        .catch((err) => {
-          // ⚠️ Error Alert
-          const errorMessage =
-            err.response?.data?.message || "Please try again!";
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: errorMessage,
-            confirmButtonText: "OK",
-          });
-        });
-    }
-  });
-};
-
+      }
+    });
+  };
 
   if (loading) return <div>Loading meeting...</div>;
   if (!meeting) return <div>No meeting data available.</div>;
-  if (!attendees.length) return <div>No students found in this batch.</div>;
+  // if (!attendees.length) return <div>No students found in this batch.</div>;
+
+  if (!attendees.length) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 px-6 mt-50 bg-yellow-50 border border-yellow-300 rounded-lg text-yellow-800 space-y-2">
+        <FiAlertTriangle className="w-8 h-8" />
+        <h3 className="text-lg font-semibold">
+          No students found in this batch
+        </h3>
+        <p className="text-sm text-yellow-700">
+          Please check the batch or add students to mark attendance.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-h-fit">
@@ -290,11 +274,20 @@ const Attendance = () => {
 
               <button
                 onClick={handleSubmit}
-                disabled={attendees.length === 0}
+                disabled={attendees.length === 0 || loading}
                 className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
-                <span>✅</span>
-                <span>Submit Attendance</span>
+                {loading ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✅</span>
+                    <span>Submit Attendance</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

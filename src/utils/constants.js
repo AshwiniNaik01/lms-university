@@ -1,4 +1,3 @@
-
 // src/utils/constants.js
 
 // Get the base API URL from the environment variable, or default to localhost for development
@@ -18,7 +17,7 @@ if (env === "development") {
 export const STUDENT_PORTAL_URL = (() => {
   switch (env) {
     case "development":
-      return "http://localhost:5001/";
+      return "http://localhost:6021/";
     case "uat":
       return "https://uat.codedrift.co/";
     case "prod":
@@ -43,6 +42,10 @@ export const DIR = {
   // 📘 Course Materials
   COURSE_NOTES: BASE_URL + "/uploads/course-notes/",
   ASSIGNMENT_FILES: BASE_URL + "/uploads/assignments/",
+  ASSIGNMENT_SUBMISSIONS: BASE_URL + "/uploads/assignment-submissions/initial/",
+  MISTAKE_PHOTOS: BASE_URL + "/uploads/assignment-submissions/mistakes/", // ✅ Added
+  ASSIGNMENT_RESUBMISSIONS:
+    BASE_URL + "/uploads/assignment-submissions/resubmit/", // ✅ NEW
 
   // 📊 Test Materials
   TEST_EXCEL: BASE_URL + "/uploads/test-excel/",
@@ -50,7 +53,7 @@ export const DIR = {
   // 🎓 Lecture Videos
   LECTURE_CONTENT: BASE_URL + "/uploads/lectures/",
 
-   // 🗂 Training Program Plan (📄 NEW)
+  // 🗂 Training Program Plan (📄 NEW)
   TRAINING_PLAN: BASE_URL + "/uploads/course/training-plan/",
 
   // 📅 Events
@@ -68,9 +71,11 @@ export const DIR = {
   SPONSOR_LOGO: BASE_URL + "/uploads/sponsorship/logo/",
 
   // Logo
-  LOGO: BASE_URL +"/uploads/contact/company-logo/",
+  LOGO: BASE_URL + "/uploads/contact/company-logo/",
 
-  // 🧩 Prerequisite Materials 
+  // 🧩 Prerequisite Materials
   PREREQUISITE_MATERIALS: BASE_URL + "/uploads/prerequisite/materials/",
-
 };
+
+// constant course name
+export const COURSE_NAME = "Training Program";

@@ -1,22 +1,22 @@
-
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
-import Swal from "sweetalert2";
+import { fetchBatchesByCourseId } from "../../../api/batch";
+import { getChaptersByCourse } from "../../../api/chapters"; // Make sure this exists
 import { getAllCourses } from "../../../api/courses";
 import { fetchAllTrainers } from "../../../pages/admin/trainer-management/trainerApi";
 import { DIR } from "../../../utils/constants";
+import handleApiError from "../../../utils/handleApiError";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import TextAreaField from "../../form/TextAreaField";
 import VideoUploadField from "../../form/VideoUploadField";
 import { useCourseParam } from "../../hooks/useCourseParam";
-import { useSelector } from "react-redux";
-import { fetchBatchesByCourseId } from "../../../api/batch";
-import { getChaptersByCourse } from "../../../api/chapters"; // Make sure this exists
 
 export default function AddLectures() {
   const { lectureId } = useParams();
@@ -32,7 +32,8 @@ export default function AddLectures() {
   const [selectedCourseId, setSelectedCourseId] = useState("");
 
   // Custom hook for preselected course from URL query param
-  const [selectedCourseFromParam, , isCoursePreselected] = useCourseParam(availableCourses);
+  const [selectedCourseFromParam, , isCoursePreselected] =
+    useCourseParam(availableCourses);
 
   // Formik setup
   const formik = useFormik({
@@ -50,11 +51,11 @@ export default function AddLectures() {
     },
     validationSchema: Yup.object({
       course: Yup.string().required("Training Program is required"),
-      chapter: Yup.string().required("Chapter is required"),
-      title: Yup.string().required("Title is required"),
-      description: Yup.string().required("Description is required"),
-      type: Yup.string(),
-      batches: Yup.array(),
+      // chapter: Yup.string().required("Chapter is required"),
+      // title: Yup.string().required("Title is required"),
+      // description: Yup.string().required("Description is required"),
+      // type: Yup.string(),
+      // batches: Yup.array(),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -65,7 +66,9 @@ export default function AddLectures() {
         formData.append("description", values.description);
         formData.append("duration", values.duration);
         formData.append("type", values.type);
-        values.trainer.forEach((trainerId) => formData.append("trainer[]", trainerId));
+        values.trainer.forEach((trainerId) =>
+          formData.append("trainer[]", trainerId)
+        );
         formData.append("status", values.status);
         values.batches.forEach((batch) => formData.append("batches[]", batch));
         if (values.contentUrl) formData.append("contentUrl", values.contentUrl);
@@ -74,22 +77,30 @@ export default function AddLectures() {
           await apiClient.put(`/api/lectures/${lectureId}`, formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
-          Swal.fire("Success", "Lecture updated successfully!", "success").then(() => {
-            resetForm();
-            navigate("/manage-course-videos");
-          });
+          Swal.fire("Success", "Lecture updated successfully!", "success").then(
+            () => {
+              resetForm();
+              navigate("/manage-course-videos");
+            }
+          );
         } else {
           await apiClient.post("/api/lectures", formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
-          Swal.fire("Success", "Lecture created successfully!", "success").then(() => {
-            resetForm();
-            navigate("/manage-course-videos");
-          });
+          Swal.fire("Success", "Lecture created successfully!", "success").then(
+            () => {
+              resetForm();
+              navigate("/manage-course-videos");
+            }
+          );
         }
       } catch (error) {
         console.error(error);
-        Swal.fire("Error", error.response?.data?.message || error.message, "error");
+        Swal.fire(
+          "Error",
+          error.response?.data?.message || error.message,
+          "error"
+        );
       }
     },
   });
@@ -193,7 +204,11 @@ export default function AddLectures() {
         }
       } catch (err) {
         console.error(err);
-        Swal.fire("Error", "Failed to fetch lecture", "error");
+        Swal.fire(
+          "Error",
+          handleApiError(err) || "Failed to fetch lecture",
+          "error"
+        );
         navigate("/manage-course-videos");
       } finally {
         setLoading(false);
@@ -215,6 +230,9 @@ export default function AddLectures() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Title */}
+          <InputField label="Title" name="title" type="text" formik={formik} />
+
           {/* Training Program */}
           <Dropdown
             label="Training Program"
@@ -230,10 +248,12 @@ export default function AddLectures() {
           />
 
           {/* Chapter */}
-          <Dropdown label="Chapter" name="chapter" options={availableChapters} formik={formik} />
-
-          {/* Title */}
-          <InputField label="Title" name="title" type="text" formik={formik} />
+          <Dropdown
+            label="Chapter"
+            name="chapter"
+            options={availableChapters}
+            formik={formik}
+          />
 
           {/* Batch */}
           <MultiSelectDropdown
@@ -252,7 +272,9 @@ export default function AddLectures() {
                 saturday: "Sat",
                 sunday: "Sun",
               };
-              const formattedDays = option.days.map((d) => daysMap[d.toLowerCase()] || d).join(", ");
+              const formattedDays = option.days
+                .map((d) => daysMap[d.toLowerCase()] || d)
+                .join(", ");
               return `${option.batchName} | ${option.time.start} - ${option.time.end} | ${formattedDays} | ${option.mode}`;
             }}
           />
@@ -269,8 +291,21 @@ export default function AddLectures() {
           />
 
           {/* Conditional Fields */}
-          {formik.values.type === "mp4" && <VideoUploadField label="Lecture Video (.mp4)" name="contentUrl" formik={formik} />}
-          {formik.values.type === "youtube" && <InputField label="YouTube URL" name="contentUrl" type="url" formik={formik} />}
+          {formik.values.type === "mp4" && (
+            <VideoUploadField
+              label="Lecture Video (.mp4)"
+              name="contentUrl"
+              formik={formik}
+            />
+          )}
+          {formik.values.type === "youtube" && (
+            <InputField
+              label="YouTube URL"
+              name="contentUrl"
+              type="url"
+              formik={formik}
+            />
+          )}
 
           {/* Status */}
           <Dropdown
@@ -285,19 +320,30 @@ export default function AddLectures() {
         </div>
 
         {/* Description */}
-        <TextAreaField label="Description" name="description" rows={4} formik={formik} />
+        <TextAreaField
+          label="Description"
+          name="description"
+          rows={4}
+          formik={formik}
+        />
 
         {/* Submit */}
         <div className="text-center pt-4">
           <button
             type="submit"
-            className="bg-[rgba(14,85,200,0.83)] text-white font-semibold px-10 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300"
+            disabled={formik.isSubmitting || loading} // disable while submitting
+            className="bg-[rgba(14,85,200,0.83)] text-white font-semibold px-10 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300 disabled:opacity-50"
           >
-            {lectureId ? "Update Recording" : "Add Recording"}
+            {formik.isSubmitting || loading
+              ? lectureId
+                ? "Updating..."
+                : "Adding..."
+              : lectureId
+              ? "Update Recording"
+              : "Add Recording"}
           </button>
         </div>
       </form>
     </FormikProvider>
   );
 }
-

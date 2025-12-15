@@ -22,6 +22,7 @@ import ToggleSwitch from "../form/ToggleSwitch";
 // 🌐 API functions & constants
 import { DIR } from "../../utils/constants";
 import { createWebinar, getWebinarById, updateWebinar } from "./upSkillsApi";
+import handleApiError from "../../utils/handleApiError";
 
 const WebinarForm = () => {
   // ---------------------------------------------------------------------------
@@ -89,7 +90,7 @@ const WebinarForm = () => {
         });
       } catch (err) {
         console.error("❌ Error fetching webinar:", err);
-        Swal.fire("Error", "Failed to load webinar data", "error");
+        Swal.fire("Error", handleApiError(err) || "Failed to load webinar data", "error");
       } finally {
         setLoading(false);
       }
@@ -103,13 +104,13 @@ const WebinarForm = () => {
   // ---------------------------------------------------------------------------
   const validationSchema = Yup.object({
     title: Yup.string().required("Title is required"),
-    date: Yup.date().required("Date is required"),
-    startTime: Yup.string().required("Start time is required"),
-    speakerName: Yup.string().required("Speaker name is required"),
-    platform: Yup.string().required("Platform is required"),
-    meetingLink: Yup.string()
-      .url("Must be a valid URL")
-      .required("Meeting link is required"),
+    // date: Yup.date().required("Date is required"),
+    // startTime: Yup.string().required("Start time is required"),
+    // speakerName: Yup.string().required("Speaker name is required"),
+    // platform: Yup.string().required("Platform is required"),
+    // meetingLink: Yup.string()
+    //   .url("Must be a valid URL")
+    //   .required("Meeting link is required"),
   });
 
   // ---------------------------------------------------------------------------
@@ -168,7 +169,7 @@ const WebinarForm = () => {
         }
       } catch (err) {
         console.error("❌ Error submitting webinar:", err);
-        Swal.fire("Error", "Failed to submit webinar", "error");
+        Swal.fire("Error", handleApiError(err) || "Failed to submit webinar", "error");
       } finally {
         setSubmitting(false);
       }
