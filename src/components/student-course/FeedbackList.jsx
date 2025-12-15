@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { FaComments } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"; // for navigation
+import { useNavigate, useParams } from "react-router-dom"; // for navigation
 import Cookies from "js-cookie";
 import apiClient from "../../api/axiosConfig";
 
 const FeedbackList = ({ batch }) => {
   const navigate = useNavigate();
+   const { courseId } = useParams(); // ✅ FIX
 
   const [responses, setResponses] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [studentId, setStudentId] = useState(null);
-  const [courseId, setCourseId] = useState(null);
+  // const [courseId, setCourseId] = useState(null);
 
   const emojiToValue = {
     "Strongly Agree": 5,
@@ -30,7 +31,7 @@ const FeedbackList = ({ batch }) => {
   // Fetch studentId and courseId from cookies
   useEffect(() => {
     setStudentId(Cookies.get("studentId") || Cookies.get("userId"));
-    setCourseId(Cookies.get("courseId") || batch?.courseId);
+    // setCourseId(Cookies.get("courseId") || batch?.courseId);
   }, [batch?.courseId]);
 
   const handleEmojiRate = (question, label) => {
@@ -135,7 +136,7 @@ const FeedbackList = ({ batch }) => {
           onClick={() => {
             if (!isDisabled) {
               navigate(
-                `/courses/${batch.courseId}/study/feedback/${feedback._id}`,
+                `/courses/${courseId}/study/feedback/${feedback._id}`,
                 { state: { batch, feedback } }
               );
             }
