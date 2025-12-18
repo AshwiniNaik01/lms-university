@@ -8,12 +8,30 @@ import apiClient from "./axiosConfig";
 // };
 
 
-export const fetchAllUsersAdmin = async () => {
+// export const fetchAllUsersAdmin = async () => {
+//   try {
+//     const response = await apiClient.get('/api/admin/users');
+//     return response.data.data || [];
+//   } catch (error) {
+//     console.error('Error fetching users:', error);
+//     throw error;
+//   }
+// };
+
+
+
+export const fetchAllUsersAdmin = async (token, roleFilter = "") => {
   try {
-    const response = await apiClient.get('/api/admin/users');
+    const response = await apiClient.post(
+      "/api/users",
+      { role: roleFilter }, // POST payload
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     return response.data.data || [];
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error("Error fetching users:", error);
     throw error;
   }
 };

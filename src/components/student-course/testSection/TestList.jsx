@@ -187,39 +187,59 @@ const [selectedTest, setSelectedTest] = useState(null);
     </div>
 
     {/* NOT ATTEMPTED */}
-    {test.attempted === 0 && (
-      <button
-        onClick={() => handleStartTest(test)}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        Start Test
-      </button>
-    )}
+  {/* NOT ATTEMPTED */}
+{test.attempted === 0 && (
+  <button
+    onClick={() => handleStartTest(test)}
+    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+  >
+    Start Test
+  </button>
+)}
 
-    {/* ATTEMPTED */}
-    {test.attempted === 1 && (
-      <div className="flex gap-2">
-        <button
-          onClick={() => {
-            setSelectedTest(test);
-            setShowResult(true);
-          }}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-        >
-          View Result
-        </button>
+{/* RESUME TEST */}
+{test.attempted === -1 && test.iqtest?.status === -1 && (
+  <button
+    onClick={() => {
+      // request fullscreen on user gesture
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(console.warn);
+      }
 
-        <button
-          onClick={() => {
-            setSelectedTest(test);
-            setShowQP(true);
-          }}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-        >
-          View QP
-        </button>
-      </div>
-    )}
+      navigate(`/test/${test._id}`);
+    }}
+    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+  >
+    Resume Test
+  </button>
+)}
+
+{/* ATTEMPTED / COMPLETED */}
+{test.attempted === 1 && (
+  <div className="flex gap-2">
+    <button
+      onClick={() => {
+        setSelectedTest(test);
+        setShowResult(true);
+      }}
+      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+    >
+      View Result
+    </button>
+
+    <button
+      onClick={() => {
+        setSelectedTest(test);
+        setShowQP(true);
+      }}
+      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+    >
+      View QP
+    </button>
+  </div>
+)}
+
   </div>
 ))}
 

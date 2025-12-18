@@ -33,6 +33,14 @@ const columns = [
         >
           📂 View
         </button>
+
+<button
+        className="bg-purple-500 text-white px-4 py-2 rounded-lg"
+        onClick={() => handleShare(row._id)}
+      >
+        🔗 Share Test
+      </button>
+
         {canPerformAction(rolePermissions, "test", "delete") && (
         <button
           className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all"
@@ -45,6 +53,28 @@ const columns = [
     ),
   },
 ];
+
+const handleShare = (testId) => {
+  const baseUrl = window.location.origin; 
+  // e.g. http://localhost:6174
+  // e.g. https://uat-lms.codedrift.co
+
+  const url = `${baseUrl}/start-test/${testId}`;
+
+  navigator.clipboard.writeText(url);
+
+  Swal.fire({
+    icon: "success",
+    title: "Test Link Copied!",
+    text: url,
+    confirmButtonText: "Open Test",
+  }).then((res) => {
+    if (res.isConfirmed) {
+      window.open(url, "_blank");
+    }
+  });
+};
+
 
   // Fetch tests
 const fetchTests = async () => {

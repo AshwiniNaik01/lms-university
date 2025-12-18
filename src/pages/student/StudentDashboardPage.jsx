@@ -428,7 +428,7 @@ const BatchSelectionPopup = () => (
         {userData.profilePhotoStudent ? (
           <img
             src={`${BASE_URL}/uploads/student/student-profilephoto/${userData.profilePhotoStudent}`}
-            alt="Student"
+            alt="Candidate"
             className="w-20 h-20 rounded-full border-4 border-white object-cover shadow-md"
           />
         ) : (

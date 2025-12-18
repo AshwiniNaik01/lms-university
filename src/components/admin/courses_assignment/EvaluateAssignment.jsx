@@ -171,7 +171,7 @@ export default function EvaluateAssignment() {
     // },
 
     {
-      header: "Student Name",
+      header: "Candidate Name",
       accessor: (row) => (row.student ? row.student.fullName : "Unknown"),
     },
     {

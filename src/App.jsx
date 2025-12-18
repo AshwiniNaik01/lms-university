@@ -1,28 +1,27 @@
 import { Suspense, lazy } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import BatchTests from "./components/admin/batches/BatchTests.jsx";
+import StudentsListForTest from "./components/admin/batches/StudentsListForTest.jsx";
+import EvaluateAssignment from "./components/admin/courses_assignment/EvaluateAssignment.jsx";
+import CreateFeedback from "./components/admin/feedback/CreateFeedback.jsx";
+import ManageFeedback from "./components/admin/feedback/ManageFeedback.jsx";
 import AddPrerequisite from "./components/admin/prerequisite/AddPrerequisite.jsx";
+import ManagePrerequisites from "./components/admin/prerequisite/ManagePrerequisites.jsx";
+import StudentLoginForm from "./components/auth/StudentLoginForm.jsx";
 import AdminLayout from "./components/layout/AdminLayout.jsx";
-import Footer from "./components/layout/Footer.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
 import PrivateRoute from "./components/layout/PrivateRoute.jsx";
+import PublicRoute from "./components/layout/PublicRoute.jsx";
 import ScrollToTop from "./components/layout/ScrollToTop.jsx";
+import AssignmentsPage from "./components/student-course/assignmentSection/AssignmentPage.jsx";
+import FeedbackTab from "./components/student-course/FeedbackTab.jsx";
+import TestDetail from "./components/student-course/testSection/TestDetail.jsx";
 import SessionCategoryList from "./components/upSkill_sessions/SessionCategoryList.jsx";
 import { useAuth } from "./contexts/AuthContext.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
-import ManagePrerequisites from "./components/admin/prerequisite/ManagePrerequisites.jsx";
-import AssignmentsPage from "./components/student-course/assignmentSection/AssignmentPage.jsx";
-import CreateFeedback from "./components/admin/feedback/CreateFeedback.jsx";
-import ManageFeedback from "./components/admin/feedback/ManageFeedback.jsx";
-import StudentLoginForm from "./components/auth/StudentLoginForm.jsx";
-import FeedbackTab from "./components/student-course/FeedbackTab.jsx";
-import TestDetail from "./components/student-course/testSection/TestDetail.jsx";
-import EvaluateAssignment from "./components/admin/courses_assignment/EvaluateAssignment.jsx";
-import PublicRoute from "./components/layout/PublicRoute.jsx";
-import NoAccessPage from "./pages/NoAccessPage.jsx";
-import BatchTests from "./components/admin/batches/BatchTests.jsx";
-import StudentsListForTest from "./components/admin/batches/StudentsListForTest.jsx";
+import StartTestGate from "./components/student-course/testSection/StartTestGate.jsx";
 // import AssignmentsPage from "./components/student-course/AssignmentPage.jsx";
 const CourseForm = lazy(() =>
   import("./components/admin/courses/CourseForm.jsx")
@@ -172,6 +171,9 @@ const ManageCurriculum = lazy(() =>
 // Global Loading Handled
 function App() {
   const { loading } = useAuth();
+  const location = useLocation();
+
+  const isTestFullscreen = location.pathname.startsWith("/test/");
 
   if (loading) {
     return <div>Loading ...</div>;
@@ -183,14 +185,28 @@ function App() {
         {/* Scroll to top on route change */}
         <ScrollToTop />
         {/* Fixed Navbar */}
-        <div className="fixed top-0 left-0 right-0 z-50">
+
+        {!isTestFullscreen && (
+          <div className="fixed top-0 left-0 right-0 z-50">
+            <Navbar />
+          </div>
+        )}
+
+        {/* <div className="fixed top-0 left-0 right-0 z-50">
           <Navbar />
-        </div>
+        </div> */}
 
         {/* Scrollable Main Content */}
-        <div
+        {/* <div
           id="main-scroll-container"
           className="flex-1 pt-[64px] overflow-auto bg-blue-50"
+        > */}
+
+        <div
+          id="main-scroll-container"
+          className={`flex-1 overflow-auto bg-blue-50 ${
+            isTestFullscreen ? "" : "pt-[64px]"
+          }`}
         >
           {" "}
           {/* Adjust margin-top as per your Navbar height */}
@@ -202,11 +218,11 @@ function App() {
               {/* <Route path="/" element={<LoginPage />} /> */}
               <Route path="/register" element={<RegisterPage />} />
 
-        <Route element={<PublicRoute />}>
-  <Route path="/" element={<LoginPage />} />
-  <Route path="/login" element={<LoginPage />} />
-  <Route path="/student-login" element={<StudentLoginForm />} />
-</Route>
+              <Route element={<PublicRoute />}>
+                <Route path="/" element={<LoginPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/student-login" element={<StudentLoginForm />} />
+              </Route>
 
               {/* <Route path="/login" element={<LoginPage />} />
               <Route path="/student-login" element={<StudentLoginForm />} /> */}
@@ -216,7 +232,7 @@ function App() {
               <Route
                 path="/verify-email/:token"
                 element={<VerifyEmailPage />}
-              />      
+              />
               <Route
                 path="/student-register"
                 element={<StudentRegistrationForm />}
@@ -229,10 +245,10 @@ function App() {
                   />
                 }
               > */}
-                <Route
-                  path="/trainer-register"
-                  element={<TrainerRegistrationForm />}
-                />
+              <Route
+                path="/trainer-register"
+                element={<TrainerRegistrationForm />}
+              />
               {/* </Route> */}
 
               <Route
@@ -274,11 +290,14 @@ function App() {
 
                 <Route path="/test/:testID" element={<TestDetail />} />
 
-
                 <Route
                   path="/courses/:courseId/study/feedback/:feedbackId"
                   element={<FeedbackTab />}
                 />
+
+                {/* // student-portal/src/routes.jsx */}
+<Route path="/start-test/:testId" element={<StartTestGate />} />
+
 
                 <Route
                   path="/courses/:courseId/study"
@@ -394,7 +413,7 @@ function App() {
                     <Route path="courses/edit/:id" element={<CourseForm />} />
                   </Route>
 
-                   <Route
+                  <Route
                     element={
                       <PrivateRoute
                         requiredModule="test"
@@ -402,7 +421,10 @@ function App() {
                       />
                     }
                   >
-                    <Route path="/view-tests/batch/:batchId" element={<BatchTests />} />
+                    <Route
+                      path="/view-tests/batch/:batchId"
+                      element={<BatchTests />}
+                    />
                   </Route>
 
                   <Route
@@ -647,8 +669,10 @@ function App() {
                     />
                   </Route>
 
-                  <Route path="/tests/:testId/students" element={<StudentsListForTest />} />
-
+                  <Route
+                    path="/tests/:testId/students"
+                    element={<StudentsListForTest />}
+                  />
 
                   <Route
                     element={
@@ -730,7 +754,7 @@ function App() {
                     />
                   </Route>
 
-                     <Route
+                  <Route
                     element={
                       <PrivateRoute
                         requiredModule="assignment"
@@ -738,8 +762,10 @@ function App() {
                       />
                     }
                   >
-                    <Route path="/evaluate-assignment" element={<EvaluateAssignment />} />
-
+                    <Route
+                      path="/evaluate-assignment"
+                      element={<EvaluateAssignment />}
+                    />
                   </Route>
 
                   <Route

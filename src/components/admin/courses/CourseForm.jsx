@@ -417,7 +417,7 @@ const CourseForm = () => {
 
                 {/* Fees */}
                 <InputField
-                  label="Fees ($)*"
+                  label="Fees (optional)"
                   name="fees"
                   type="number"
                   formik={formik}
@@ -439,11 +439,11 @@ const CourseForm = () => {
                   formik={formik}
                 /> */}
 
-                <DateRangePicker formik={formik} />
+                {/* <DateRangePicker formik={formik} /> */}
 
                 {/* Cloud Labs Link */}
                 <InputField
-                  label="Cloud Labs Link*"
+                  label="Cloud Labs Link (optional)"
                   name="cloudLabsLink"
                   type="text"
                   formik={formik}
@@ -451,7 +451,7 @@ const CourseForm = () => {
 
                 {/* Trainers Multi-Select */}
                 <MultiSelectDropdown
-                  label="Trainer*"
+                  label="Trainer (optional)"
                   name="trainer"
                   options={trainers}
                   formik={formik}

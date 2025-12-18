@@ -103,13 +103,22 @@ const Navbar = () => {
           className="h-13 w-auto object-contain"
         /> */}
 
-        <img
+        {/* <img
           src={
             contactInfo?.logo ? `${DIR.LOGO}${contactInfo.logo}` : logo // fallback to default logo
           }
           alt={contactInfo?.companyName || ""}
           className="h-13 w-auto object-contain"
-        />
+        /> */}
+
+        {contactInfo?.logo && (
+  <img
+    src={`${DIR.LOGO}${contactInfo.logo}`}
+    alt={contactInfo?.companyName || ""}
+    className="h-13 w-auto object-contain"
+  />
+)}
+
 
         <Link className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5ec2f4] via-[#485DAC] to-[#E9577C]">
           {contactInfo?.companyName || ""}

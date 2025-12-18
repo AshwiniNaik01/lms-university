@@ -68,10 +68,10 @@ const ManageMeeting = () => {
     .then((res) => {
       const meetingsArray = Array.isArray(res.data.data) ? res.data.data : [];
       setMeetings(meetingsArray);
-      setErrorMessage(meetingsArray.length === 0 ? "No meetings found for this batch" : "");
+      setErrorMessage(meetingsArray.length === 0 ? "No sessions found for this batch" : "");
     })
     .catch((err) => {
-      console.error("Error fetching meetings:", err);
+      console.error("Error fetching sessions:", err);
 
       // Check if error response has message and statusCode === 404
       if (err.response?.status === 404 && err.response?.data?.message) {
@@ -79,7 +79,7 @@ const ManageMeeting = () => {
         setErrorMessage(err.response.data.message);
       } else {
         setMeetings([]);
-        setErrorMessage("Failed to fetch meetings");
+        setErrorMessage("Failed to fetch sessions");
       }
     });
 }, [selectedBatch]);
@@ -97,7 +97,7 @@ const ManageMeeting = () => {
       Swal.fire({
         icon: "info",
         title: "Attendance Already Done",
-        text: "You have already marked attendance for this meeting.",
+        text: "You have already marked attendance for this session.",
         confirmButtonText: "OK",
       });
     } else {
@@ -142,7 +142,7 @@ const ManageMeeting = () => {
         setAttendanceModalOpen(true);
       } else {
         const message =
-          res.data.message || "No attendance records found for this meeting.";
+          res.data.message || "No attendance records found for this session.";
         Swal.fire("Info", message, "info");
         setAttendanceData(null);
 
@@ -214,7 +214,7 @@ const ManageMeeting = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Manage Meetings</h2>
+      <h2 className="text-2xl font-bold mb-4">Manage Sessions</h2>
 
       {/* 🧩 Batch Dropdown */}
       <Dropdown
@@ -243,7 +243,7 @@ const ManageMeeting = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        header="Meeting Details"
+        header="Session Details"
       >
         {selectedMeeting ? (
           <div className="space-y-4">
@@ -276,13 +276,13 @@ const ManageMeeting = () => {
                 {selectedMeeting.batchDetails?.batchName || "-"}
               </div>
               <div>
-                <span className="font-medium text-gray-700">Meeting ID:</span>{" "}
+                <span className="font-medium text-gray-700">Session ID:</span>{" "}
                 {selectedMeeting.meetingId}
               </div>
             </div>
           </div>
         ) : (
-          <p className="text-gray-600">No meeting selected.</p>
+          <p className="text-gray-600">No session selected.</p>
         )}
       </Modal>
 

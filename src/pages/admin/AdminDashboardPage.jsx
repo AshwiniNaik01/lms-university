@@ -15,6 +15,12 @@ import { COURSE_NAME } from "../../utils/constants";
  * Dashboard card configurations
  */
 const dashboardCards = [
+    {
+    title: "Batch Management",
+    desc: `Add new batches, update existing ones, and manage study material structure.`,
+    link: "/manage-batches",
+    icon: <FaBook />,
+  },
   {
     title: "Training Program Management",
     desc: `Add new ${COURSE_NAME}, update existing ones, and manage curriculum structure.`,

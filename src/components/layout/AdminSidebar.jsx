@@ -50,6 +50,14 @@ const menuItems = [
     action: "read",
     adminOnly: true,
   },
+    {
+    label: "Trainer Management",
+    path: "/trainer-management",
+    icon: <FaUserTie />,
+    module: "trainer",
+    action: "read",
+    adminOnly: true,
+  },
   {
     label: "Role Based Permissions",
     path: "/role-permission",
@@ -57,19 +65,22 @@ const menuItems = [
     module: "role",
     adminOnly: true,
   },
-  {
-    label: "Sessions - Upskilling",
-    path: "/book-session",
-    icon: <FaChalkboardTeacher />,
-    module: "session",
-    action: "read",
-  },
+
+  // Hidden For now 
+  // {
+  //   label: "Sessions - Upskilling",
+  //   path: "/book-session",
+  //   icon: <FaChalkboardTeacher />,
+  //   module: "session",
+  //   action: "read",
+  // },
   {
     label: "Training Management",
     icon: <RiBook2Line />,
     module: "course",
     children: [
-      {
+
+       {
         label: "Training Program Management",
         icon: <FaFolderOpen />,
         module: "course",
@@ -90,31 +101,30 @@ const menuItems = [
           },
         ],
       },
-
-      // LECTURE
+        // BATCHES
       {
-        label: "Recordings",
-        icon: <FaVideo />,
-        module: "lecture",
+        label: "Batches",
+        icon: <MdOutlineClass />,
+        module: "batch",
         children: [
           {
-            label: "Add Recording",
-            icon: <FaFileAlt />,
-            path: "/add-course-videos",
+            label: "Create Batch",
+            icon: <FaGraduationCap />,
+            path: "/add-batch",
             action: "create",
-            module: "lecture",
+            module: "batch",
           },
           {
-            label: "Manage Recording",
+            label: "Manage Batches",
             icon: <FaLayerGroup />,
-            path: "/manage-course-videos",
+            path: "/manage-batches",
             action: "read",
-            module: "lecture",
+            module: "batch",
           },
         ],
       },
 
-      // CURRICULUM
+          // CURRICULUM
       {
         label: "Curriculum",
         icon: <FaBookOpen />,
@@ -137,29 +147,8 @@ const menuItems = [
         ],
       },
 
-      // BATCHES
-      {
-        label: "Batches",
-        icon: <MdOutlineClass />,
-        module: "batch",
-        children: [
-          {
-            label: "Add Batch",
-            icon: <FaGraduationCap />,
-            path: "/add-batch",
-            action: "create",
-            module: "batch",
-          },
-          {
-            label: "Manage Batches",
-            icon: <FaLayerGroup />,
-            path: "/manage-batches",
-            action: "read",
-            module: "batch",
-          },
-        ],
-      },
-
+       
+    
       {
         label: "Prerequisite",
         icon: <FaTasks />,
@@ -181,6 +170,79 @@ const menuItems = [
           },
         ],
       },
+
+           // LECTURE
+      {
+        label: "Recordings",
+        icon: <FaVideo />,
+        module: "lecture",
+        children: [
+          {
+            label: "Add Recording",
+            icon: <FaFileAlt />,
+            path: "/add-course-videos",
+            action: "create",
+            module: "lecture",
+          },
+          {
+            label: "Manage Recording",
+            icon: <FaLayerGroup />,
+            path: "/manage-course-videos",
+            action: "read",
+            module: "lecture",
+          },
+        ],
+      },
+
+    // NOTES
+      {
+        label: "Reference Materials Repository",
+        icon: <FaStickyNote />,
+        module: "note",
+        children: [
+          {
+            label: "Add Reference Material Repository",
+            icon: <FaRegFileAlt />,
+            path: "/add-notes",
+            action: "create",
+            module: "note",
+          },
+          {
+            label: "Manage Reference Material Repository",
+            icon: <FaLayerGroup />,
+            path: "/manage-notes",
+            action: "read",
+            module: "note",
+          },
+        ],
+      },
+
+        // MEETING
+      {
+        label: "Session Management",
+        icon: <MdOutlineMeetingRoom />,
+        module: "meeting",
+        children: [
+          {
+            label: "Add Session",
+            icon: <FaRegFileAlt />,
+            path: "/add-meeting",
+            action: "create",
+            module: "meeting",
+          },
+          {
+            label: "Manage Session",
+            icon: <FaCalendarAlt />,
+            path: "/manage-meeting",
+            action: "read",
+            module: "meeting",
+          },
+        ],
+      },
+
+     
+
+ 
 
       // ASSIGNMENT
       {
@@ -205,44 +267,23 @@ const menuItems = [
         ],
       },
 
-      // NOTES
-      {
-        label: "Reference Materials Repository",
-        icon: <FaStickyNote />,
-        module: "note",
-        children: [
-          {
-            label: "Add Reference Material Repository",
-            icon: <FaRegFileAlt />,
-            path: "/add-notes",
-            action: "create",
-            module: "note",
-          },
-          {
-            label: "Manage Reference Material Repository",
-            icon: <FaLayerGroup />,
-            path: "/manage-notes",
-            action: "read",
-            module: "note",
-          },
-        ],
-      },
+   
 
       // STUDENTS
       {
-        label: "Enroll Student",
+        label: "Enroll Candidate",
         icon: <FaClipboardList />,
         module: "enrollment",
         children: [
           {
-            label: "Enroll Student",
+            label: "Enroll Candidate",
             icon: <FaRegFileAlt />,
             path: "/enroll-student",
             action: "create",
             module: "enrollment",
           },
           {
-            label: "Enrolled Student List",
+            label: "Enrolled Candidate List",
             icon: <FaLayerGroup />,
             path: "/enrolled-student-list",
             action: "read",
@@ -251,28 +292,7 @@ const menuItems = [
         ],
       },
 
-      // MEETING
-      {
-        label: "Meeting Management",
-        icon: <MdOutlineMeetingRoom />,
-        module: "meeting",
-        children: [
-          {
-            label: "Add Meeting",
-            icon: <FaRegFileAlt />,
-            path: "/add-meeting",
-            action: "create",
-            module: "meeting",
-          },
-          {
-            label: "Manage Meeting",
-            icon: <FaCalendarAlt />,
-            path: "/manage-meeting",
-            action: "read",
-            module: "meeting",
-          },
-        ],
-      },
+    
 
       // Feedback
       {
@@ -323,14 +343,7 @@ const menuItems = [
   },
 
   // TRAINER
-  {
-    label: "Trainer Management",
-    path: "/trainer-management",
-    icon: <FaUserTie />,
-    module: "trainer",
-    action: "read",
-    adminOnly: true,
-  },
+
 ];
 
 // --------------------- SIDEBAR COMPONENT -------------------------
@@ -343,38 +356,72 @@ const AdminSidebar = () => {
   const [expandedMenus, setExpandedMenus] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRolePermissions = async () => {
-      if (!userRole || Object.keys(rolePermissions).length > 0) {
-        setLoading(false);
-        return;
-      }
+  // useEffect(() => {
+  //   const fetchRolePermissions = async () => {
+  //     if (!userRole || Object.keys(rolePermissions).length > 0) {
+  //       setLoading(false);
+  //       return;
+  //     }
 
-      try {
-        const res = await apiClient.get("/api/role");
-        const roles = res?.data?.message || [];
-        const matchedRole = roles.find((r) => r.role === userRole);
+  //     try {
+  //       const res = await apiClient.get("/api/role");
+  //       const roles = res?.data?.message || [];
+  //       const matchedRole = roles.find((r) => r.role === userRole);
 
-        if (!matchedRole) {
-          dispatch(setPermissions({}));
-        } else {
-          const permMap = {};
-          matchedRole.permissions.forEach((p) => {
-            permMap[p.module] = p.actions;
-          });
+  //       if (!matchedRole) {
+  //         dispatch(setPermissions({}));
+  //       } else {
+  //         const permMap = {};
+  //         matchedRole.permissions.forEach((p) => {
+  //           permMap[p.module] = p.actions;
+  //         });
 
-          dispatch(setPermissions(permMap));
-        }
-      } catch (err) {
-        console.error("Failed to fetch permissions:", err);
+  //         dispatch(setPermissions(permMap));
+  //       }
+  //     } catch (err) {
+  //       console.error("Failed to fetch permissions:", err);
+  //       dispatch(setPermissions({}));
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchRolePermissions();
+  // }, [userRole, rolePermissions, dispatch]);
+
+useEffect(() => {
+  const fetchRolePermissions = async () => {
+    if (!userRole) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await apiClient.get("/api/role");
+      const roles = res?.data?.message || [];
+      const matchedRole = roles.find((r) => r.role === userRole);
+
+      if (!matchedRole) {
         dispatch(setPermissions({}));
-      } finally {
-        setLoading(false);
-      }
-    };
+      } else {
+        const permMap = {};
+        matchedRole.permissions.forEach((p) => {
+          permMap[p.module] = p.actions;
+        });
 
-    fetchRolePermissions();
-  }, [userRole, rolePermissions, dispatch]);
+        dispatch(setPermissions(permMap));
+      }
+    } catch (err) {
+      console.error("Failed to fetch permissions:", err);
+      dispatch(setPermissions({}));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchRolePermissions();
+}, [userRole, dispatch]);
+
 
   const toggleSubmenu = (label) => {
     setExpandedMenus((prev) =>

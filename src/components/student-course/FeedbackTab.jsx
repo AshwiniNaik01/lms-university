@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { FaComments, FaCheckCircle, FaPaperPlane } from "react-icons/fa";
 import Cookies from "js-cookie";
-import apiClient from "../../api/axiosConfig";
+import { useEffect, useState } from "react";
+import { FaCheckCircle, FaComments, FaPaperPlane } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import apiClient from "../../api/axiosConfig";
 
 const FeedbackTab = () => {
   const location = useLocation();
@@ -75,6 +75,9 @@ const FeedbackTab = () => {
       courseId,
       batchId: batch._id,
       studentId,
+
+      feedbackQuestionId: feedbackForm._id, // <-- send the feedback form _id here
+
       questions: formattedQuestions,
       npsScore,
     };
@@ -85,17 +88,16 @@ const FeedbackTab = () => {
 
       await apiClient.post(`/api/feedback`, payload);
 
-setSubmitted(true);
+      setSubmitted(true);
 
-Swal.fire({
-  icon: "success",
-  title: "Thank You! 🎉",
-  text: "Your feedback has been submitted successfully.",
-  confirmButtonText: "OK",
-}).then(() => {
-  navigate(-1);
-});
-
+      Swal.fire({
+        icon: "success",
+        title: "Thank You! 🎉",
+        text: "Your feedback has been submitted successfully.",
+        confirmButtonText: "OK",
+      }).then(() => {
+        navigate(-1);
+      });
     } catch (err) {
       console.error(err);
       setError("Failed to submit feedback. Please try again.");
@@ -107,11 +109,11 @@ Swal.fire({
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-lg border p-6 mb-6">
         <button
-  onClick={() => navigate(-1)}
-  className="flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-800 transition mb-4"
->
-  ← Back
-</button>
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-800 transition mb-4"
+        >
+          ← Back
+        </button>
 
         <div className="flex items-center gap-4 mb-4">
           <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg">
@@ -186,7 +188,9 @@ Swal.fire({
                     <div
                       key={oIdx}
                       onClick={() => handleEmojiRate(q, option.label)}
-                      className={`${option.bg} rounded-xl p-2 border transition-all duration-300 transform hover:scale-[1.03] cursor-pointer ${
+                      className={`${
+                        option.bg
+                      } rounded-xl p-2 border transition-all duration-300 transform hover:scale-[1.03] cursor-pointer ${
                         responses[q] === emojiToValue[option.label]
                           ? "border-2 border-blue-600 shadow-lg"
                           : "border-transparent"
@@ -198,7 +202,9 @@ Swal.fire({
                         >
                           {option.emoji}
                         </div>
-                        <span className={`font-semibold ${option.text}`}>{option.label}</span>
+                        <span className={`font-semibold ${option.text}`}>
+                          {option.label}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -211,7 +217,9 @@ Swal.fire({
               <h3 className="text-xl font-semibold text-gray-700">
                 No Feedback Questions Available
               </h3>
-              <p className="text-gray-500">Instructor will update the feedback form soon.</p>
+              <p className="text-gray-500">
+                Instructor will update the feedback form soon.
+              </p>
             </div>
           )}
 
@@ -223,13 +231,18 @@ Swal.fire({
                   <span className="text-2xl">⭐</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-800">Net Promoter Score</h3>
-                  <p className="text-gray-600">Your honest feedback helps us improve</p>
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    Net Promoter Score
+                  </h3>
+                  <p className="text-gray-600">
+                    Your honest feedback helps us improve
+                  </p>
                 </div>
               </div>
 
               <p className="text-lg font-semibold text-gray-800 mb-6 mt-4">
-                How likely are you to recommend this learning program to your colleagues?
+                How likely are you to recommend this learning program to your
+                colleagues?
               </p>
 
               <div className="flex justify-between relative">
@@ -251,7 +264,10 @@ Swal.fire({
                     : "text-gray-400";
 
                   return (
-                    <div key={num} className="flex flex-col items-center relative">
+                    <div
+                      key={num}
+                      className="flex flex-col items-center relative"
+                    >
                       <button
                         onClick={() => handleNumericRate(npsQuestion, num)}
                         className={`w-12 h-12 ${bgColor} rounded-full flex items-center justify-center text-white font-bold text-lg mb-3 shadow-lg transition-all duration-300 cursor-pointer`}
@@ -259,10 +275,24 @@ Swal.fire({
                         {num}
                       </button>
                       <div className="text-center">
-                        <span className={`text-sm font-semibold ${textColor}`}>{num}</span>
-                        {num === 0 && <div className="text-xs text-gray-500 mt-1">Not likely</div>}
-                        {num === 5 && <div className="text-xs text-gray-500 mt-1">Neutral</div>}
-                        {num === 10 && <div className="text-xs text-gray-500 mt-1">Extremely likely</div>}
+                        <span className={`text-sm font-semibold ${textColor}`}>
+                          {num}
+                        </span>
+                        {num === 0 && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Not likely
+                          </div>
+                        )}
+                        {num === 5 && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Neutral
+                          </div>
+                        )}
+                        {num === 10 && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Extremely likely
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -278,7 +308,8 @@ Swal.fire({
       {/* Submit Button */}
       <div className="mt-6 text-center">
         <button
-          disabled={submitted || answeredCount < totalQuestions}
+          // disabled={submitted || answeredCount < totalQuestions}
+          disabled={submitted || (!npsQuestion && questions.length === 0)}
           onClick={submitFeedback}
           className={`px-8 py-3 rounded-xl text-white text-lg font-semibold transition-all shadow-lg flex items-center gap-2 mx-auto ${
             submitted
@@ -304,3 +335,196 @@ Swal.fire({
 };
 
 export default FeedbackTab;
+
+// import { useEffect, useState } from "react";
+// import { FaComments, FaPaperPlane, FaCheckCircle } from "react-icons/fa";
+// import { useLocation, useNavigate } from "react-router-dom";
+// import Cookies from "js-cookie";
+// import apiClient from "../../api/axiosConfig";
+// import Swal from "sweetalert2";
+
+// const FeedbackTab = () => {
+//   const { state } = useLocation();
+//   const navigate = useNavigate();
+
+//   const { batch, feedback } = state || {};
+//   const feedbackForm = feedback;
+
+//   const [responses, setResponses] = useState({});
+//   const [studentId, setStudentId] = useState(null);
+//   const [courseId, setCourseId] = useState(null);
+//   const [submitted, setSubmitted] = useState(false);
+//   const [error, setError] = useState("");
+
+//   useEffect(() => {
+//     setStudentId(Cookies.get("studentId") || Cookies.get("userId"));
+//     setCourseId(Cookies.get("courseId") || batch?.courseId);
+//     setResponses({});
+//     setSubmitted(false);
+//   }, [feedback?._id, batch?.courseId]);
+
+//   if (!feedbackForm) {
+//     return <div className="p-10 text-center">No feedback selected</div>;
+//   }
+
+//   const emojiToValue = {
+//     strongly_agree: 5,
+//     agree: 4,
+//     cant_say: 3,
+//     disagree: 1,
+//   };
+
+//   const handleEmojiRate = (questionId, value) => {
+//     setResponses((prev) => ({
+//       ...prev,
+//       [questionId]: value,
+//     }));
+//   };
+
+//   const handleNpsRate = (value) => {
+//     setResponses((prev) => ({
+//       ...prev,
+//       nps: value,
+//     }));
+//   };
+
+//   const submitFeedback = async () => {
+//     if (!studentId || !courseId) {
+//       setError("Missing student or course information");
+//       return;
+//     }
+
+//     try {
+//       const formattedQuestions = feedbackForm.questions.map((q) => ({
+//         questionId: q._id,
+//         numericValue: responses[q._id] ?? null,
+//         answer:
+//           Object.keys(emojiToValue).find(
+//             (key) => emojiToValue[key] === responses[q._id]
+//           ) || "cant_say",
+//       }));
+
+//       const payload = {
+//         courseId,
+//         batchId: batch._id,
+//         studentId,
+//         questions: formattedQuestions,
+//         npsScore: responses.nps ?? null,
+//       };
+
+//       await apiClient.post("/api/feedback", payload);
+
+//       setSubmitted(true);
+
+//       Swal.fire({
+//         icon: "success",
+//         title: "Thank You! 🎉",
+//         text: "Your feedback has been submitted successfully.",
+//       }).then(() => navigate(-1));
+//     } catch (err) {
+//       console.error(err);
+//       setError("Failed to submit feedback. Please try again.");
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+//       {/* Header */}
+//       <div className="bg-white rounded-2xl shadow-lg border p-6 mb-6">
+//         <button
+//           onClick={() => navigate(-1)}
+//           className="text-blue-600 font-semibold mb-4"
+//         >
+//           ← Back
+//         </button>
+
+//         <div className="flex items-center gap-4">
+//           <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl">
+//             <FaComments className="w-7 h-7" />
+//           </div>
+//           <div>
+//             <h1 className="text-3xl font-bold">Batch Feedback</h1>
+//             <p className="text-gray-600">{batch?.batchName}</p>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Questions */}
+//       <div className="bg-white rounded-2xl shadow-lg border p-6 space-y-6">
+//         {feedbackForm.questions.map((q, idx) => (
+//           <div key={q._id}>
+//             <p className="font-semibold mb-3">
+//               {idx + 1}. {q.question}
+//             </p>
+//             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+//               {Object.entries(emojiToValue).map(([key, value]) => (
+//                 <button
+//                   key={key}
+//                   onClick={() => handleEmojiRate(q._id, value)}
+//                   className={`p-3 rounded-xl border transition-all ${
+//                     responses[q._id] === value
+//                       ? "border-blue-600 bg-blue-50"
+//                       : "border-gray-300"
+//                   }`}
+//                 >
+//                   {key.replace("_", " ")}
+//                 </button>
+//               ))}
+//             </div>
+//           </div>
+//         ))}
+
+//         {/* NPS */}
+//         {feedbackForm.nps && (
+//           <div>
+//             <p className="font-semibold mb-3">
+//               {feedbackForm.nps.question}
+//             </p>
+//             <div className="flex gap-2 flex-wrap">
+//               {[...Array(11).keys()].map((n) => (
+//                 <button
+//                   key={n}
+//                   onClick={() => handleNpsRate(n)}
+//                   className={`w-10 h-10 rounded-full transition-all ${
+//                     responses.nps === n
+//                       ? "bg-blue-600 text-white"
+//                       : "bg-gray-200"
+//                   }`}
+//                 >
+//                   {n}
+//                 </button>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       {error && <p className="text-red-600 text-center mt-4">{error}</p>}
+
+//       {/* Submit */}
+//       <div className="mt-6 text-center">
+//         <button
+//           disabled={submitted}
+//           onClick={submitFeedback}
+//           className={`px-8 py-3 rounded-xl text-white font-semibold flex items-center gap-2 mx-auto ${
+//             submitted
+//               ? "bg-green-600"
+//               : "bg-blue-600 hover:bg-blue-700"
+//           }`}
+//         >
+//           {submitted ? (
+//             <>
+//               <FaCheckCircle /> Feedback Submitted
+//             </>
+//           ) : (
+//             <>
+//               <FaPaperPlane /> Submit Feedback
+//             </>
+//           )}
+//         </button>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default FeedbackTab;

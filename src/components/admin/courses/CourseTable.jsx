@@ -240,6 +240,17 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
             </button>
           )}
 
+             {/* Clone */}
+          {canPerformAction(rolePermissions, "course", "create") && (
+            <button
+              onClick={() => handleClone(row._id)}
+              title="Clone"
+              className="p-2 bg-violet-600 text-white rounded hover:bg-violet-700"
+            >
+              <FaClone size={16} />
+            </button>
+          )}
+
           {/* Add Curriculum */}
           <button
             onClick={() =>
@@ -251,25 +262,16 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
             <FaFolderPlus size={16} />
           </button>
 
-          {/* Clone */}
-          {canPerformAction(rolePermissions, "course", "create") && (
-            <button
-              onClick={() => handleClone(row._id)}
-              title="Clone"
-              className="p-2 bg-violet-600 text-white rounded hover:bg-violet-700"
-            >
-              <FaClone size={16} />
-            </button>
-          )}
+       
 
           {/* Add Recording */}
-          <button
+          {/* <button
             onClick={() => navigate(`/add-course-videos?courseId=${row._id}`)}
             title="Add Recording"
             className="p-2 bg-orange-600 text-white rounded hover:bg-orange-700"
           >
             <FaVideo size={16} />
-          </button>
+          </button> */}
 
           {/* Manage Curriculum */}
           <button
@@ -281,31 +283,31 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
           </button>
 
           {/* Add Assignment */}
-          <button
+          {/* <button
             onClick={() => navigate(`/add-assignment?courseId=${row._id}`)}
             title="Add Assignment"
             className="p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
           >
             <FaTasks size={16} />
-          </button>
+          </button> */}
 
           {/* Add Notes */}
-          <button
+          {/* <button
             onClick={() => navigate(`/add-notes?courseId=${row._id}`)}
             title="Add Reference Material Repository"
             className="p-2 bg-fuchsia-600 text-white rounded hover:bg-fuchsia-700"
           >
             <FaStickyNote size={16} />
-          </button>
+          </button> */}
 
           {/* Add Test */}
-          <button
+          {/* <button
             onClick={() => navigate(`/add-test?courseId=${row._id}`)}
             title="Add Assessment Test"
             className="p-2 bg-cyan-600 text-white rounded hover:bg-cyan-700"
           >
             <FaFileAlt size={16} />
-          </button>
+          </button> */}
 
           {/* Delete */}
           {canPerformAction(rolePermissions, "course", "delete") && (

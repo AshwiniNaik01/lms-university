@@ -31,13 +31,29 @@ const StudyCoursePage = () => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState("overview");
+  // const [activeTab, setActiveTab] = useState("overview");
   const [expandedWeeks, setExpandedWeeks] = useState({});
   const [progress, setProgress] = useState(0);
-  const [searchParams] = useSearchParams();
+  // inside component
+const [searchParams, setSearchParams] = useSearchParams();
+  // const [searchParams] = useSearchParams();
   const batchId = searchParams.get("batchId");
   const [batch, setBatch] = useState(null);
   const [showMeetings, setShowMeetings] = useState(false);
+
+
+// Initialize activeTab from URL query param
+const [activeTab, setActiveTabState] = useState(
+  searchParams.get("activeTab") || "overview"
+);
+
+// Handler to change active tab and update query params
+const handleSetActiveTab = (tabName) => {
+  const params = Object.fromEntries([...searchParams]);
+  params.activeTab = tabName;
+  setActiveTabState(tabName);
+  setSearchParams(params);
+};
 
   useEffect(() => {
     if (!courseId) return;
@@ -169,7 +185,9 @@ const StudyCoursePage = () => {
 
     return (
       <button
-        onClick={() => setActiveTab(name.toLowerCase())}
+        // onClick={() => setActiveTab(name.toLowerCase())}
+        onClick={() => handleSetActiveTab(name.toLowerCase())}
+
         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
           isActive
             ? `${colors.active} shadow-lg`
@@ -225,13 +243,13 @@ const StudyCoursePage = () => {
           <p className="text-gray-600 mb-6">
             {error || `The requested ${COURSE_NAME} could not be found.`}
           </p>
-          <Link
+          {/* <Link
             to="/my-courses"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105"
           >
             <FaArrowLeft className="w-4 h-4" />
             Back to My {COURSE_NAME}
-          </Link>
+          </Link> */}
         </div>
       </div>
     );
@@ -331,17 +349,25 @@ const StudyCoursePage = () => {
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-semibold hover:bg-blue-100 transition-all shadow-sm hover:shadow-md"
                 >
                   <FaClock className="w-4 h-4" />
-                  View Meetings & Attendance
+                  View Sessions & Attendance
                 </button>
 
-                {showMeetings && (
+                {/* {showMeetings && (
                   <div className="absolute top-full left-0 mt-2 w-full sm:w-80 z-50">
                     <MeetingsDropdown
                       batch={batch}
                       onClose={() => setShowMeetings(false)}
                     />
                   </div>
-                )}
+                )} */}
+
+                {showMeetings && (
+  <MeetingsDropdown
+    batch={batch}
+    onClose={() => setShowMeetings(false)}
+  />
+)}
+
               </div>
 
               {/* Rating */}
@@ -475,9 +501,14 @@ const StudyCoursePage = () => {
         {/* Main Content Area */}
         <main className="flex-1 min-w-0">
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden min-h-[70vh]">
-            {activeTab === "overview" && (
+            {/* {activeTab === "overview" && (
               <OverviewTab course={course} setActiveTab={setActiveTab} />
-            )}
+            )} */}
+
+            {activeTab === "overview" && (
+  <OverviewTab course={course} setActiveTab={handleSetActiveTab} />
+)}
+
             {activeTab === "curriculum" && (
               <CurriculumTab
                 course={course}

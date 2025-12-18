@@ -48,7 +48,7 @@ const AddMeetingForm = () => {
           Swal.fire({
             icon: "success",
             title: "Success",
-            text: res.data.message || "Meeting created successfully!",
+            text: res.data.message || "Session created successfully!",
             confirmButtonText: "OK",
           });
 
@@ -56,12 +56,12 @@ const AddMeetingForm = () => {
           setCustomPlatform("");
         }
       } catch (err) {
-        console.error("Error creating meeting:", err);
+        console.error("Error creating session:", err);
 
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: err.response?.data?.message || "Failed to create meeting.",
+          text: err.response?.data?.message || "Failed to create session.",
           confirmButtonText: "OK",
         });
       } finally {
@@ -136,7 +136,7 @@ const AddMeetingForm = () => {
         className="p-10 bg-white rounded-xl shadow-2xl max-w-5xl mx-auto space-y-6 overflow-hidden border-4 border-[rgba(14,85,200,0.83)]"
       >
         <h2 className="text-3xl font-bold text-[rgba(14,85,200,0.83)] text-center mb-6">
-          Add Meeting
+          Add Session
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -183,18 +183,18 @@ const AddMeetingForm = () => {
 
           {/* Meeting Link */}
           <InputField
-            label="Meeting Link"
+            label="Session Link"
             name="meetingLink"
             type="url"
             formik={formik}
           />
 
           {/* Meeting ID */}
-          <InputField label="Meeting ID" name="meetingId" formik={formik} />
+          <InputField label="Session ID" name="meetingId" formik={formik} />
 
           {/* Meeting Password */}
           <InputField
-            label="Meeting Password"
+            label="Session Password"
             name="meetingPassword"
             formik={formik}
           />
@@ -271,7 +271,7 @@ const AddMeetingForm = () => {
           {/* Meeting Description */}
           <div className="md:col-span-2">
             <TextAreaField
-              label="Meeting Description"
+              label="Session Description"
               name="meetingDescription"
               formik={formik}
               rows={4}
@@ -286,7 +286,7 @@ const AddMeetingForm = () => {
             disabled={loading}
             className="bg-blue-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-300"
           >
-            {loading ? "Adding..." : "Add Meeting"}
+            {loading ? "Adding..." : "Add Session"}
           </button>
         </div>
       </form>

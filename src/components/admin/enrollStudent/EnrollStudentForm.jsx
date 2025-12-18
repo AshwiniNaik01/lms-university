@@ -162,9 +162,9 @@ const EnrollStudentForm = () => {
             collegeName: enrollment.collegeName || "",
             // enrolledCourses: enrollment.enrolledCourses || [],
 
-             // ✅ FIX HERE
-  enrolledCourses:
-    enrollment.enrolledCourses?.map((c) => c._id) || [],
+            // ✅ FIX HERE
+            enrolledCourses:
+              enrollment.enrolledCourses?.map((c) => c._id) || [],
 
             enrolledBatches:
               enrollment.enrolledBatches?.map((b) => b._id) || [],
@@ -187,16 +187,13 @@ const EnrollStudentForm = () => {
           // );
 
           const batchesFromCourses = enrollment.enrolledCourses.flatMap(
-  (course) => {
-    const foundCourse = courses.find(
-      (c) => c._id === course._id
-    );
-    return foundCourse?.batches || [];
-  }
-);
+            (course) => {
+              const foundCourse = courses.find((c) => c._id === course._id);
+              return foundCourse?.batches || [];
+            }
+          );
 
-setFilteredBatches(batchesFromCourses);
-
+          setFilteredBatches(batchesFromCourses);
 
           setFilteredBatches(batchesFromCourses);
         } else {
@@ -249,7 +246,7 @@ setFilteredBatches(batchesFromCourses);
         className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-10 overflow-hidden border-4 border-[rgba(14,85,200,0.83)]"
       >
         <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center">
-          {enrollmentId ? "Update Enrollment" : "Enroll Student"}
+          {enrollmentId ? "Update Enrollment" : "Enroll Candidate"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
