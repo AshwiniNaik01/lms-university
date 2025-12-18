@@ -350,7 +350,7 @@ const ManageBatch = () => {
               onClick={() => navigate("/add-batch")}
               className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 py-2 rounded-lg transition"
             >
-              + Add Batch
+              + Create Batch
             </button>
           )}
         </div>

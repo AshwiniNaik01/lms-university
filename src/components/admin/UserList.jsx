@@ -1,117 +1,736 @@
+// import { useEffect, useState } from "react";
+// import { useAuth } from "../../contexts/AuthContext.jsx";
+// import ScrollableTable from "../table/ScrollableTable.jsx";
+// import Modal from "../popupModal/Modal.jsx";
+// import apiClient from "../../api/axiosConfig.js";
+// import ToggleSwitch from "../form/ToggleSwitch.jsx";
+
+
+// const UserList = () => {
+//   const [users, setUsers] = useState([]);
+//   const [error, setError] = useState("");
+//   const [loading, setLoading] = useState(true);
+//   const { token } = useAuth();
+
+//   const [isModalOpen, setIsModalOpen] = useState(false);
+//   const [formData, setFormData] = useState({
+//     firstName: "",
+//     lastName: "",
+//     email: "",
+//     password: "",
+//     mobileNo: "",
+//     role: "",
+//   });
+//   const [formLoading, setFormLoading] = useState(false);
+//   const [formError, setFormError] = useState("");
+
+//   const [roles, setRoles] = useState([]);
+//   const [selectedRole, setSelectedRole] = useState(""); // Role filter
+
+//   // --- Fetch roles ---
+//   useEffect(() => {
+//     const fetchRoles = async () => {
+//       try {
+//         const res = await apiClient.get("/api/role", {
+//           headers: { Authorization: `Bearer ${token}` },
+//         });
+//         setRoles(res.data.message || []);
+//       } catch (err) {
+//         console.error("Error fetching roles", err);
+//       }
+//     };
+//     if (token) fetchRoles();
+//   }, [token]);
+
+//   // --- Fetch users and trainers with optional role filter ---
+//   const loadUsers = async (roleFilter = "") => {
+//     setLoading(true);
+//     try {
+//       const res = await apiClient.post(
+//         "/api/users",
+//         { role: roleFilter },
+//         { headers: { Authorization: `Bearer ${token}` } }
+//       );
+
+//       const fetchedUsers = res.data.data?.users || [];
+//       const fetchedTrainers = res.data.data?.trainers || [];
+
+//       let allItems = roleFilter
+//         ? [
+//             ...fetchedUsers.filter((u) => u.role === roleFilter),
+//             ...fetchedTrainers.filter((t) => t.role === roleFilter),
+//           ]
+//         : [...fetchedUsers, ...fetchedTrainers];
+
+//       const sortedItems = allItems.sort((a, b) => {
+//         const nameA = a.firstName ? `${a.firstName} ${a.lastName}` : a.fullName;
+//         const nameB = b.firstName ? `${b.firstName} ${b.lastName}` : b.fullName;
+//         return nameA.localeCompare(nameB);
+//       });
+
+//       setUsers(sortedItems);
+//       setError("");
+//     } catch (err) {
+//       setError("Failed to load users.");
+//       console.error(err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (token) loadUsers(selectedRole);
+//   }, [token, selectedRole]);
+
+//   // --- Handle LoginPermission toggle ---
+// const handleToggleLoginPermission = async (userId, currentStatus) => {
+//   try {
+//     const res = await apiClient.delete(
+//       `/api/users/${userId}`,          // your endpoint for updating user
+//       { isActive: !currentStatus },   // toggle isActive
+//       { headers: { Authorization: `Bearer ${token}` } }
+//     );
+
+//     const updatedUser = res.data.data;
+
+//     // Update the user in the state
+//     setUsers((prev) =>
+//       prev.map((u) => (u._id === updatedUser._id ? { ...u, isActive: updatedUser.isActive } : u))
+//     );
+//   } catch (err) {
+//     console.error("Failed to toggle login permission", err);
+//   }
+// };
+
+
+//   // --- Table columns ---
+//   const columns = [
+//     {
+//       header: "Name",
+//       accessor: (item) => (item.firstName ? `${item.firstName} ${item.lastName}` : item.fullName),
+//     },
+//     { header: "Email", accessor: "email" },
+//     {
+//       header: "Role",
+//       accessor: (item) => (item.role ? item.role.charAt(0).toUpperCase() + item.role.slice(1) : ""),
+//     },
+// {
+//   header: "LoginPermission",
+//   accessor: (item) => (
+//     <ToggleSwitch
+//       label=""
+//       name={`login-${item._id}`}
+//       checked={item.isActive} // reflects login permission
+//       onChange={() => handleToggleLoginPermission(item._id, item.isActive)}
+//     />
+//   ),
+// },
+//   ];
+
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleAddUser = async () => {
+//     setFormLoading(true);
+//     setFormError("");
+
+//     try {
+//       await apiClient.post("/api/auth/register", formData, {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+
+//       setIsModalOpen(false);
+//       setFormData({
+//         firstName: "",
+//         lastName: "",
+//         email: "",
+//         password: "",
+//         mobileNo: "",
+//         role: "",
+//       });
+
+//       await loadUsers(selectedRole);
+//     } catch (err) {
+//       setFormError(err.response?.data?.message || "Failed to add user");
+//       console.error(err);
+//     } finally {
+//       setFormLoading(false);
+//     }
+//   };
+
+//   if (loading) return <p className="text-center py-12 animate-pulse">Loading users...</p>;
+//   if (error) return <p className="text-center py-12 text-red-500">{error}</p>;
+
+//   return (
+//     <div className="max-h-screen p-2">
+//       <div className="max-w-7xl mx-auto overflow-hidden">
+//         <header className="px-6 py-5 bg-indigo-50 border-b border-indigo-200 flex items-center justify-between">
+//           <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">User Management</h1>
+
+//           <div className="flex gap-2 items-center">
+//             <label>Filter by Role:</label>
+//             <select
+//               value={selectedRole}
+//               onChange={(e) => setSelectedRole(e.target.value)}
+//               className="border p-2 rounded-md"
+//             >
+//               <option value="">All</option>
+//               {roles.map((roleObj) => (
+//                 <option key={roleObj._id} value={roleObj.role}>
+//                   {roleObj.role.charAt(0).toUpperCase() + roleObj.role.slice(1)}
+//                 </option>
+//               ))}
+//             </select>
+//           </div>
+
+//           <button
+//             onClick={() => setIsModalOpen(true)}
+//             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+//           >
+//             Add User
+//           </button>
+//         </header>
+
+//         <div className="p-2">
+//           {users.length === 0 ? (
+//             <p className="text-center text-gray-500 italic text-lg py-12">No users found.</p>
+//           ) : (
+//             <ScrollableTable columns={columns} data={users} maxHeight="440px" />
+//           )}
+//         </div>
+//       </div>
+
+//       <Modal
+//         isOpen={isModalOpen}
+//         onClose={() => setIsModalOpen(false)}
+//         header="Add New User"
+//         primaryAction={{ label: "Add User", onClick: handleAddUser, loading: formLoading }}
+//       >
+//         <div className="space-y-3">
+//           {formError && <p className="text-red-500">{formError}</p>}
+//           <div className="flex gap-2">
+//             <input
+//               type="text"
+//               name="firstName"
+//               placeholder="First Name"
+//               value={formData.firstName}
+//               onChange={handleChange}
+//               className="flex-1 border p-2 rounded-md"
+//             />
+//             <input
+//               type="text"
+//               name="lastName"
+//               placeholder="Last Name"
+//               value={formData.lastName}
+//               onChange={handleChange}
+//               className="flex-1 border p-2 rounded-md"
+//             />
+//           </div>
+//           <input
+//             type="email"
+//             name="email"
+//             placeholder="Email"
+//             value={formData.email}
+//             onChange={handleChange}
+//             className="w-full border p-2 rounded-md"
+//           />
+//           <input
+//             type="password"
+//             name="password"
+//             placeholder="Password"
+//             value={formData.password}
+//             onChange={handleChange}
+//             className="w-full border p-2 rounded-md"
+//           />
+//           <input
+//             type="text"
+//             name="mobileNo"
+//             placeholder="Mobile Number"
+//             value={formData.mobileNo}
+//             onChange={handleChange}
+//             className="w-full border p-2 rounded-md"
+//           />
+
+//           <select
+//             name="role"
+//             value={formData.role}
+//             onChange={handleChange}
+//             className="w-full border p-2 rounded-md"
+//           >
+//             <option value="">Select Role</option>
+//             {roles.map((roleObj) => (
+//               <option key={roleObj._id} value={roleObj.role}>
+//                 {roleObj.role.charAt(0).toUpperCase() + roleObj.role.slice(1)}
+//               </option>
+//             ))}
+//           </select>
+//         </div>
+//       </Modal>
+//     </div>
+//   );
+// };
+
+
+// export default UserList;
+
 
 
 import { useEffect, useState } from "react";
-import { fetchAllUsersAdmin } from "../../api/admin.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import ScrollableTable from "../table/ScrollableTable.jsx";
+import Modal from "../popupModal/Modal.jsx";
+import apiClient from "../../api/axiosConfig.js";
+import ToggleSwitch from "../form/ToggleSwitch.jsx";
+import Swal from "sweetalert2";
 
-/**
- * UserList Component
- * ------------------
- * Displays all registered users for admin management.
- * Fetches data from API and renders a professional, scrollable table.
- *
- * Features:
- * - Loading state with animation
- * - Error state handling
- * - Scrollable table with sticky header
- * - Responsive and modern UI
- */
 const UserList = () => {
-  const [users, setUsers] = useState([]); // Stores fetched users
-  const [error, setError] = useState(""); // Stores error messages
-  const [loading, setLoading] = useState(true); // Loading state
-  const { token } = useAuth(); // Auth token for API calls
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
 
-  /**
-   * Fetch all users from the admin API
-   */
-const loadUsers = async () => {
-  setLoading(true); // Start loading
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    mobileNo: "",
+    role: "",
+  });
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const [roles, setRoles] = useState([]);
+  const [selectedRole, setSelectedRole] = useState("admin"); // Role filter
+
+  // --- Fetch roles ---
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await apiClient.get("/api/role", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setRoles(res.data.message || []);
+      } catch (err) {
+        console.error("Error fetching roles", err);
+      }
+    };
+    if (token) fetchRoles();
+  }, [token]);
+
+  // --- Fetch users and trainers with optional role filter ---
+  const loadUsers = async (roleFilter = "") => {
+    setLoading(true);
+    try {
+      const res = await apiClient.post(
+        "/api/users",
+        { role: roleFilter },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const fetchedUsers = res.data.data?.users || [];
+      const fetchedTrainers = res.data.data?.trainers || [];
+
+      let allItems = roleFilter
+        ? [
+            ...fetchedUsers.filter((u) => u.role === roleFilter),
+            ...fetchedTrainers.filter((t) => t.role === roleFilter),
+          ]
+        : [...fetchedUsers, ...fetchedTrainers];
+
+      const sortedItems = allItems.sort((a, b) => {
+        const nameA = a.firstName ? `${a.firstName} ${a.lastName}` : a.fullName;
+        const nameB = b.firstName ? `${b.firstName} ${b.lastName}` : b.fullName;
+        return nameA.localeCompare(nameB);
+      });
+
+      setUsers(sortedItems);
+      setError("");
+    } catch (err) {
+      setError("Failed to load users.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) loadUsers(selectedRole);
+  }, [token, selectedRole]);
+
+  // --- Handle LoginPermission toggle ---
+const handleToggleLoginPermission = async (user) => {
   try {
-    const fetchedUsers = await fetchAllUsersAdmin(token);
-    // Sort users by role alphabetically
-    const sortedUsers = (fetchedUsers || []).sort((a, b) =>
-      b.role.localeCompare(a.role)
+    // Call the same logout API for both ON and OFF
+    await apiClient.post(
+      "/api/auth/logout",
+      { _id: user._id, role: user.role },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
-    setUsers(sortedUsers); // Update users state
-    setError(""); // Clear previous errors
+
+    // Toggle the local state
+    setUsers((prev) =>
+      prev.map((u) =>
+        u._id === user._id ? { ...u, isLogin: !u.isLogin } : u
+      )
+    );
+
+    Swal.fire(
+      "Success",
+      `${user.firstName || user.fullName} login permission ${
+        user.isLogin ? "revoked" : "activated"
+      }`,
+      "success"
+    );
   } catch (err) {
-    setError("Failed to load users."); // Display error
-    console.error("Error fetching users:", err);
-  } finally {
-    setLoading(false); // Stop loading
+    console.error("Failed to toggle login permission", err);
+    Swal.fire("Error", "Failed to toggle login permission", "error");
   }
 };
 
 
-  // Fetch users whenever the auth token changes
-  useEffect(() => {
-    if (token) {
-      loadUsers();
-    }
-  }, [token]);
-
-  // Define table columns
+  // --- Table columns ---
   const columns = [
     {
       header: "Name",
-      accessor: (user) => `${user.firstName} ${user.lastName}`,
+      accessor: (item) => (item.firstName ? `${item.firstName} ${item.lastName}` : item.fullName),
     },
-    {
-      header: "Email",
-      accessor: "email",
-    },
+    { header: "Email", accessor: "email" },
     {
       header: "Role",
-      accessor: (user) =>
-        user.role.charAt(0).toUpperCase() + user.role.slice(1),
+      accessor: (item) => (item.role ? item.role.charAt(0).toUpperCase() + item.role.slice(1) : ""),
+    },
+    {
+      header: "Login Permission",
+      accessor: (item) => (
+        <ToggleSwitch
+          label=""
+          name={`login-${item._id}`}
+          checked={item.isLogin} // reflects login permission
+          onChange={() => handleToggleLoginPermission(item)}
+        />
+      ),
     },
   ];
 
-  // --- Loading State ---
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-lg text-gray-600 animate-pulse">Loading users...</p>
-      </div>
-    );
-  }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  // --- Error State ---
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen ">
-        <p className="text-lg text-red-500">{error}</p>
-      </div>
-    );
-  }
+  const handleAddUser = async () => {
+    setFormLoading(true);
+    setFormError("");
 
-  // --- Main UI ---
-  return (
-    <div className="max-h-screen p-2">
-      <div className="max-w-7xl mx-auto overflow-hidden">
-        {/* Header */}
-        <header className="fiexd px-6 py-5 bg-indigo-50 border-b border-indigo-200 flex items-center justify-between">
-          <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">
-            User Management
-          </h1>
-        
-        </header>
+    try {
+      await apiClient.post("/api/auth/register", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        {/* Table / Empty State */}
-        <div className="p-2">
-          {users.length === 0 ? (
-            <p className="text-center text-gray-500 italic text-lg py-12">
-              No users found.
-            </p>
-          ) : (
-            <ScrollableTable columns={columns} data={users} maxHeight="440px" />
-          )}
+      setIsModalOpen(false);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        mobileNo: "",
+        role: "",
+      });
+
+      await loadUsers(selectedRole);
+    } catch (err) {
+      setFormError(err.response?.data?.message || "Failed to add user");
+      console.error(err);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  if (loading) return <p className="text-center py-12 animate-pulse">Loading users...</p>;
+  if (error) return <p className="text-center py-12 text-red-500">{error}</p>;
+
+  // return (
+  //   <div className="max-h-screen p-2">
+  //     <div className="max-w-7xl mx-auto overflow-hidden">
+  //       <header className="px-6 py-5 bg-indigo-50 border-b border-indigo-200 flex items-center justify-between">
+  //         <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">User Management</h1>
+
+  //         <div className="flex gap-2 items-center">
+  //           <label>Filter by Role:</label>
+  //           <select
+  //             value={selectedRole}
+  //             onChange={(e) => setSelectedRole(e.target.value)}
+  //             className="border p-2 rounded-md"
+  //           >
+  //             <option value=""></option>
+  //             {roles.map((roleObj) => (
+  //               <option key={roleObj._id} value={roleObj.role}>
+  //                 {roleObj.role.charAt(0).toUpperCase() + roleObj.role.slice(1)}
+  //               </option>
+  //             ))}
+  //           </select>
+  //         </div>
+
+  //         <button
+  //           onClick={() => setIsModalOpen(true)}
+  //           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+  //         >
+  //           Add User
+  //         </button>
+  //       </header>
+
+  //       <div className="p-2">
+  //         {users.length === 0 ? (
+  //           <p className="text-center text-gray-500 italic text-lg py-12">No users found.</p>
+  //         ) : (
+  //           <ScrollableTable columns={columns} data={users} maxHeight="440px" />
+  //         )}
+  //       </div>
+  //     </div>
+
+  //     <Modal
+  //       isOpen={isModalOpen}
+  //       onClose={() => setIsModalOpen(false)}
+  //       header="Add New User"
+  //       primaryAction={{ label: "Add User", onClick: handleAddUser, loading: formLoading }}
+  //     >
+  //       <div className="space-y-3">
+  //         {formError && <p className="text-red-500">{formError}</p>}
+  //         <div className="flex gap-2">
+  //           <input
+  //             type="text"
+  //             name="firstName"
+  //             placeholder="First Name"
+  //             value={formData.firstName}
+  //             onChange={handleChange}
+  //             className="flex-1 border p-2 rounded-md"
+  //           />
+  //           <input
+  //             type="text"
+  //             name="lastName"
+  //             placeholder="Last Name"
+  //             value={formData.lastName}
+  //             onChange={handleChange}
+  //             className="flex-1 border p-2 rounded-md"
+  //           />
+  //         </div>
+  //         <input
+  //           type="email"
+  //           name="email"
+  //           placeholder="Email"
+  //           value={formData.email}
+  //           onChange={handleChange}
+  //           className="w-full border p-2 rounded-md"
+  //         />
+  //         <input
+  //           type="password"
+  //           name="password"
+  //           placeholder="Password"
+  //           value={formData.password}
+  //           onChange={handleChange}
+  //           className="w-full border p-2 rounded-md"
+  //         />
+  //         <input
+  //           type="text"
+  //           name="mobileNo"
+  //           placeholder="Mobile Number"
+  //           value={formData.mobileNo}
+  //           onChange={handleChange}
+  //           className="w-full border p-2 rounded-md"
+  //         />
+
+  //         <select
+  //           name="role"
+  //           value={formData.role}
+  //           onChange={handleChange}
+  //           className="w-full border p-2 rounded-md"
+  //         >
+  //           <option value="">Select Role</option>
+  //           {roles.map((roleObj) => (
+  //             <option key={roleObj._id} value={roleObj.role}>
+  //               {roleObj.role.charAt(0).toUpperCase() + roleObj.role.slice(1)}
+  //             </option>
+  //           ))}
+  //         </select>
+  //       </div>
+  //     </Modal>
+  //   </div>
+  // );
+
+
+return (
+  <div className="min-h-screen bg-gray-50 p-4">
+    <div className="max-w-7xl mx-auto bg-white rounded-lg shadow overflow-hidden">
+      
+      {/* Header */}
+      <header className="px-6 py-5 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-3xl font-bold text-indigo-900">
+          User Management
+        </h1>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              Filter by Role
+            </label>
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All</option>
+              {roles.map((roleObj) => (
+                <option key={roleObj._id} value={roleObj.role}>
+                  {roleObj.role.charAt(0).toUpperCase() + roleObj.role.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition"
+          >
+            + Add User
+          </button>
         </div>
+      </header>
+
+      {/* Content */}
+      <div className="p-4">
+        {users.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-gray-500 text-lg">
+              No users found
+            </p>
+            <p className="text-sm text-gray-400 mt-1">
+              Try changing the filter or add a new user
+            </p>
+          </div>
+        ) : (
+          <ScrollableTable
+            columns={columns}
+            data={users}
+            maxHeight="460px"
+          />
+        )}
       </div>
     </div>
-  );
+
+    {/* Add User Modal */}
+   <Modal
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  header="Add New User"
+  primaryAction={{
+    label: "Add User",
+    onClick: handleAddUser,
+    loading: formLoading,
+  }}
+>
+  <div className="space-y-6">
+
+    {/* Error message */}
+    {formError && (
+      <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+        {formError}
+      </div>
+    )}
+
+    {/* Name fields */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-700 mb-1">First Name</label>
+        <input
+          type="text"
+          name="firstName"
+          placeholder="First Name"
+          value={formData.firstName}
+          onChange={handleChange}
+          className="input border-2 border-blue-100 p-2 rounded-lg"
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-700 mb-1">Last Name</label>
+        <input
+          type="text"
+          name="lastName"
+          placeholder="Last Name"
+          value={formData.lastName}
+          onChange={handleChange}
+          className="input border-2 border-blue-100 p-2 rounded-lg"
+        />
+      </div>
+    </div>
+
+    {/* Email */}
+    <div className="flex flex-col">
+      <label className="text-sm font-medium text-gray-700 mb-1">Email</label>
+      <input
+        type="email"
+        name="email"
+         // placeholder="mail id"
+        value={formData.email}
+        onChange={handleChange}
+        className="input border-2 border-blue-100 p-2 rounded-lg"
+      />
+    </div>
+
+    {/* Password */}
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  {/* Password */}
+  <div className="flex flex-col">
+    <label className="text-sm font-medium text-gray-700 mb-1">Password</label>
+    <input
+      type="password"
+      name="password"
+      // placeholder="••••••••"
+      value={formData.password}
+      onChange={handleChange}
+      className="w-full border-2 border-blue-100 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+  </div>
+
+  {/* Mobile Number */}
+  <div className="flex flex-col">
+    <label className="text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+    <input
+      type="text"
+      name="mobileNo"
+      // placeholder="+91 9876543210"
+      value={formData.mobileNo}
+      onChange={handleChange}
+      className="w-full border-2 border-blue-100 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+  </div>
+</div>
+
+    {/* Role selection */}
+    <div className="flex flex-col w-50">
+      <label className="text-sm font-medium text-gray-700 mb-1">Role</label>
+      <select
+        name="role"
+        value={formData.role}
+        onChange={handleChange}
+        className="input border-2 border-blue-100 p-2 rounded-lg"
+      >
+        <option value="">Select Role</option>
+        {roles.map((roleObj) => (
+          <option key={roleObj._id} value={roleObj.role}>
+            {roleObj.role.charAt(0).toUpperCase() + roleObj.role.slice(1)}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+</Modal>
+
+  </div>
+);
+
 };
 
 export default UserList;

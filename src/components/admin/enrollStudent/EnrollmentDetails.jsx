@@ -170,12 +170,12 @@ const EnrollmentDetails = () => {
                 </p>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            {/* <div className="flex flex-col items-end gap-2">
               {getStatusBadge("active")}
               <span className="text-sm text-gray-500">
                 ID: {enrollment._id.slice(-8)}
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -251,7 +251,7 @@ const EnrollmentDetails = () => {
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <FiUser className="text-blue-600" />
-                  Student Information
+                  Candidate Information
                 </h2>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
@@ -270,6 +270,12 @@ const EnrollmentDetails = () => {
                     <span className="text-gray-600">Mobile</span>
                     <span className="font-semibold text-gray-900">
                       {enrollment.mobileNo}
+                    </span>
+                  </div>
+                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Password</span>
+                    <span className="font-semibold text-gray-900">
+                      {enrollment.password}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2">

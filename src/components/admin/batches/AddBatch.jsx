@@ -274,7 +274,7 @@ const AddBatch = ({ onBatchSaved }) => {
       <div className="bg-white p-10 rounded-xl shadow-xl max-w-5xl mx-auto border-4 border-blue-700">
         <div className="flex justify-between items-center mb-8">
           <h3 className="text-3xl font-bold text-blue-700 underline">
-            {selectedBatchId ? "Update Batch" : "Add Batch"}
+            {selectedBatchId ? "Update Batch" : "Create Batch"}
           </h3>
 
           {canPerformAction(rolePermissions, "batch", "read") && (
@@ -401,7 +401,7 @@ const AddBatch = ({ onBatchSaved }) => {
             key={excelFile ? excelFile.name : "excel-uploader"} // force re-mount
             sampleFileUrl="/Enrollment_Sample.xlsx"
             requiredFields={["fullName", "mobileNo", "email"]}
-            title="Upload Student Excel (optional)"
+            title="Upload Candidate Excel (optional)"
             onImport={({ file, data }) => {
               setExcelFile(file);
               setExcelPreview(data);
@@ -470,7 +470,7 @@ const AddBatch = ({ onBatchSaved }) => {
                 ? "Saving..."
                 : selectedBatchId
                 ? "Update Batch"
-                : "Add Batch"}
+                : "Create Batch"}
             </button>
           </div>
         </form>

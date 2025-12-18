@@ -38,7 +38,7 @@ const StudentProfilePage = () => {
           });
         }
       } catch (err) {
-        console.error("Failed to fetch student", err);
+        console.error("Failed to fetch candidate", err);
       } finally {
         setLoading(false);
       }
@@ -122,7 +122,7 @@ const StudentProfilePage = () => {
 
 
   if (loading) return <div className="text-center mt-20">Loading...</div>;
-  if (!student) return <div className="text-center mt-20">Student not found.</div>;
+  if (!student) return <div className="text-center mt-20">Candidate not found.</div>;
 
   return (
     <div className="max-w-3xl mx-auto my-10 p-6 rounded-xl space-y-8 bg-gradient-to-r from-[#9cc4d7] via-[#8f9fd6] to-[#d997a4] shadow-2xl">
@@ -130,7 +130,7 @@ const StudentProfilePage = () => {
       {/* Header */}
       <div className="bg-white rounded-xl shadow-lg p-4 flex justify-between items-center">
         <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <User className="w-6 h-6 text-blue-600" /> Student Profile
+          <User className="w-6 h-6 text-blue-600" /> Candidate Profile
         </h2>
         <button
           onClick={() => setIsEditing(!isEditing)}

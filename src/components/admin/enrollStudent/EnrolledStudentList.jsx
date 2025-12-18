@@ -54,7 +54,7 @@ const EnrolledStudentList = () => {
   // Table Columns
   const columns = [
     {
-      header: "Student Name",
+      header: "Candidate Name",
       accessor: (row) => row.student?.fullName || "-",
     },
     {
@@ -198,7 +198,7 @@ useEffect(() => {
 
     <h2 className="text-2xl font-bold text-gray-700">
   {batchLoading ? "Loading batch..." :
-   batchName ? `Enrolled Student list for ${batchName}` : "Manage Enrolled Student"}
+   batchName ? `Enrolled Candidate list for ${batchName}` : "Manage Enrolled Student"}
 </h2>
 
         {canPerformAction(rolePermissions, "enrollment", "create") && (
@@ -206,7 +206,7 @@ useEffect(() => {
             onClick={() => navigate("/enroll-student")}
             className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
           >
-            + Enroll New Student
+            + Enroll New Candidate
           </button>
         )}
       </div>
@@ -241,7 +241,7 @@ useEffect(() => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col">
-                <span className="text-gray-500 font-medium">Student Name</span>
+                <span className="text-gray-500 font-medium">Candidate Name</span>
                 <span className="text-gray-800">
                   {selectedEnrollment.student?.fullName}
                 </span>

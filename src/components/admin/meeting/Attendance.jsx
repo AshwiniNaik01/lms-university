@@ -40,14 +40,14 @@ const Attendance = () => {
       .catch((err) => {
         // Show swal error message from backend
         const errorMessage =
-          err.response?.data?.message || "Failed to fetch meeting details";
+          err.response?.data?.message || "Failed to fetch session details";
         Swal.fire({
           icon: "warning",
           title: "Warning",
           text: errorMessage,
           confirmButtonText: "OK",
         });
-        console.error("Failed to fetch meeting details:", err);
+        console.error("Failed to fetch session details:", err);
       })
       .finally(() => setLoading(false));
   }, [meetingId]);
@@ -116,8 +116,8 @@ const Attendance = () => {
     });
   };
 
-  if (loading) return <div>Loading meeting...</div>;
-  if (!meeting) return <div>No meeting data available.</div>;
+  if (loading) return <div>Loading session...</div>;
+  if (!meeting) return <div>No session data available.</div>;
   // if (!attendees.length) return <div>No students found in this batch.</div>;
 
   if (!attendees.length) {
@@ -143,13 +143,13 @@ const Attendance = () => {
             <div>
               <h2 className="text-2xl font-bold mb-1">Attendance Records</h2>
               <p className="text-blue-100 text-sm">
-                Manage student attendance for this session
+                Manage candidates attendance for this session
               </p>
             </div>
 
             <div className="flex items-center space-x-6">
               <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
-                <div className="text-sm text-blue-100">Total Students</div>
+                <div className="text-sm text-blue-100">Total Candidates</div>
                 <div className="text-2xl font-bold text-white">
                   {attendees.length}
                 </div>
