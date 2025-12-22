@@ -250,7 +250,8 @@ const RolePermissionManager = () => {
                         type="checkbox"
                         checked={permissions[m.module]?.includes(action)}
                         onChange={() => handleCheckboxChange(m.module, action)}
-                        disabled={selectedRoleName === "admin"}
+                        // disabled={selectedRoleName === "admin"}
+                         disabled={selectedRoleName === "admin" || selectedRoleName === "super_admin"}
                         className="h-5 w-5 text-indigo-600"
                       />
                     </td>

@@ -820,7 +820,7 @@ const handleResetPassword = async () => {
     {/* Auto Generate */}
     <button
       type="button"
-      onClick={() => generateResetPassword(8)}
+      onClick={() => generateResetPassword(6)}
       className="px-3 py-1 bg-indigo-600 text-white rounded-md"
     >
       Auto Generate
