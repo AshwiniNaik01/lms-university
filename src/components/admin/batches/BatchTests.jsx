@@ -113,7 +113,7 @@ const BatchTests = () => {
                 className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 px-4 rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all flex items-center justify-center gap-2"
               >
                 <VscOrganization />
-                View Students
+                View ParticipateS
               </button>
             </div>
           </div>

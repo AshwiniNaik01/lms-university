@@ -29,11 +29,11 @@ const ManageLectures = () => {
         if (data.success) {
           setLectures(data.data);
         } else {
-          setError("Failed to fetch lectures");
+          setError("Failed to fetch recordings");
         }
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch lectures");
+        setError("Failed to fetch recordings");
       } finally {
         setLoading(false);
       }
@@ -73,14 +73,14 @@ const ManageLectures = () => {
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading lectures...</p>;
+  if (loading) return <p className="text-center mt-10">Loading recordings...</p>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
 
   const columns = [
     { header: "Title", accessor: (row) => row.title },
-    { header: "Chapter", accessor: (row) => row.chapter?.title || "-" },
+    // { header: "Chapter", accessor: (row) => row.chapter?.title || "-" },
     // { header: "Duration (min)", accessor: (row) => row.duration },
-    { header: "Status", accessor: (row) => row.status },
+    // { header: "Status", accessor: (row) => row.status },
     {
       header: "Actions",
       accessor: (row) => (
@@ -116,13 +116,13 @@ const ManageLectures = () => {
     <div className="p-8 min-h-screen bg-blue-50 font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-700">Manage Lectures</h2>
+          <h2 className="text-2xl font-bold text-gray-700">Manage Recordings</h2>
            {canPerformAction(rolePermissions, "lecture", "create") && (
           <button
             onClick={() => navigate("/add-course-videos")}
             className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition"
           >
-            + Add Lecture
+            + Add Recording
           </button>
            )}
         </div>
@@ -144,12 +144,12 @@ const ManageLectures = () => {
             <p>
               <strong>Description:</strong> {selectedLecture.description || "-"}
             </p>
-            <p>
+            {/* <p>
               <strong>Duration:</strong> {selectedLecture.duration} min
             </p>
             <p>
               <strong>Status:</strong> {selectedLecture.status}
-            </p>
+            </p> */}
             {/* <p>
               <strong>Content URL:</strong>{" "}
               <a
@@ -168,7 +168,7 @@ const ManageLectures = () => {
                   {selectedLecture.batches.map((batch) => (
                     <li key={batch._id}>
                       {batch.batchName} - {batch.mode} - {batch.status} -{" "}
-                      {batch.studentCount} students
+                      {batch.studentCount} participates
                     </li>
                   ))}
                 </ul>

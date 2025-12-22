@@ -7,6 +7,7 @@ import apiClient from "../../../api/axiosConfig";
 import { getAllCourses } from "../../../api/courses";
 import Dropdown from "../../form/Dropdown";
 import DynamicInputFields from "../../form/DynamicInputFields";
+import { COURSE_NAME } from "../../../utils/constants";
 
 export default function Create() {
   const navigate = useNavigate();
@@ -187,8 +188,8 @@ export default function Create() {
             name="title"
             placeholder={
               feedbackId
-                ? "Edit Feedback Form Title"
-                : "Create Feedback Form Title"
+                ? "Edit Feedback Form Title*"
+                : "Create Feedback Form Title*"
             }
             value={formik.values.title}
             onChange={formik.handleChange}
@@ -198,14 +199,14 @@ export default function Create() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Dropdown
-            label="Training Program"
+            label={`${COURSE_NAME}*`}
             name="courseId"
             options={availableCourses}
             formik={formik}
             disabled={!!prefillCourseId} // disable if prefilled
           />
           <Dropdown
-            label="Batch"
+            label="Batch*"
             name="batchId"
             options={availableBatches}
             formik={formik}
@@ -216,7 +217,7 @@ export default function Create() {
         <DynamicInputFields
           formik={formik}
           name="questions"
-          label="Feedback Question"
+          label="Feedback Question*"
         />
 
         <div className="text-center flex justify-center gap-4 mt-4">

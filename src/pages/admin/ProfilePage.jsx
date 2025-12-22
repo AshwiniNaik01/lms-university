@@ -69,11 +69,11 @@ const ProfilePage = () => {
         setLoading(false);
         return;
       }
-      if (newPassword.length < 6) {
-        setError("New password must be at least 6 characters.");
-        setLoading(false);
-        return;
-      }
+      // if (newPassword.length < 6) {
+      //   setError("New password must be at least 6 characters.");
+      //   setLoading(false);
+      //   return;
+      // }
       updatePayload.password = newPassword;
     }
 

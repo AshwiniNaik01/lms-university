@@ -141,10 +141,21 @@ const [selectedTest, setSelectedTest] = useState(null);
         });
       },
     }).then((result) => {
-      if (result.isConfirmed) {
-        navigate(`/test/${test._id}`);
+    //   if (result.isConfirmed) {
+    //     navigate(`/test/${test._id}`);
+    //   }
+    // });
+
+     if (result.isConfirmed) {
+      // Request fullscreen before navigation
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(console.warn);
       }
-    });
+
+      navigate(`/test/${test._id}`);
+    }
+  });
   };
 
   return (

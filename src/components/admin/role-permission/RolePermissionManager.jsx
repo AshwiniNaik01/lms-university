@@ -287,7 +287,7 @@ const RolePermissionManager = () => {
         }}
       >
         <div className="flex flex-col gap-4">
-          <label className="text-gray-700 font-medium">Role Name</label>
+          <label className="text-gray-700 font-medium">Role Name*</label>
           <input
             type="text"
             value={newRoleName}

@@ -9,7 +9,7 @@ import { fetchBatchesByCourseId } from "../../../api/batch";
 import { getChaptersByCourse } from "../../../api/chapters"; // Make sure this exists
 import { getAllCourses } from "../../../api/courses";
 import { fetchAllTrainers } from "../../../pages/admin/trainer-management/trainerApi";
-import { DIR } from "../../../utils/constants";
+import { COURSE_NAME, DIR } from "../../../utils/constants";
 import handleApiError from "../../../utils/handleApiError";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
@@ -50,7 +50,7 @@ export default function AddLectures() {
       status: "pending",
     },
     validationSchema: Yup.object({
-      course: Yup.string().required("Training Program is required"),
+      course: Yup.string().required(`${COURSE_NAME} is required`),
       // chapter: Yup.string().required("Chapter is required"),
       // title: Yup.string().required("Title is required"),
       // description: Yup.string().required("Description is required"),
@@ -231,11 +231,11 @@ export default function AddLectures() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Title */}
-          <InputField label="Title" name="title" type="text" formik={formik} />
+          <InputField label="Title*" name="title" type="text" formik={formik} />
 
           {/* Training Program */}
           <Dropdown
-            label="Training Program"
+            label={`${COURSE_NAME}*`}
             name="course"
             options={availableCourses}
             formik={formik}
@@ -248,16 +248,27 @@ export default function AddLectures() {
           />
 
           {/* Chapter */}
-          <Dropdown
+          {/* <Dropdown
             label="Chapter"
             name="chapter"
             options={availableChapters}
             formik={formik}
-          />
+          /> */}
+
+             {/* Status */}
+          {/* <Dropdown
+            label="Status (optional)"
+            name="status"
+            formik={formik}
+            options={[
+              { _id: "visible", title: "Visible" },
+              { _id: "not_visible", title: "Not Visible" },
+            ]}
+          /> */}
 
           {/* Batch */}
           <MultiSelectDropdown
-            label="Batch"
+            label="Batch*"
             name="batches"
             formik={formik}
             options={availableBatches}
@@ -281,7 +292,7 @@ export default function AddLectures() {
 
           {/* Type */}
           <Dropdown
-            label="Type"
+            label="Type*"
             name="type"
             options={[
               { _id: "mp4", name: "MP4" },
@@ -307,21 +318,12 @@ export default function AddLectures() {
             />
           )}
 
-          {/* Status */}
-          <Dropdown
-            label="Status"
-            name="status"
-            formik={formik}
-            options={[
-              { _id: "visible", title: "Visible" },
-              { _id: "not_visible", title: "Not Visible" },
-            ]}
-          />
+       
         </div>
 
         {/* Description */}
         <TextAreaField
-          label="Description"
+          label="Description (optional)"
           name="description"
           rows={4}
           formik={formik}

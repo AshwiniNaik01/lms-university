@@ -213,6 +213,26 @@ const ResubmitAssignmentModal = ({ assignment, submission, onClose }) => {
     }
   };
 
+  
+const getAssignmentFileUrl = (file) => {
+  if (!file) return "#";
+
+  if (file.startsWith("http://") || file.startsWith("https://")) {
+    // External link
+    return file;
+  } else if (file.startsWith("submissionFile")) {
+    // Original submission
+    return `${DIR.ASSIGNMENT_SUBMISSIONS}${file}`;
+  } else if (file.startsWith("files")) {
+    // Resubmission
+    return `${DIR.ASSIGNMENT_RESUBMISSIONS}${file}`;
+  } else {
+    // Fallback
+    return `${DIR.ASSIGNMENT_SUBMISSIONS}${file}`;
+  }
+};
+
+
   // return (
   //   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
   //     <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -459,8 +479,12 @@ const ResubmitAssignmentModal = ({ assignment, submission, onClose }) => {
             <h3 className="font-semibold text-gray-700 mb-2">Previous Submission:</h3>
             <ul className="list-disc list-inside space-y-1">
               {submission.files.map((file, idx) => {
-                const isLink = /^https?:\/\//i.test(file);
-                const href = isLink ? file : DIR.ASSIGNMENT_FILES + file;
+                // const isLink = /^https?:\/\//i.test(file);
+                // const href = isLink ? file : DIR.ASSIGNMENT_FILES + file;
+
+
+                const href = getAssignmentFileUrl(file);
+
                 return (
                   <li key={idx}>
                     <a

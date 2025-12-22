@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   FaBook,
@@ -6,17 +5,46 @@ import {
   FaChevronDown,
   FaClock,
   FaTasks,
-  FaVideo
+  FaVideo,
 } from "react-icons/fa";
-import { COURSE_NAME } from "../../utils/constants";
+import { COURSE_NAME, DIR } from "../../utils/constants";
 
 const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
   const [expandedPhases, setExpandedPhases] = useState({});
 
+  // Remove empty strings
+  const isValidText = (value) => value?.trim()?.length > 0;
+
+  // Filter learning points
+  const getValidPoints = (points = []) =>
+    points.filter((p) => isValidText(p.title) || isValidText(p.description));
+
+  // Filter chapters
+  const getValidChapters = (chapters = []) =>
+    chapters.filter(
+      (c) =>
+        isValidText(c.title) ||
+        getValidPoints(c.points).length > 0 ||
+        c.lectures?.length > 0 ||
+        c.assignments?.length > 0
+    );
+
+  // Filter weeks
+  const getValidWeeks = (weeks = []) =>
+    weeks.filter(
+      (w) => isValidText(w.title) || getValidChapters(w.chapters).length > 0
+    );
+
+  // Filter phases
+  const getValidPhases = (phases = []) =>
+    phases.filter(
+      (p) => isValidText(p.title) || getValidWeeks(p.weeks).length > 0
+    );
+
   const togglePhase = (phaseIndex) => {
-    setExpandedPhases(prev => ({
+    setExpandedPhases((prev) => ({
       ...prev,
-      [phaseIndex]: !prev[phaseIndex]
+      [phaseIndex]: !prev[phaseIndex],
     }));
   };
 
@@ -24,7 +52,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
     const lectures = chapter.lectures?.length || 0;
     const assignments = chapter.assignments?.length || 0;
     const totalItems = lectures + assignments;
-    
+
     return { lectures, assignments, totalItems };
   };
 
@@ -33,7 +61,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
     let totalAssignments = 0;
     let totalDuration = 0;
 
-    week.chapters?.forEach(chapter => {
+    week.chapters?.forEach((chapter) => {
       totalLectures += chapter.lectures?.length || 0;
       totalAssignments += chapter.assignments?.length || 0;
       totalDuration += (chapter.lectures?.length || 0) * 30; // 30 mins per lecture
@@ -42,7 +70,7 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
     return {
       lectures: totalLectures,
       assignments: totalAssignments,
-      duration: Math.round(totalDuration / 60) // Convert to hours
+      duration: Math.round(totalDuration / 60), // Convert to hours
     };
   };
 
@@ -52,9 +80,9 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
     let totalLectures = 0;
     let totalAssignments = 0;
 
-    phase.weeks.forEach(week => {
+    phase.weeks.forEach((week) => {
       totalChapters += week.chapters.length;
-      week.chapters.forEach(chapter => {
+      week.chapters.forEach((chapter) => {
         totalLectures += chapter.lectures?.length || 0;
         totalAssignments += chapter.assignments?.length || 0;
       });
@@ -63,41 +91,105 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
     return { totalWeeks, totalChapters, totalLectures, totalAssignments };
   };
 
+  const handleDownloadTrainingPlan = () => {
+    if (!course?.trainingPlan) return;
+
+    // const { folderName, fileName } = course.trainingPlan;
+
+    const fileUrl = `${DIR.TRAINING_PLAN}${course.trainingPlan.fileName}`;
+
+    window.open(fileUrl, "_blank");
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg border overflow-hidden">
       {/* Header */}
-      <div className="p-8 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+      {/* <div className="p-8 border-b bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="flex items-center gap-4 mb-3">
           <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl text-white shadow-lg">
             <FaBook className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">{COURSE_NAME} Curriculum</h2>
+            <h2 className="text-3xl font-bold text-gray-900">
+              {COURSE_NAME} Curriculum
+            </h2>
             <p className="text-gray-600 mt-1 text-lg">
-              Master {course.title} through {course.phases?.length || 0} structured phases
+              Master {course.title} through {course.phases?.length || 0}{" "}
+              structured schedule
             </p>
           </div>
         </div>
-        
+
+        {/* ✅ Download Training Plan Button */}
+        {/* {course?.trainingPlan?.fileName && (
+          <button
+            onClick={handleDownloadTrainingPlan}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg hover:scale-105 transition-transform"
+          >
+            ⬇️ Download Training Plan
+          </button>
+        )} */} 
+
+
+        <div className="p-8 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+  <div className="flex items-center justify-between mb-3">
+    {/* Left: Header */}
+    <div className="flex items-center gap-4">
+      <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl text-white shadow-lg">
+        <FaBook className="w-6 h-6" />
+      </div>
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900">
+          {COURSE_NAME} Curriculum
+        </h2>
+        <p className="text-gray-600 mt-1 text-lg">
+          Master {course.title} through {course.phases?.length || 0} structured schedule
+        </p>
+      </div>
+    </div>
+
+    {/* Right: Download Training Plan Button */}
+    {course?.trainingPlan?.fileName && (
+      <button
+        onClick={handleDownloadTrainingPlan}
+        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg hover:scale-105 transition-transform"
+      >
+        ⬇️ Download Training Plan
+      </button>
+    )}
+  </div>
+
+
         {/* Overall Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
           <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
-            <div className="text-2xl font-bold text-purple-600">{course.phases?.length || 0}</div>
-            <div className="text-sm text-gray-600">Phases</div>
+            <div className="text-2xl font-bold text-purple-600">
+              {course.phases?.length || 0}
+            </div>
+            <div className="text-sm text-gray-600">Schedules</div>
           </div>
           <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
             <div className="text-2xl font-bold text-blue-600">
-              {course.phases?.reduce((total, phase) => total + phase.weeks.length, 0) || 0}
+              {course.phases?.reduce(
+                (total, phase) => total + phase.weeks.length,
+                0
+              ) || 0}
             </div>
-            <div className="text-sm text-gray-600">Weeks</div>
+            <div className="text-sm text-gray-600">Modules</div>
           </div>
           <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
             <div className="text-2xl font-bold text-green-600">
-              {course.phases?.reduce((total, phase) => 
-                total + phase.weeks.reduce((weekTotal, week) => 
-                  weekTotal + week.chapters.length, 0), 0) || 0}
+              {course.phases?.reduce(
+                (total, phase) =>
+                  total +
+                  phase.weeks.reduce(
+                    (weekTotal, week) => weekTotal + week.chapters.length,
+                    0
+                  ),
+                0
+              ) || 0}
             </div>
-            <div className="text-sm text-gray-600">Chapters</div>
+            <div className="text-sm text-gray-600">Course Contents</div>
           </div>
           {/* <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
             <div className="text-2xl font-bold text-orange-600">
@@ -113,13 +205,14 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
 
       {/* Curriculum Content */}
       <div className="p-6 space-y-6">
-        {course.phases?.map((phase, phaseIndex) => {
+        {/* {course.phases?.map((phase, phaseIndex) => { */}
+        {getValidPhases(course.phases).map((phase, phaseIndex) => {
           const isPhaseExpanded = expandedPhases[phaseIndex];
           const phaseStats = getPhaseStats(phase);
 
           return (
-            <div 
-              key={phase._id} 
+            <div
+              key={phase._id}
               className="border-2 border-gray-100 rounded-2xl overflow-hidden hover:border-blue-200 transition-all duration-300 bg-white"
             >
               {/* Phase Header */}
@@ -133,25 +226,29 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                     <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
                       {phaseIndex + 1}
                     </div>
-                   
                   </div>
 
                   {/* Phase Info */}
                   <div className="text-left">
-                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                      {phase.title}
-                    </h3>
-                    <p className="text-gray-600 mt-1">{phase.description}</p>
-                    
+                    {isValidText(phase.title) && (
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
+                        {phase.title}
+                      </h3>
+                    )}
+
+                    {isValidText(phase.description) && (
+                      <p className="text-gray-600 mt-1">{phase.description}</p>
+                    )}
+
                     {/* Phase Stats */}
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded-full">
                         <FaClock className="w-3 h-3" />
-                        {phaseStats.totalWeeks} weeks
+                        {phaseStats.totalWeeks} modules
                       </span>
                       <span className="flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
                         <FaBook className="w-3 h-3" />
-                        {phaseStats.totalChapters} chapters
+                        {phaseStats.totalChapters} course contents
                       </span>
                       {/* <span className="flex items-center gap-1 bg-purple-100 px-2 py-1 rounded-full">
                         <FaVideo className="w-3 h-3" />
@@ -162,9 +259,11 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                 </div>
 
                 {/* Expand Icon */}
-                <div className={`transform transition-transform duration-300 ${
-                  isPhaseExpanded ? 'rotate-180' : ''
-                } text-gray-400 group-hover:text-purple-500`}>
+                <div
+                  className={`transform transition-transform duration-300 ${
+                    isPhaseExpanded ? "rotate-180" : ""
+                  } text-gray-400 group-hover:text-purple-500`}
+                >
                   <FaChevronDown className="w-5 h-5" />
                 </div>
               </button>
@@ -173,14 +272,15 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
               {isPhaseExpanded && (
                 <div className="border-t border-gray-100 bg-gradient-to-br from-gray-50 to-blue-50/30">
                   <div className="p-6 space-y-4">
-                    {phase.weeks.map((week, weekIndex) => {
+                    {/* {phase.weeks.map((week, weekIndex) => { */}
+                    {getValidWeeks(phase.weeks).map((week, weekIndex) => {
                       const key = `${phaseIndex}-${weekIndex}`;
                       const isWeekExpanded = expandedWeeks[key];
                       const weekStats = getWeekStats(week);
 
                       return (
-                        <div 
-                          key={week._id} 
+                        <div
+                          key={week._id}
                           className="bg-white rounded-xl border-2 border-gray-100 hover:border-blue-200 transition-all duration-300 overflow-hidden"
                         >
                           {/* Week Header */}
@@ -196,15 +296,17 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
 
                               {/* Week Info */}
                               <div className="text-left">
-                                <h4 className="text-lg font-semibold text-gray-900 group-hover/week:text-blue-700">
-                                  {week.title}
-                                </h4>
-                                
+                                {isValidText(week.title) && (
+                                  <h4 className="text-lg font-semibold text-gray-900 group-hover/week:text-blue-700">
+                                    {week.title}
+                                  </h4>
+                                )}
+
                                 {/* Week Stats */}
                                 <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                                   <span className="flex items-center gap-1">
                                     <FaBook className="w-3 h-3" />
-                                    {week.chapters.length} chapters
+                                    {week.chapters.length} course contents
                                   </span>
                                   {/* <span className="flex items-center gap-1">
                                     <FaVideo className="w-3 h-3" />
@@ -214,15 +316,16 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                                     <FaTasks className="w-3 h-3" />
                                     {weekStats.assignments} assignments
                                   </span> */}
-                                
                                 </div>
                               </div>
                             </div>
 
                             {/* Expand Icon */}
-                            <div className={`transform transition-transform duration-300 ${
-                              isWeekExpanded ? 'rotate-180' : ''
-                            } text-gray-400 group-hover/week:text-blue-500`}>
+                            <div
+                              className={`transform transition-transform duration-300 ${
+                                isWeekExpanded ? "rotate-180" : ""
+                              } text-gray-400 group-hover/week:text-blue-500`}
+                            >
                               <FaChevronDown className="w-4 h-4" />
                             </div>
                           </button>
@@ -231,28 +334,34 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                           {isWeekExpanded && (
                             <div className="border-t border-gray-100 bg-gray-50/50">
                               <div className="p-5 space-y-4">
-                                {week.chapters.map((chapter, chapterIndex) => {
-                                  const chapterStats = getChapterStats(chapter);
+                                {/* {week.chapters.map((chapter, chapterIndex) => { */}
+                                {getValidChapters(week.chapters).map(
+                                  (chapter, chapterIndex) => {
+                                    const chapterStats =
+                                      getChapterStats(chapter);
 
-                                  return (
-                                    <div 
-                                      key={chapter._id} 
-                                      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all duration-300 group/chapter"
-                                    >
-                                      <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                          {/* Chapter Header */}
-                                          <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                                              {chapterIndex + 1}
+                                    return (
+                                      <div
+                                        key={chapter._id}
+                                        className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all duration-300 group/chapter"
+                                      >
+                                        <div className="flex items-start justify-between">
+                                          <div className="flex-1">
+                                            {/* Chapter Header */}
+                                            <div className="flex items-center gap-3 mb-3">
+                                              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                                                {chapterIndex + 1}
+                                              </div>
+
+                                              {isValidText(chapter.title) && (
+                                                <h5 className="text-lg font-semibold text-gray-900 group-hover/chapter:text-green-700">
+                                                  {chapter.title}
+                                                </h5>
+                                              )}
                                             </div>
-                                            <h5 className="text-lg font-semibold text-gray-900 group-hover/chapter:text-green-700">
-                                              {chapter.title}
-                                            </h5>
-                                          </div>
 
-                                          {/* Chapter Stats */}
-                                          {/* {chapterStats.totalItems > 0 && (
+                                            {/* Chapter Stats */}
+                                            {/* {chapterStats.totalItems > 0 && (
                                             <div className="flex items-center gap-3 mb-3 text-sm">
                                               {chapterStats.lectures > 0 && (
                                                 <span className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
@@ -269,39 +378,61 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
                                             </div>
                                           )} */}
 
-                                          {/* Learning Points */}
-                                          {chapter.points?.length > 0 && (
-                                            <ul className="space-y-2">
-                                              {chapter.points.map((point, pointIndex) => (
-                                                <li
-                                                  key={point._id}
-                                                  className="flex items-start gap-3 text-sm group/point animate-fade-in-up"
-                                                  style={{ animationDelay: `${pointIndex * 100}ms` }}
-                                                >
-                                                  <div className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mt-0.5 group-hover/point:scale-110 transition-transform">
-                                                    <FaCheckCircle className="w-3 h-3 text-green-500" />
-                                                  </div>
-                                                  <div className="flex-1">
-                                                    <span className="font-medium text-gray-800">
-                                                      {point.title}
-                                                    </span>
-                                                    {point.description && (
-                                                      <p className="text-gray-600 text-xs mt-1 bg-gray-50 p-2 rounded-lg">
-                                                        {point.description}
-                                                      </p>
-                                                    )}
-                                                  </div>
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          )}
-                                        </div>
+                                            {/* Learning Points */}
+                                            {/* {chapter.points?.length > 0 && ( */}
+                                            {getValidPoints(chapter.points)
+                                              .length > 0 && (
+                                              <ul className="space-y-2">
+                                                {/* {chapter.points.map((point, pointIndex) => ( */}
+                                                {getValidPoints(
+                                                  chapter.points
+                                                ).map((point, pointIndex) => (
+                                                  <li
+                                                    key={point._id}
+                                                    className="flex items-start gap-3 text-sm group/point animate-fade-in-up"
+                                                    style={{
+                                                      animationDelay: `${
+                                                        pointIndex * 100
+                                                      }ms`,
+                                                    }}
+                                                  >
+                                                    <div className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mt-0.5 group-hover/point:scale-110 transition-transform">
+                                                      <FaCheckCircle className="w-3 h-3 text-green-500" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                      {isValidText(
+                                                        point.title
+                                                      ) && (
+                                                        <span className="font-medium text-gray-800">
+                                                          {point.title}
+                                                        </span>
+                                                      )}
+                                                      {/* {point.description && (
+                                                        {isValidText(point.description) && (
+                                                        <p className="text-gray-600 text-xs mt-1 bg-gray-50 p-2 rounded-lg">
+                                                          {point.description}
+                                                        </p>
+                                                      )}
+                                                      )} */}
 
-                                        
+                                                      {isValidText(
+                                                        point.description
+                                                      ) && (
+                                                        <p className="text-gray-600 text-xs mt-1 bg-gray-50 p-2 rounded-lg">
+                                                          {point.description}
+                                                        </p>
+                                                      )}
+                                                    </div>
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            )}
+                                          </div>
+                                        </div>
                                       </div>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  }
+                                )}
                               </div>
                             </div>
                           )}
@@ -320,8 +451,12 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
       <div className="border-t bg-gradient-to-r from-green-50 to-blue-50 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-semibold text-gray-900">Your Learning Journey</h4>
-            <p className="text-sm text-gray-600">Complete phases to unlock your certificate</p>
+            <h4 className="font-semibold text-gray-900">
+              Your Learning Journey
+            </h4>
+            <p className="text-sm text-gray-600">
+              Complete schedules to unlock your certificate
+            </p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-green-600">0%</div>
@@ -329,9 +464,9 @@ const CurriculumTab = ({ course, expandedWeeks, toggleWeek }) => {
           </div>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-          <div 
+          <div
             className="bg-gradient-to-r from-green-400 to-green-500 h-2 rounded-full transition-all duration-1000"
-            style={{ width: '0%' }}
+            style={{ width: "0%" }}
           ></div>
         </div>
       </div>

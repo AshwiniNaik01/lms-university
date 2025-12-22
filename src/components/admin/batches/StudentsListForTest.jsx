@@ -39,7 +39,7 @@ const StudentsListForTest = () => {
 
   const columns = [
     {
-      header: "Student Name",
+      header: "Participate Name",
       accessor: (row) => row.student.fullName,
     },
     // {
@@ -106,17 +106,17 @@ const StudentsListForTest = () => {
   ];
 
   if (loading) {
-    return <div className="p-6">Loading students...</div>;
+    return <div className="p-6">Loading participates...</div>;
   }
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Student Results</h1>
+      <h1 className="text-2xl font-bold mb-6">Participate Results</h1>
 
       <ScrollableTable
         columns={columns}
         data={results}
-        emptyMessage="No students found"
+        emptyMessage="No participates found"
       />
 
       {/* View Question Paper */}

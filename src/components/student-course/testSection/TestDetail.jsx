@@ -5,10 +5,11 @@ import TestClock from "./TestClock";
 import apiClient from "../../../api/axiosConfig";
 import { useParams } from "react-router-dom";
 import ResultPopup from "./ResultPopup";
+import Swal from "sweetalert2";
 
 const OPTIONS = ["A", "B", "C", "D"];
 
-const TestDetail = ({ onBack, baseurl }) => {
+const TestDetail = ({ onBack = () => window.history.back(), baseurl }) => {
   const { testID } = useParams(); // ✅ fetch testID from URL
   const [test, setTest] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -17,6 +18,7 @@ const TestDetail = ({ onBack, baseurl }) => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [showResultPopup, setShowResultPopup] = useState(false);
   const [submitResult, setSubmitResult] = useState(null);
+  const [connectionLost, setConnectionLost] = useState(false);
 
   const progressIntervalRef = useRef(null);
 
@@ -31,6 +33,12 @@ const TestDetail = ({ onBack, baseurl }) => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return { minutes, seconds };
+  };
+
+  const exitFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) => console.warn(err));
+    }
   };
 
   // Ensure studentId and testID exist before fetching
@@ -88,7 +96,8 @@ const TestDetail = ({ onBack, baseurl }) => {
 
   // Handle option select
   const handleOptionSelect = async (option) => {
-    if (submitted || !test) return;
+    // if (submitted || !test) return;
+    if (submitted || !test || connectionLost) return;
 
     const newAnswers = [...answers];
     newAnswers[currentQuestion] = option;
@@ -109,6 +118,9 @@ const TestDetail = ({ onBack, baseurl }) => {
       });
     } catch (err) {
       console.error("Error updating answer:", err);
+      // Trigger connection lost
+      setConnectionLost(true);
+      // console.error("Error updating answer:", err);
     }
   };
 
@@ -146,6 +158,7 @@ const TestDetail = ({ onBack, baseurl }) => {
 
     setSubmitted(true);
 
+    exitFullscreen(); // Exit fullscreen when submitting
     try {
       const response = await apiClient.post(`/api/iqtest/submit`, {
         testID: test.testID,
@@ -169,6 +182,22 @@ const TestDetail = ({ onBack, baseurl }) => {
       submitTest();
     }
   }, [timeLeft, submitted]);
+
+  useEffect(() => {
+    if (connectionLost) {
+      exitFullscreen(); // Exit fullscreen on connection loss
+      Swal.fire({
+        icon: "error",
+        title: "Connection Lost!",
+        text: "Your connection to the server has been lost. The test will be closed.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        confirmButtonText: "Close Test",
+      }).then(() => {
+        onBack(); // Go back to test list or dashboard
+      });
+    }
+  }, [connectionLost]);
 
   // // Optional auto-save progress
   // useEffect(() => {
@@ -198,148 +227,153 @@ const TestDetail = ({ onBack, baseurl }) => {
 
   const currentQ = test.questions[currentQuestion];
 
-    return (
-      // <div className="flex flex-col w-full max-w-7xl mx-auto p-4 space-y-4">
-      <div className="flex flex-col w-screen min-h-screen p-4 space-y-4 bg-gray-100">
-
-        {/* <button
+  return (
+    // <div className="flex flex-col w-full max-w-7xl mx-auto p-4 space-y-4">
+    <div
+      className={`flex flex-col w-screen min-h-screen p-4 space-y-4 bg-gray-100  ${
+        connectionLost ? "pointer-events-none opacity-50" : ""
+      }`}
+    >
+      {/* <button
           onClick={onBack}
           className="text-blue-600 underline mb-2 self-start"
         >
           ← Back to Tests
         </button> */}
 
-        {/* Test Clock */}
-        {!submitted && (
-          <div className="w-full bg-gray-100 p-3 md:p-4 shadow-lg rounded-xl mb-4 flex justify-between items-center">
-            <TestClock
-              testDuration={test.testDuration}
-              timeLeft={timeLeft}
-              setTimeLeft={setTimeLeft}
-              title={test.title}
-              handleSubmit={submitTest}
-            />
-          </div>
-        )}
+      {/* Test Clock */}
+      {!submitted && (
+        <div className="w-full bg-gray-100 p-3 md:p-4 shadow-lg rounded-xl mb-4 flex justify-between items-center">
+          <TestClock
+            testDuration={test.testDuration}
+            timeLeft={timeLeft}
+            setTimeLeft={setTimeLeft}
+            title={test.title}
+            handleSubmit={submitTest}
+          />
+        </div>
+      )}
 
-        {/* Main Question Area */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Question & Options */}
-          <div className="flex-1 bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
-            {/* Question Header */}
-            <div className="mb-4">
-              <div className="flex items-center space-x-4 mb-2">
-                <div className="bg-[#2C4167] text-white w-10 h-10 flex items-center justify-center text-xl font-bold rounded-sm">
-                  {currentQuestion + 1}
-                </div>
-                <div className="text-lg font-semibold">
-                  {currentQ.chapterName || "Chapter: N/A"}
-                </div>
+      {/* Main Question Area */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Question & Options */}
+        <div className="flex-1 bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+          {/* Question Header */}
+          <div className="mb-4">
+            <div className="flex items-center space-x-4 mb-2">
+              <div className="bg-[#2C4167] text-white w-10 h-10 flex items-center justify-center text-xl font-bold rounded-sm">
+                {currentQuestion + 1}
               </div>
-              <h2 className="text-xl font-medium text-[#2C4167]">
-                {currentQ.question}
-              </h2>
+              <div className="text-lg font-semibold">
+                {currentQ.chapterName || "Chapter: N/A"}
+              </div>
             </div>
+            <h2 className="text-xl font-medium text-[#2C4167]">
+              {currentQ.question}
+            </h2>
+          </div>
 
-            {/* Options */}
-            <div className="space-y-3">
-              {OPTIONS.map((opt) => {
-                const optionText = currentQ[`option${opt}`];
-                if (!optionText) return null;
-                const selected = answers[currentQuestion] === opt;
-                const isCorrect =
-                  submitted && answers[currentQuestion] === currentQ.correctAns;
+          {/* Options */}
+          <div className="space-y-3">
+            {OPTIONS.map((opt) => {
+              const optionText = currentQ[`option${opt}`];
+              if (!optionText) return null;
+              const selected = answers[currentQuestion] === opt;
+              const isCorrect =
+                submitted && answers[currentQuestion] === currentQ.correctAns;
 
-                return (
-                  <label
-                    key={opt}
-                    className={`flex items-center gap-2 p-2 border rounded cursor-pointer
+              return (
+                <label
+                  key={opt}
+                  className={`flex items-center gap-2 p-2 border rounded cursor-pointer
                       ${selected ? "bg-blue-50 border-blue-500" : "bg-gray-50"}
-                      ${submitted &&
-                      (isCorrect
-                        ? "bg-green-100 border-green-500"
-                        : selected
-                        ? "bg-red-100 border-red-500"
-                        : "")}
+                      ${
+                        submitted &&
+                        (isCorrect
+                          ? "bg-green-100 border-green-500"
+                          : selected
+                          ? "bg-red-100 border-red-500"
+                          : "")
+                      }
                     `}
-                  >
-                    <input
-                      type="radio"
-                      name={`question-${currentQ._id}`}
-                      value={opt}
-                      checked={selected}
-                      disabled={submitted}
-                      onChange={() => handleOptionSelect(opt)}
-                    />
-                    <span>
-                      {opt}. {optionText}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
+                >
+                  <input
+                    type="radio"
+                    name={`question-${currentQ._id}`}
+                    value={opt}
+                    checked={selected}
+                    disabled={submitted}
+                    onChange={() => handleOptionSelect(opt)}
+                  />
+                  <span>
+                    {opt}. {optionText}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-6">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={handlePrevQuestion}
+              className="flex items-center bg-white border border-[#2C4167] text-[#2C4167] px-4 py-2 rounded hover:bg-gray-50 transition-colors"
+            >
+              <FaArrowLeft className="mr-2" /> Previous
+            </button>
+
+            {currentQuestion < test.questions.length - 1 ? (
               <button
-                onClick={handlePrevQuestion}
-                className="flex items-center bg-white border border-[#2C4167] text-[#2C4167] px-4 py-2 rounded hover:bg-gray-50 transition-colors"
-              >
-                <FaArrowLeft className="mr-2" /> Previous
-              </button>
-
-              {currentQuestion < test.questions.length - 1 ? (
-                <button
-                  onClick={handleNextQuestion}
-                  className={`flex items-center px-4 py-2 rounded transition-colors
+                onClick={handleNextQuestion}
+                className={`flex items-center px-4 py-2 rounded transition-colors
                     ${
                       answers[currentQuestion]
                         ? "bg-green-600 text-white hover:bg-green-700"
                         : "bg-gray-300 text-gray-600 cursor-not-allowed"
                     }
                   `}
-                  disabled={!answers[currentQuestion]}
-                >
-                  Save & Next <FaArrowRight className="ml-2" />
-                </button>
-              ) : (
-                <button
-                  onClick={submitTest}
-                  className={`flex items-center px-4 py-2 rounded transition-colors
+                disabled={!answers[currentQuestion]}
+              >
+                Save & Next <FaArrowRight className="ml-2" />
+              </button>
+            ) : (
+              <button
+                onClick={submitTest}
+                className={`flex items-center px-4 py-2 rounded transition-colors
                     ${
                       answers[currentQuestion]
                         ? "bg-[#F7941D] text-white hover:bg-[#E88C19]"
                         : "bg-gray-300 text-gray-600 cursor-not-allowed"
                     }
                   `}
-                  disabled={!answers[currentQuestion]}
-                >
-                  Submit <FaCheckCircle className="ml-2" />
-                </button>
-              )}
-            </div>
-
-            {/* Submitted Info */}
-            {submitted && (
-              <p className="mt-4 text-blue-700 font-semibold">
-                Test submitted! Closing shortly...
-              </p>
+                disabled={!answers[currentQuestion]}
+              >
+                Submit <FaCheckCircle className="ml-2" />
+              </button>
             )}
           </div>
 
-          {/* Sidebar - Question Navigation */}
-          <div className="w-full lg:w-1/3 xl:w-1/4 bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-lg font-bold mb-4">Questions</h2>
-            <div className="flex flex-wrap gap-2">
-              {test.questions.map((q, idx) => {
-                const attempted = answers[idx] !== "";
-                const isCurrent = idx === currentQuestion;
+          {/* Submitted Info */}
+          {submitted && (
+            <p className="mt-4 text-blue-700 font-semibold">
+              Test submitted! Closing shortly...
+            </p>
+          )}
+        </div>
 
-                return (
-                  <button
-                    key={q._id}
-                    onClick={() => setCurrentQuestion(idx)}
-                    className={`w-8 h-8 flex items-center justify-center border-2 rounded transition-all
+        {/* Sidebar - Question Navigation */}
+        <div className="w-full lg:w-1/3 xl:w-1/4 bg-white p-4 rounded-lg shadow-md">
+          <h2 className="text-lg font-bold mb-4">Questions</h2>
+          <div className="flex flex-wrap gap-2">
+            {test.questions.map((q, idx) => {
+              const attempted = answers[idx] !== "";
+              const isCurrent = idx === currentQuestion;
+
+              return (
+                <button
+                  key={q._id}
+                  onClick={() => setCurrentQuestion(idx)}
+                  className={`w-8 h-8 flex items-center justify-center border-2 rounded transition-all
                       ${
                         isCurrent
                           ? "bg-blue-500 text-white border-blue-700"
@@ -348,47 +382,45 @@ const TestDetail = ({ onBack, baseurl }) => {
                           : "bg-amber-400 text-black border-amber-600"
                       }
                     `}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
-            </div>
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
 
-            {/* Legend */}
-            <div className="mt-6">
-              <h2 className="text-base font-bold text-[#2C4167] mb-2">Legend</h2>
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-[#2C4167] mr-2"></div>
-                  <span>Attempted</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-[#3498DB] mr-2"></div>
-                  <span>Current</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-[#E67E22] mr-2"></div>
-                  <span>Unattempted</span>
-                </div>
+          {/* Legend */}
+          <div className="mt-6">
+            <h2 className="text-base font-bold text-[#2C4167] mb-2">Legend</h2>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded-full bg-[#2C4167] mr-2"></div>
+                <span>Attempted</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded-full bg-[#3498DB] mr-2"></div>
+                <span>Current</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded-full bg-[#E67E22] mr-2"></div>
+                <span>Unattempted</span>
               </div>
             </div>
           </div>
         </div>
-
-        {showResultPopup && submitResult && (
-    <ResultPopup
-      result={submitResult}
-      onClose={() => {
-        setShowResultPopup(false);
-        onBack();
-      }}
-    />
-  )}
-
       </div>
 
-    );
+      {showResultPopup && submitResult && (
+        <ResultPopup
+          result={submitResult}
+          onClose={() => {
+            setShowResultPopup(false);
+            onBack();
+          }}
+        />
+      )}
+    </div>
+  );
 
   // return (
   //   <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">

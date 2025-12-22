@@ -5,6 +5,8 @@ import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import apiClient from "../../../api/axiosConfig";
 import { getAllCourses } from "../../../api/courses";
+import { COURSE_NAME } from "../../../utils/constants";
+import { usePassword } from "../../hooks/usePassword";
 
 const UploadEnrollmentExcel = () => {
   const [excelData, setExcelData] = useState([]);
@@ -15,6 +17,17 @@ const UploadEnrollmentExcel = () => {
   const [selectedBatchId, setSelectedBatchId] = useState("");
   const [selectedCourseName, setSelectedCourseName] = useState("");
   const [selectedBatchName, setSelectedBatchName] = useState("");
+    const { generate } = usePassword(); // we'll use this to generate missing passwords
+
+
+
+
+
+
+
+
+
+
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -48,62 +61,129 @@ const UploadEnrollmentExcel = () => {
     loadCourses();
   }, [location.search]);
 
-  const handleFileUpload = (e) => {
-    const uploadedFile = e.target.files[0];
-    if (!uploadedFile) return;
-    setFile(uploadedFile);
 
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(uploadedFile);
-    reader.onload = (event) => {
-      const data = new Uint8Array(event.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-      if (jsonData.length === 0) {
+  
+const handleFileUpload = (e) => {
+  const uploadedFile = e.target.files[0];
+  if (!uploadedFile) return;
+  setFile(uploadedFile);
+
+  const reader = new FileReader();
+  reader.readAsArrayBuffer(uploadedFile);
+  reader.onload = (event) => {
+    const data = new Uint8Array(event.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+    if (jsonData.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Empty File",
+        text: "The uploaded file contains no data.",
+        confirmButtonColor: "#f0ad4e",
+      });
+      setExcelData([]);
+      return;
+    }
+
+    const requiredFields = ["fullName", "mobileNo", "email"];
+    let hasErrors = false;
+
+    jsonData.forEach((row, idx) => {
+      // Check required fields
+      const missingFields = requiredFields.filter((field) => !row[field]);
+      if (missingFields.length > 0) {
+        hasErrors = true;
         Swal.fire({
           icon: "warning",
-          title: "Empty File",
-          text: "The uploaded file contains no data.",
-          confirmButtonColor: "#f0ad4e",
+          title: `Row ${idx + 2} Missing Fields`,
+          text: `Missing: ${missingFields.join(", ")}`,
+          confirmButtonColor: "#d33",
         });
-        setExcelData([]);
-        return;
       }
 
-      const requiredFields = ["fullName", "mobileNo", "email"];
-      let hasErrors = false;
-
-      jsonData.forEach((row, idx) => {
-        const missingFields = requiredFields.filter((field) => !row[field]);
-        if (missingFields.length > 0) {
-          hasErrors = true;
-          Swal.fire({
-            icon: "warning",
-            title: `Row ${idx + 2} Missing Fields`,
-            text: `Missing: ${missingFields.join(", ")}`,
-            confirmButtonColor: "#d33",
-          });
-        }
-      });
-
-      if (hasErrors) {
-        setExcelData([]);
-        fileRef.current.value = "";
-      } else {
-        setExcelData(jsonData);
+      // ✅ Password logic: keep existing if present, otherwise generate
+      if (!row.password || row.password.toString().trim() === "") {
+        row.password = generate(8); // generate 8-character password
       }
-    };
-    reader.onerror = () => {
-      Swal.fire({
-        icon: "error",
-        title: "File Read Error",
-        text: "Failed to read the Excel file.",
-        confirmButtonColor: "#d33",
-      });
-    };
+    });
+
+    if (hasErrors) {
+      setExcelData([]);
+      fileRef.current.value = "";
+    } else {
+      setExcelData(jsonData);
+    }
   };
+  reader.onerror = () => {
+    Swal.fire({
+      icon: "error",
+      title: "File Read Error",
+      text: "Failed to read the Excel file.",
+      confirmButtonColor: "#d33",
+    });
+  };
+};
+
+
+  // const handleFileUpload = (e) => {
+  //   const uploadedFile = e.target.files[0];
+  //   if (!uploadedFile) return;
+  //   setFile(uploadedFile);
+
+  //   const reader = new FileReader();
+  //   reader.readAsArrayBuffer(uploadedFile);
+  //   reader.onload = (event) => {
+  //     const data = new Uint8Array(event.target.result);
+  //     const workbook = XLSX.read(data, { type: "array" });
+  //     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  //     const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+  //     if (jsonData.length === 0) {
+  //       Swal.fire({
+  //         icon: "warning",
+  //         title: "Empty File",
+  //         text: "The uploaded file contains no data.",
+  //         confirmButtonColor: "#f0ad4e",
+  //       });
+  //       setExcelData([]);
+  //       return;
+  //     }
+
+  //     const requiredFields = ["fullName", "mobileNo", "email"];
+  //     let hasErrors = false;
+
+  //     jsonData.forEach((row, idx) => {
+  //       const missingFields = requiredFields.filter((field) => !row[field]);
+  //       if (missingFields.length > 0) {
+  //         hasErrors = true;
+  //         Swal.fire({
+  //           icon: "warning",
+  //           title: `Row ${idx + 2} Missing Fields`,
+  //           text: `Missing: ${missingFields.join(", ")}`,
+  //           confirmButtonColor: "#d33",
+  //         });
+  //       }
+  //     });
+
+  //     if (hasErrors) {
+  //       setExcelData([]);
+  //       fileRef.current.value = "";
+  //     } else {
+  //       setExcelData(jsonData);
+  //     }
+  //   };
+  //   reader.onerror = () => {
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "File Read Error",
+  //       text: "Failed to read the Excel file.",
+  //       confirmButtonColor: "#d33",
+  //     });
+  //   };
+  // };
 
   const handleImport = async () => {
     if (!excelData || excelData.length === 0) {
@@ -115,13 +195,13 @@ const UploadEnrollmentExcel = () => {
 
     if (!courseId || !batchId) {
       const { value: formValues } = await Swal.fire({
-        title: "<strong>Assign Training Program & Batch</strong>",
+        title: `<strong>Assign ${COURSE_NAME} & Batch</strong>`,
         html: `
           <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
             <div style="display: flex; flex-direction: column; text-align: left;">
-              <label for="trainingProgram" style="font-weight: 600; margin-bottom: 5px; color: #4a5568;">Training Program</label>
+              <label for="trainingProgram" style="font-weight: 600; margin-bottom: 5px; color: #4a5568;">${COURSE_NAME}</label>
               <select id="trainingProgram" class="swal2-select" style="border-radius: 8px; padding: 10px; border: 1px solid #cbd5e0; font-size: 14px;">
-                <option value="">Select Training Program</option>
+                <option value="">Select ${COURSE_NAME}</option>
                 ${courses
                   .map((c) => `<option value="${c._id}">${c.title}</option>`)
                   .join("")}
@@ -165,7 +245,7 @@ const UploadEnrollmentExcel = () => {
           const batchId = document.getElementById("batch").value;
           if (!trainingProgramId || !batchId) {
             Swal.showValidationMessage(
-              "Please select both Training Program and Batch"
+              `Please select both ${COURSE_NAME} and Batch`
             );
           }
           return { trainingProgramId, batchId };
@@ -184,12 +264,63 @@ const UploadEnrollmentExcel = () => {
         enrolledBatches: batchId,
       });
 
+      // if (res.data.success) {
+      //   Swal.fire("Success", res.data.message, "success");
+      //   setExcelData([]);
+      //   setFile(null);
+      //   if (fileRef.current) fileRef.current.value = "";
+      // }
+
       if (res.data.success) {
-        Swal.fire("Success", res.data.message, "success");
-        setExcelData([]);
-        setFile(null);
-        if (fileRef.current) fileRef.current.value = "";
-      }
+  const { skippedStudents = [] } = res.data.data || {};
+
+  // Case 1: No skipped students → simple success
+  if (!skippedStudents.length) {
+    Swal.fire({
+      icon: "success",
+      title: "Import Successful",
+      text: res.data.message,
+      confirmButtonText: "OK",
+    });
+  } 
+  // Case 2: Skipped students exist → detailed info
+else {
+  Swal.fire({
+    icon: "success",
+    title: "Import Completed",
+    text: res.data.message, // ✅ success message at top
+    html: skippedStudents.length
+      ? `
+        <hr style="margin: 10px 0; border-color:#ddd;"/>
+        <p style="margin-bottom:10px;">
+          The following students are already assigned to the selected training program and batch:
+        </p>
+        <div style="text-align:left; max-height:200px; overflow:auto;">
+          <ul style="padding-left:18px;">
+            ${skippedStudents
+              .map(
+                (s) =>
+                  `<li style="margin-bottom:6px;">
+                    <strong>${s.fullName}</strong><br/>
+                    <span style="color:#555;font-size:13px;">${s.email}</span>
+                  </li>`
+              )
+              .join("")}
+          </ul>
+        </div>
+      `
+      : null, // if somehow skippedStudents is empty, no html
+    confirmButtonText: "OK",
+  });
+}
+
+
+  // Reset UI
+  setExcelData([]);
+  setFile(null);
+  if (fileRef.current) fileRef.current.value = "";
+}
+
     } catch (err) {
       Swal.fire(
         "Error",
@@ -208,7 +339,7 @@ const UploadEnrollmentExcel = () => {
             {/* Dynamic Title */}
             <h4 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
               {selectedCourseId && selectedBatchId
-                ? `Add Candidate for ${selectedCourseName} - ${(() => {
+                ? `Add Participate for ${selectedCourseName} - ${(() => {
                     const course = courses.find(
                       (c) => c._id === selectedCourseId
                     );
@@ -217,7 +348,7 @@ const UploadEnrollmentExcel = () => {
                     );
                     return batch?.batchName || "N/A";
                   })()}`
-                : "Add Candidate"}
+                : "Add Participate"}
             </h4>
             {/* <div className="flex items-center gap-2">
             <button
@@ -394,7 +525,7 @@ const UploadEnrollmentExcel = () => {
                     onClick={handleImport}
                   >
                     <FiCheck className="w-5 h-5" />
-                    Import {excelData.length} Students
+                    Import {excelData.length} Participates
                   </button>
                 </div>
               </div>

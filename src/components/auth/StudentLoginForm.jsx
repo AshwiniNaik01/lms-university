@@ -8,7 +8,7 @@ import apiClient from "../../api/axiosConfig";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function StudentLoginForm() {
-  const [mode, setMode] = useState("otp"); // 'email' or 'otp'
+  const [mode, setMode] = useState("email"); // 'email' or 'otp'
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [referenceId, setReferenceId] = useState(null);
@@ -92,10 +92,10 @@ export default function StudentLoginForm() {
 
         if (res.data.success && res.data.data) {
           // Destructure all fields from response
-          const { studentId, mobileNo, courseId, role, token } = res.data.data;
+          const { studentId, mobileNo, courseId, role, token, email } = res.data.data;
 
           // ✅ Use updated otpLogin
-          otpLogin({ studentId, mobileNo, courseId, role, token });
+          otpLogin({ studentId, mobileNo, courseId, role, token, email });
 
           toast.success("Login successful!");
           setTimeout(() => {
@@ -132,10 +132,10 @@ export default function StudentLoginForm() {
         {/* Left Panel */}
         <div className="md:w-1/2 p-10 bg-white/10 text-gray-800 flex flex-col items-center justify-center backdrop-blur-md">
           <h2 className="text-4xl font-bold mb-4 text-center">
-            Welcome back, Candidate! 👋
+            Welcome back, Participate! 👋
           </h2>
           <p className="text-lg mb-8 text-center max-w-sm">
-            Login to access your student dashboard and manage your account.
+            Login to access your participate dashboard and manage your account.
           </p>
           <img
             src="https://img.freepik.com/free-vector/sign-page-abstract-concept-illustration_335657-3875.jpg"
@@ -149,7 +149,7 @@ export default function StudentLoginForm() {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800">Login</h1>
             <p className="text-sm text-gray-600 mt-2">
-              Choose OTP or Email login to access your account.
+              Choose Email login to access your account.
             </p>
 
             {/* Mode Toggle */}
@@ -164,7 +164,7 @@ export default function StudentLoginForm() {
               >
                 Email
               </button>
-              <button
+              {/* <button
                 onClick={() => setMode("otp")}
                 className={`px-4 py-2 rounded-xl font-medium ${
                   mode === "otp"
@@ -173,7 +173,7 @@ export default function StudentLoginForm() {
                 }`}
               >
                 OTP
-              </button>
+              </button> */}
             </div>
           </div>
 

@@ -10,6 +10,7 @@ import {
 } from "../../../features/curriculumSlice";
 import InputField from "../../form/InputField";
 import TextAreaField from "../../form/TextAreaField";
+import { COURSE_NAME } from "../../../utils/constants";
 
 export default function AddCurriculum() {
   const [searchParams] = useSearchParams(); // Get query parameters from the URL
@@ -59,11 +60,11 @@ export default function AddCurriculum() {
   // Log which type of curriculum item is being added based on URL query params
   useEffect(() => {
     if (courseId) {
-      console.log("Adding Topics for Training ID:", courseId);
+      console.log("Adding Schedules for Training ID:", courseId);
     } else if (phaseId) {
-      console.log("Adding Sub-Topics for Topic ID:", phaseId);
+      console.log("Adding Module for Schedule ID:", phaseId);
     } else if (weekId) {
-      console.log("Adding Chapter for Sub-Topic ID:", weekId);
+      console.log("Adding Course Content for Module ID:", weekId);
     }
   }, [courseId, phaseId, weekId]);
 
@@ -199,7 +200,8 @@ export default function AddCurriculum() {
       const weeksResp = await apiClient.get(`/api/weeks/course/${courseId}`);
       setAvailableWeeks(weeksResp.data?.data || []);
     } catch (err) {
-      showToast("❌ " + getBackendErrorMessage(err), "error");
+      console.log( getBackendErrorMessage(err));
+      // showToast("❌ " + getBackendErrorMessage(err), "error");
     } finally {
       setLoading(false);
     }
@@ -247,7 +249,7 @@ export default function AddCurriculum() {
     }),
     onSubmit: async (values, { resetForm }) => {
       if (!values.course) {
-        showToast("Please select a Training Program first", "error");
+        showToast(`Please select a ${COURSE_NAME} first`, "error");
         return;
       }
 
@@ -256,7 +258,7 @@ export default function AddCurriculum() {
         const response = await apiClient.post("/api/phases", [values]);
         const newPhase = response.data?.data[0];
 
-        showToast("🎉 Topic created successfully!", "success");
+        showToast("🎉 Schedule created successfully!", "success");
         resetForm();
 
         dispatch(setSelectedCourseId(newPhase.course));
@@ -293,7 +295,7 @@ export default function AddCurriculum() {
     }),
     onSubmit: async (values, { resetForm }) => {
       if (!values.course || !values.phase) {
-        showToast("Please select a Training Program and phase first", "error");
+        showToast(`Please select a ${COURSE_NAME} and phase first`, "error");
         return;
       }
 
@@ -313,7 +315,7 @@ export default function AddCurriculum() {
           (res) => res.data?.data[0] || res.data || res
         );
 
-        showToast("🎉 Sub-Topic created successfully!", "success");
+        showToast("🎉 Module created successfully!", "success");
         resetForm();
 
         const weeksResp = await apiClient.get(
@@ -349,7 +351,7 @@ export default function AddCurriculum() {
     }),
     onSubmit: async (values, { resetForm }) => {
       if (!values.course || !values.week) {
-        showToast("Please select a Training Program and week first", "error");
+        showToast(`Please select a ${COURSE_NAME} and module first`, "error");
         return;
       }
 
@@ -359,7 +361,7 @@ export default function AddCurriculum() {
         const response = await apiClient.post("/api/chapters", [payload]);
         const newChapter = response.data?.data[0] || response.data || response;
 
-        showToast("🎉 Chapter created successfully!", "success");
+        showToast("🎉 Course Content created successfully!", "success");
         resetForm();
 
         dispatch(setSelectedCourseId(values.course));
@@ -431,15 +433,15 @@ export default function AddCurriculum() {
       switch (successPopup.type) {
         case "phase":
           return {
-            title: "Topic Created Successfully! 🎉",
+            title: "Schedule Created Successfully! 🎉",
             buttons: [
               {
-                label: "Add More Topics",
+                label: "Add More Schedules",
                 action: "addMore",
                 variant: "secondary",
               },
               {
-                label: "Proceed to Sub-topics",
+                label: "Proceed to Modules",
                 action: "proceed",
                 variant: "primary",
               },
@@ -447,15 +449,15 @@ export default function AddCurriculum() {
           };
         case "weeks":
           return {
-            title: "Sub-Topic Created Successfully!",
+            title: "Module Created Successfully!",
             buttons: [
               {
-                label: "Add More Sub-Topic",
+                label: "Add More Module",
                 action: "addMore",
                 variant: "secondary",
               },
               {
-                label: "Proceed to Chapters",
+                label: "Proceed to Course Contents",
                 action: "proceed",
                 variant: "primary",
               },
@@ -463,10 +465,10 @@ export default function AddCurriculum() {
           };
         case "chapter":
           return {
-            title: "Chapter Created Successfully! 📚",
+            title: "Course Content Created Successfully! 📚",
             buttons: [
               {
-                label: "Add New Chapter",
+                label: "Add New Course Content",
                 action: "addMore",
                 variant: "secondary",
               },
@@ -595,13 +597,13 @@ export default function AddCurriculum() {
             <div className="bg-white rounded-lg shadow-lg p-4">
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                 <span className="text-2xl">🏗️</span>
-                Create New Topic
+                Create New Schedule
               </h2>
               <form onSubmit={phaseFormik.handleSubmit} className="space-y-6">
                 {/* Course Select */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Select Training Program
+                    Select {COURSE_NAME}*
                   </label>
                   <select
                     name="course"
@@ -618,7 +620,7 @@ export default function AddCurriculum() {
                     onBlur={phaseFormik.handleBlur}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                   >
-                    <option value="">Choose a Training Program</option>
+                    <option value="">Choose a {COURSE_NAME}</option>
                     {availableCourses.map((course) => (
                       <option key={course._id} value={course._id}>
                         {course.title}
@@ -635,14 +637,14 @@ export default function AddCurriculum() {
 
                 {/* Topic Name using InputField */}
                 <InputField
-                  label="Topic Name"
+                  label="Schedule Name*"
                   name="title"
                   formik={phaseFormik}
                 />
 
                 {/* Description using a TextAreaField */}
                 <TextAreaField
-                  label="Description"
+                  label="Description (optional)"
                   name="description"
                   formik={phaseFormik}
                   rows={4}
@@ -654,7 +656,7 @@ export default function AddCurriculum() {
                     disabled={loading}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
                   >
-                    {loading ? "Adding..." : "🚀 Add Topic"}
+                    {loading ? "Saving..." : "🚀 Save Schedule"}
                   </button>
                 </div>
               </form>
@@ -669,13 +671,13 @@ export default function AddCurriculum() {
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                   <span className="text-3xl">📅</span>
-                  Add Sub-Topic for Topics
+                  Add Module for Schedules
                 </h2>
                 <form onSubmit={weeksFormik.handleSubmit} className="space-y-6">
                   {/* Topic/Phase Dropdown */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Select Topic
+                      Select Schedule*
                     </label>
                     <select
                       name="phase"
@@ -684,7 +686,7 @@ export default function AddCurriculum() {
                       onBlur={weeksFormik.handleBlur}
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                     >
-                      <option value="">Select Phase</option>
+                      <option value="">Select Schedule</option>
                       {availablePhases.map((phase) => (
                         <option key={phase._id} value={phase._id}>
                           {phase.title}
@@ -705,7 +707,7 @@ export default function AddCurriculum() {
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
                           <label className="block text-sm font-semibold text-gray-700">
-                            Sub-topic Details
+                            Module Details
                           </label>
                           <button
                             type="button"
@@ -717,7 +719,7 @@ export default function AddCurriculum() {
                             }
                             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
                           >
-                            ➕ Add Sub-Topics
+                            ➕ Add Modules
                           </button>
                         </div>
 
@@ -727,9 +729,9 @@ export default function AddCurriculum() {
                             className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50"
                           >
                             <div className="flex gap-4 items-start">
-                              <div className="flex-1">
+                              <div className="w-28">
                                 <InputField
-                                  label="Sub-Topic Number"
+                                  label="Module Number*"
                                   name={`weeks.${index}.weekNumber`}
                                   type="number"
                                   formik={weeksFormik}
@@ -737,7 +739,7 @@ export default function AddCurriculum() {
                               </div>
                               <div className="flex-1">
                                 <InputField
-                                  label="Week Title"
+                                  label="Module Title*"
                                   name={`weeks.${index}.title`}
                                   formik={weeksFormik}
                                   placeholder="e.g., JavaScript Fundamentals"
@@ -772,7 +774,7 @@ export default function AddCurriculum() {
                       disabled={loading}
                       className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
                     >
-                      {loading ? "Adding..." : "🚀 Add Sub-Topics"}
+                      {loading ? "Saving..." : "🚀 Save Modules"}
                     </button>
                   </div>
                 </form>
@@ -786,7 +788,7 @@ export default function AddCurriculum() {
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                   <span className="text-3xl">📚</span>
-                  Build Chapter Content
+                  Build Course Content
                 </h2>
                 <form
                   onSubmit={chapterFormik.handleSubmit}
@@ -795,7 +797,7 @@ export default function AddCurriculum() {
                   {/* Select Sub-topic */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Select Sub-topic
+                      Select Module*
                     </label>
                     <select
                       name="week"
@@ -804,10 +806,10 @@ export default function AddCurriculum() {
                       onBlur={chapterFormik.handleBlur}
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                     >
-                      <option value="">Choose a Sub-topic</option>
+                      <option value="">Choose a Module</option>
                       {availableWeeks.map((week) => (
                         <option key={week._id} value={week._id}>
-                          Week {week.weekNumber}: {week.title}
+                          Module {week.weekNumber}: {week.title}
                         </option>
                       ))}
                     </select>
@@ -821,7 +823,7 @@ export default function AddCurriculum() {
 
                   {/* Chapter Title */}
                   <InputField
-                    label="Chapter Title"
+                    label="Course Content Title*"
                     name="title"
                     formik={chapterFormik}
                     placeholder="e.g., Introduction to React Components"
@@ -853,7 +855,7 @@ export default function AddCurriculum() {
                               <div className="flex-1 space-y-3">
                                 {/* Point Title */}
                                 <InputField
-                                  label="Point Title"
+                                  label="Point Title (optional)"
                                   name={`points.${index}.title`}
                                   formik={chapterFormik}
                                   placeholder="e.g., Understanding JSX"
@@ -861,7 +863,7 @@ export default function AddCurriculum() {
 
                                 {/* Point Description */}
                                 <TextAreaField
-                                  label="Description"
+                                  label="Description (optional)"
                                   name={`points.${index}.description`}
                                   formik={chapterFormik}
                                   rows={4}
@@ -899,7 +901,7 @@ export default function AddCurriculum() {
                       disabled={loading}
                       className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 disabled:opacity-50"
                     >
-                      {loading ? "Creating..." : "🚀 Create Chapter"}
+                      {loading ? "Saving..." : "🚀 Save Course Content"}
                     </button>
                   </div>
                 </form>

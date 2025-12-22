@@ -104,7 +104,7 @@ const TrainerCoursesPage = () => {
                 </div>
                 <div className="flex items-center gap-4 mb-4">
                   <FaUsers className="text-green-500" />
-                  <span>{course.enrolledCount} students</span>
+                  <span>{course.enrolledCount} participates</span>
                 </div>
 
                 <div className="flex flex-wrap gap-2">

@@ -190,6 +190,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext.jsx";
+import { COURSE_NAME } from "../../utils/constants.js";
 
 
 const RegisterForm = () => {
@@ -280,12 +281,12 @@ const RegisterForm = () => {
                 Start Your Learning Journey
               </h2>
               <p className="text-blue-100 text-lg mb-8">
-                Join thousands mastering new skills with interactive training program
+                Join thousands mastering new skills with interactive {COURSE_NAME}
               </p>
             </div>
 
             <div className="space-y-4">
-              <Feature icon="⚡" title="Interactive Training Program" desc="Learn by doing with projects" />
+              <Feature icon="⚡" title={`Interactive ${COURSE_NAME}`} desc="Learn by doing with projects" />
               <Feature icon="👥" title="Expert Community" desc="Connect with mentors" />
               <Feature icon="📊" title="Progress Tracking" desc="Monitor your journey" />
             </div>

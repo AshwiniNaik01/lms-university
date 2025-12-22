@@ -1,5 +1,6 @@
 import { FormikProvider, useFormik } from "formik";
 import { useEffect, useRef, useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,11 +8,12 @@ import Swal from "sweetalert2";
 import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
 import { getAllCourses } from "../../../api/courses";
-import { DIR } from "../../../utils/constants";
+import { COURSE_NAME, DIR } from "../../../utils/constants";
 import { canPerformAction } from "../../../utils/permissionUtils";
 import InputField from "../../form/InputField";
 import MultiSelectDropdown from "../../form/MultiSelectDropdown";
 import ToggleSwitch from "../../form/ToggleSwitch";
+import { usePassword } from "../../hooks/usePassword";
 
 const EnrollStudentForm = () => {
   const { enrollmentId } = useParams(); // optional ID for edit
@@ -22,6 +24,11 @@ const EnrollStudentForm = () => {
   const navigate = useNavigate(); // initialize navigate
   const { rolePermissions } = useSelector((state) => state.permissions);
   const fileInputRef = useRef(null);
+    const { password, setPassword, generate } = usePassword();
+  const [showPassword, setShowPassword] = useState(false);
+
+
+
 
   // Fetch Courses
   useEffect(() => {
@@ -30,7 +37,7 @@ const EnrollStudentForm = () => {
         const data = await getAllCourses();
         setCourses(data);
       } catch (error) {
-        console.error("Error fetching training program:", error);
+        console.error(`Error fetching ${COURSE_NAME}:`, error);
       }
     };
     fetchCourses();
@@ -44,6 +51,7 @@ const EnrollStudentForm = () => {
       email: "",
       enrolledCourses: [],
       enrolledBatches: [],
+      //  password: "", // ✅ add password here
     },
     validationSchema: Yup.object({
       fullName: Yup.string().required("Full name is required"),
@@ -59,10 +67,14 @@ const EnrollStudentForm = () => {
       try {
         setLoading(true);
 
-        // ✅ ADD THIS HERE
-        await apiClient.post("/api/otp/send-email", {
-          email: values.email,
-        });
+        // // ✅ ADD THIS HERE
+        // await apiClient.post("/api/otp/send-email", {
+        //   email: values.email,
+        // });
+
+         // ✅ Add the password to form values
+    values.password = password;
+
 
         // REQUIRED CHANGE HERE 👇
         values.enrolledBatches = [
@@ -140,6 +152,20 @@ const EnrollStudentForm = () => {
       }
     },
   });
+
+    const isBusy = loading || formik.isSubmitting;
+
+ // Optional: auto-generate password on mount
+  // useEffect(() => {
+  //   generate(); // generates a password when component loads
+  //   formik.setFieldValue("password", password);
+  // }, []);
+
+
+  //   useEffect(() => {
+  //   formik.setFieldValue("password", password);
+  // }, [password]);
+
 
   // Prefill data if editing
 
@@ -246,21 +272,21 @@ const EnrollStudentForm = () => {
         className="p-10 bg-white rounded-lg shadow-2xl max-w-5xl mx-auto space-y-10 overflow-hidden border-4 border-[rgba(14,85,200,0.83)]"
       >
         <h2 className="text-4xl font-bold text-[rgba(14,85,200,0.83)] text-center">
-          {enrollmentId ? "Update Enrollment" : "Enroll Candidate"}
+          {enrollmentId ? "Update Enrollment" : "Enroll Participate"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField label="Full Name" name="fullName" formik={formik} />
+          <InputField label="Full Name*" name="fullName" formik={formik} />
           <InputField
-            label="Mobile Number"
+            label="Mobile Number (optional)"
             name="mobileNo"
             type="tel"
             formik={formik}
           />
-          <InputField label="Email" name="email" type="email" formik={formik} />
+          <InputField label="Email*" name="email" type="email" formik={formik} />
 
           <MultiSelectDropdown
-            label="Training Interested (optional)"
+            label="Training Interested*"
             name="enrolledCourses"
             options={courses}
             formik={formik}
@@ -269,7 +295,7 @@ const EnrollStudentForm = () => {
           />
 
           <MultiSelectDropdown
-            label="Select Batches (optional)"
+            label="Select Batches*"
             name="enrolledBatches"
             options={filteredBatches}
             formik={formik}
@@ -286,7 +312,7 @@ const EnrollStudentForm = () => {
           />
 
           <InputField
-            label="College Name (optional)"
+            label="Organization Name (optional)"
             name="collegeName"
             formik={formik}
           />
@@ -354,12 +380,83 @@ const EnrollStudentForm = () => {
               </div>
             )}
           </div>
-          <ToggleSwitch label="Send Notification" name="certification" />
+
+          {/* Password Field */}
+          {/* <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password*
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Password"
+            />
+            <div
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </div>
+            <button
+              type="button"
+              onClick={() => generate()}
+              className="mt-2 text-sm text-blue-600 hover:underline"
+            >
+              Generate Password
+            </button>
+            {formik.errors.password && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.password}</p>
+            )}
+          </div> */}
+
+
+          {/* Password Field — ONLY on Create */}
+{!enrollmentId && (
+  <div className="relative">
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      Password*
+    </label>
+
+    <input
+      type={showPassword ? "text" : "password"}
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      placeholder="Password"
+    />
+
+    <div
+      className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+      onClick={() => setShowPassword(!showPassword)}
+    >
+      {showPassword ? <FaEyeSlash /> : <FaEye />}
+    </div>
+
+   <button
+  type="button"
+  onClick={() => generate(6)}   // 👈 PASS LENGTH
+  className="mt-2 text-sm text-blue-600 hover:underline"
+>
+  Generate Password
+</button>
+
+
+    {formik.errors.password && (
+      <p className="text-red-500 text-sm mt-1">
+        {formik.errors.password}
+      </p>
+    )}
+  </div>
+)}
+
+          {/* <ToggleSwitch label="Send Notification" name="certification" /> */}
         </div>
 
-        <div className="pt-4 flex flex-col md:flex-row md:justify-end items-center gap-4">
+        {/* <div className="pt-4 flex flex-col md:flex-row md:justify-end items-center gap-4">
           {/* Submit Button */}
-          <button
+          {/* <button
             type="submit"
             disabled={loading}
             className={`w-full md:w-auto px-10 py-3 rounded-xl shadow-lg text-white font-semibold transition duration-300 ${
@@ -374,18 +471,57 @@ const EnrollStudentForm = () => {
                 : "Enrolling..."
               : enrollmentId
               ? "Update Enrollment"
-              : "Add Student"}
-          </button>
+              : "Add Participate"}
+          </button> */}
 
           {/* Excel Upload Button */}
-          <button
+          {/* <button
             type="button"
+             disabled={loading} // ← disable when loading 
             onClick={() => navigate("/enrollments/upload-excel")}
             className="w-full md:w-auto px-6 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition font-semibold"
           >
-            Upload Students via Excel/CSV
+            Upload Participates via Excel/CSV
           </button>
-        </div>
+        </div> */} 
+
+
+
+        <div className="pt-4 flex flex-col md:flex-row md:justify-end items-center gap-4">
+  {/* Submit Button */}
+  <button
+    type="submit"
+    disabled={isBusy}
+    className={`w-full md:w-auto px-10 py-3 rounded-xl shadow-lg text-white font-semibold transition duration-300 ${
+      isBusy
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-[rgba(14,85,200,0.83)] hover:bg-[rgba(14,85,200,1)]"
+    }`}
+  >
+    {isBusy
+      ? enrollmentId
+        ? "Updating..."
+        : "Enrolling..."
+      : enrollmentId
+      ? "Update Enrollment"
+      : "Add Participate"}
+  </button>
+
+  {/* Excel Upload Button */}
+  <button
+    type="button"
+    disabled={isBusy}
+    onClick={() => navigate("/enrollments/upload-excel")}
+    className={`w-full md:w-auto px-6 py-3 rounded-lg shadow transition font-semibold ${
+      isBusy
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-green-600 text-white hover:bg-green-700"
+    }`}
+  >
+    Upload Participates via Excel/CSV
+  </button>
+</div>
+
       </form>
     </FormikProvider>
   );

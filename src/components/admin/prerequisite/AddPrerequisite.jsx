@@ -8,7 +8,7 @@ import apiClient from "../../../api/axiosConfig";
 import { fetchBatchesByCourseId } from "../../../api/batch";
 import { getAllCourses } from "../../../api/courses";
 
-import { DIR } from "../../../utils/constants";
+import { COURSE_NAME, DIR } from "../../../utils/constants";
 import handleApiError from "../../../utils/handleApiError";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
@@ -53,7 +53,7 @@ export default function AddPrerequisite() {
       ],
     },
     validationSchema: Yup.object({
-      courseId: Yup.string().required("Training Program is required"),
+      courseId: Yup.string().required(`${COURSE_NAME} is required`),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -244,15 +244,15 @@ export default function AddPrerequisite() {
 
         {/* Main Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField label="Title" name="title" type="text" formik={formik} />
+          <InputField label="Title*" name="title" type="text" formik={formik} />
           <Dropdown
-            label="Training Program"
+            label={`${COURSE_NAME}*`}
             name="courseId"
             options={courses}
             formik={formik}
           />
           <Dropdown
-            label="Batch"
+            label="Batch*"
             name="batchId"
             options={batches}
             formik={formik}
@@ -260,7 +260,7 @@ export default function AddPrerequisite() {
         </div>
 
         <TextAreaField
-          label="Description"
+          label="Description (optional)"
           name="description"
           rows={4}
           formik={formik}
@@ -271,7 +271,7 @@ export default function AddPrerequisite() {
           name="topics"
           render={(topicHelpers) => (
             <div className="space-y-6">
-              <h3 className="text-xl font-semibold mb-4">Topics</h3>
+              <h3 className="text-xl font-semibold mb-4">Topics*</h3>
 
               {formik.values.topics.map((topic, idx) => (
                 <div
@@ -279,12 +279,12 @@ export default function AddPrerequisite() {
                   className="border border-blue-500 p-6 rounded-xl space-y-5 shadow-md bg-white"
                 >
                   <InputField
-                    label="Topic Name"
+                    label="Topic Name*"
                     name={`topics.${idx}.name`}
                     formik={formik}
                   />
                   <InputField
-                    label="Video Link"
+                    label="Video Link*"
                     name={`topics.${idx}.videoLinks`}
                     formik={formik}
                     type="text"
@@ -293,7 +293,7 @@ export default function AddPrerequisite() {
 
                   <MultiPDFFileUpload
                     key={inputKey + idx} // each topic gets a new key when inputKey changes
-                    label="Upload Topic Files"
+                    label="Upload Topic Files*"
                     name={`topics.${idx}.materialFiles`}
                     formik={formik}
                     multiple

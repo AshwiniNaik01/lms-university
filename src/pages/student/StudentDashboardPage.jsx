@@ -80,10 +80,10 @@ const CourseCard = ({ course, onCourseClick }) => {
         {/* 📊 Duration & Rating (Left + Right aligned) */}
         <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
           {/* Duration */}
-          <div className="flex items-center gap-1">
+          {/* <div className="flex items-center gap-1">
             <FaClock className="w-4 h-4 text-indigo-500" />
             <span>{course.duration || "N/A"}</span>
-          </div>
+          </div> */}
 
           {/* Rating */}
           <div className="flex items-center gap-1">
@@ -428,7 +428,7 @@ const BatchSelectionPopup = () => (
         {userData.profilePhotoStudent ? (
           <img
             src={`${BASE_URL}/uploads/student/student-profilephoto/${userData.profilePhotoStudent}`}
-            alt="Candidate"
+            alt="Participate"
             className="w-20 h-20 rounded-full border-4 border-white object-cover shadow-md"
           />
         ) : (

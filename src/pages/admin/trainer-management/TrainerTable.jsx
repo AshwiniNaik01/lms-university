@@ -9,6 +9,32 @@ import { approveTrainer, deleteTrainer, fetchAllTrainers } from "./trainerApi";
 import { useSelector } from "react-redux";
 import { canPerformAction } from "../../../utils/permissionUtils";
 
+
+const displayValue = (value, fallback = "N/A") => {
+  if (
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    (Array.isArray(value) && value.length === 0)
+  ) {
+    return fallback;
+  }
+  return value;
+};
+
+const isValidResume = (resume) => {
+  return (
+    resume &&
+    typeof resume === "string" &&
+    resume.trim() !== "" &&
+    resume !== "N/A" &&
+    resume !== "NA" &&
+    resume !== "null" &&
+    resume !== "undefined"
+  );
+};
+
+
 const TrainerTable = () => {
   const [trainers, setTrainers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,63 +44,95 @@ const TrainerTable = () => {
   const navigate = useNavigate();
   const { rolePermissions } = useSelector((state) => state.permissions);
 
+
+  
   /** Fetch trainers */
-  const loadTrainers = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const data = await fetchAllTrainers();
-      setTrainers(data);
-    } catch (err) {
-      console.error("Failed to fetch trainers:", err);
-      setError("Failed to fetch trainers.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const loadTrainers = async () => {
+  //   setLoading(true);
+  //   setError("");
+  //   try {
+  //     const data = await fetchAllTrainers();
+  //     setTrainers(data);
+  //   } catch (err) {
+  //     console.error("Failed to fetch trainers:", err);
+  //     setError("Failed to fetch trainers.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+const loadTrainers = async () => {
+  setLoading(true);
+  setError("");
+  try {
+    const data = await fetchAllTrainers();
+
+const cleanedData = data.map((trainer) => ({
+  ...trainer,
+  fullName: trainer.fullName ?? null,
+  title: trainer.title ?? null,
+  email: trainer.email ?? null,
+  mobileNo: trainer.mobileNo ?? null,
+  highestQualification: trainer.highestQualification ?? null,
+  totalExperience: trainer.totalExperience ?? null,
+  resume: trainer.resume ?? null,
+  profilePhotoTrainer: trainer.profilePhotoTrainer ?? null,
+}));
+
+
+    setTrainers(cleanedData);
+  } catch (err) {
+    console.error("Failed to fetch trainers:", err);
+    setError("Failed to fetch trainers.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     loadTrainers();
   }, []);
 
   /** Approve Trainer with SweetAlert */
-  const handleApprove = async (trainerId) => {
-    const result = await Swal.fire({
-      title: "Approve Trainer?",
-      text: "Do you want to approve this trainer?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#2563eb",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, Approve",
-      cancelButtonText: "Cancel",
-      background: "#fefefe",
-    });
+  // const handleApprove = async (trainerId) => {
+  //   const result = await Swal.fire({
+  //     title: "Approve Trainer?",
+  //     text: "Do you want to approve this trainer?",
+  //     icon: "question",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#2563eb",
+  //     cancelButtonColor: "#d33",
+  //     confirmButtonText: "Yes, Approve",
+  //     cancelButtonText: "Cancel",
+  //     background: "#fefefe",
+  //   });
 
-    if (result.isConfirmed) {
-      try {
-        await approveTrainer(trainerId);
-        await loadTrainers();
+  //   if (result.isConfirmed) {
+  //     try {
+  //       await approveTrainer(trainerId);
+  //       await loadTrainers();
 
-        Swal.fire({
-          title: "Approved!",
-          text: "The trainer has been approved successfully.",
-          icon: "success",
-          confirmButtonColor: "#2563eb",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-      } catch (err) {
-        console.error("Error approving trainer:", err);
-        Swal.fire({
-          title: "Error!",
-          text: "Failed to approve trainer.",
-          icon: "error",
-          confirmButtonColor: "#d33",
-        });
-      }
-    }
-  };
+  //       Swal.fire({
+  //         title: "Approved!",
+  //         text: "The trainer has been approved successfully.",
+  //         icon: "success",
+  //         confirmButtonColor: "#2563eb",
+  //         timer: 1500,
+  //         showConfirmButton: false,
+  //       });
+  //     } catch (err) {
+  //       console.error("Error approving trainer:", err);
+  //       Swal.fire({
+  //         title: "Error!",
+  //         text: "Failed to approve trainer.",
+  //         icon: "error",
+  //         confirmButtonColor: "#d33",
+  //       });
+  //     }
+  //   }
+  // };
 
   /** Delete Trainer with SweetAlert */
   const handleDelete = async (trainerId) => {
@@ -127,125 +185,243 @@ const TrainerTable = () => {
   };
 
   /** Table Columns */
-  const columns = useMemo(
-    () => [
-      {
-        header: "Profile",
-        accessor: (row) =>
-          row.profilePhotoTrainer ? (
-            <img
-              src={`${DIR.TRAINER_PROFILE_PHOTO}${row.profilePhotoTrainer}`}
-              alt={row.fullName}
-              className="w-12 h-12 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
-              N/A
-            </div>
-          ),
-      },
-      { header: "Name", accessor: "fullName" },
-      { header: "Title", accessor: "title" },
-      { header: "Qualification", accessor: "highestQualification" },
-      { header: "Experience", accessor: "totalExperience" },
-      {
-        header: "Email",
-        accessor: (row) => (
+  // const columns = useMemo(
+  //   () => [
+  //     {
+  //       header: "Profile",
+  //       accessor: (row) =>
+  //         row.profilePhotoTrainer ? (
+  //           <img
+  //             src={`${DIR.TRAINER_PROFILE_PHOTO}${row.profilePhotoTrainer}`}
+  //             alt={row.fullName}
+  //             className="w-12 h-12 rounded-full object-cover"
+  //           />
+  //         ) : (
+  //           <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+  //             N/A
+  //           </div>
+  //         ),
+  //     },
+  //     { header: "Name", accessor: "fullName" },
+  //     { header: "Title", accessor: "title" },
+  //     { header: "Qualification", accessor: "highestQualification" },
+  //     { header: "Experience", accessor: "totalExperience" },
+  //     {
+  //       header: "Email",
+  //       accessor: (row) => (
+  //         <a
+  //           href={`mailto:${row.email}`}
+  //           className="text-blue-600 hover:underline"
+  //         >
+  //           {row.email}
+  //         </a>
+  //       ),
+  //     },
+  //     { header: "Mobile No", accessor: "mobileNo" },
+  //     {
+  //       header: "Resume",
+  //       accessor: (row) =>
+  //         row.resume ? (
+  //           <a
+  //             href={`${DIR.TRAINER_RESUME}${row.resume}`}
+  //             target="_blank"
+  //             rel="noopener noreferrer"
+  //             className="text-blue-700 underline text-sm"
+  //             download
+  //           >
+  //             Download
+  //           </a>
+  //         ) : (
+  //           "N/A"
+  //         ),
+  //     },
+  //     // {
+  //     //   header: "Status",
+  //     //   accessor: (row) => {
+  //     //     const isApproved =
+  //     //       row.isApproved || row.approvalStatus === "approved";
+  //     //     return (
+  //     //       <div className="flex items-center justify-center">
+  //     //         {isApproved ? (
+  //     //           <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-semibold text-sm">
+  //     //             ✅ Approved
+  //     //           </span>
+  //     //         ) : (
+  //     //           <button
+  //     //             onClick={() => handleApprove(row._id)}
+  //     //             className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 font-semibold text-sm hover:bg-yellow-200 transition-all duration-200"
+  //     //           >
+  //     //             ⏳ Pending
+  //     //           </button>
+  //     //         )}
+  //     //       </div>
+  //     //     );
+  //     //   },
+  //     // },
+  //     {
+  //       header: "Actions",
+  //       accessor: (row) => (
+  //         <div className="flex items-center justify-center space-x-3">
+  //           <button
+  //             onClick={() => handleView(row)}
+  //             className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors duration-200"
+  //             title="View Trainer Details"
+  //           >
+  //             <FaEye />
+  //           </button>
+
+  //           {canPerformAction(rolePermissions, "trainer", "update") && (
+  //             <button
+  //               onClick={() => navigate(`/trainers/update/${row._id}`)}
+  //               className="p-2 rounded-full bg-yellow-50 hover:bg-yellow-100 text-yellow-600 transition-colors duration-200"
+  //               title="Edit Trainer"
+  //             >
+  //               <FaPencilAlt />
+  //             </button>
+  //           )}
+
+  //           {canPerformAction(rolePermissions, "trainer", "delete") && (
+  //             <button
+  //               onClick={() => handleDelete(row._id)}
+  //               className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 transition-colors duration-200"
+  //               title="Delete Trainer"
+  //             >
+  //               🗑️
+  //             </button>
+  //           )}
+  //         </div>
+  //       ),
+  //     },
+  //   ],
+  //   [navigate]
+  // );
+
+const columns = useMemo(
+  () => [
+    {
+      header: "Profile",
+      accessor: (row) =>
+        row.profilePhotoTrainer ? (
+          <img
+            src={`${DIR.TRAINER_PROFILE_PHOTO}${row.profilePhotoTrainer}`}
+            alt={row.fullName}
+            className="w-12 h-12 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+            N/A
+          </div>
+        ),
+    },
+    { header: "Name", accessor: (row) => displayValue(row.fullName) },
+    { header: "Title", accessor: (row) => displayValue(row.title) },
+    {
+      header: "Qualification",
+      accessor: (row) => displayValue(row.highestQualification),
+    },
+    {
+      header: "Experience",
+      accessor: (row) =>
+        row.totalExperience ? `${row.totalExperience} yrs` : "N/A",
+    },
+    {
+      header: "Email",
+      accessor: (row) =>
+        row.email ? (
           <a
             href={`mailto:${row.email}`}
             className="text-blue-600 hover:underline"
           >
             {row.email}
           </a>
+        ) : (
+          "N/A"
         ),
-      },
-      { header: "Mobile No", accessor: "mobileNo" },
-      {
-        header: "Resume",
-        accessor: (row) =>
-          row.resume ? (
-            <a
-              href={`${DIR.TRAINER_RESUME}${row.resume}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-700 underline text-sm"
-              download
-            >
-              Download
-            </a>
-          ) : (
-            "N/A"
-          ),
-      },
-      {
-        header: "Status",
-        accessor: (row) => {
-          const isApproved =
-            row.isApproved || row.approvalStatus === "approved";
-          return (
-            <div className="flex items-center justify-center">
-              {isApproved ? (
-                <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-semibold text-sm">
-                  ✅ Approved
-                </span>
-              ) : (
-                <button
-                  onClick={() => handleApprove(row._id)}
-                  className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 font-semibold text-sm hover:bg-yellow-200 transition-all duration-200"
-                >
-                  ⏳ Pending
-                </button>
-              )}
-            </div>
-          );
-        },
-      },
-      {
-        header: "Actions",
-        accessor: (row) => (
-          <div className="flex items-center justify-center space-x-3">
+    },
+    {
+      header: "Mobile No",
+      accessor: (row) => displayValue(row.mobileNo),
+    },
+{
+  header: "Resume",
+  accessor: (row) =>
+    isValidResume(row.resume) ? (
+      <a
+        href={`${DIR.TRAINER_RESUME}${row.resume}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-700 underline text-sm"
+        download
+      >
+        Download
+      </a>
+    ) : (
+      <span className="text-gray-400">N/A</span>
+    ),
+},
+
+
+    {
+      header: "Actions",
+      accessor: (row) => (
+        <div className="flex items-center justify-center space-x-3">
+          <button
+            onClick={() => handleView(row)}
+            className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600"
+            title="View Trainer Details"
+          >
+            <FaEye />
+          </button>
+
+          {canPerformAction(rolePermissions, "trainer", "update") && (
             <button
-              onClick={() => handleView(row)}
-              className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors duration-200"
-              title="View Trainer Details"
+              onClick={() => navigate(`/trainers/update/${row._id}`)}
+              className="p-2 rounded-full bg-yellow-50 hover:bg-yellow-100 text-yellow-600"
             >
-              <FaEye />
+              <FaPencilAlt />
             </button>
+          )}
 
-            {canPerformAction(rolePermissions, "trainer", "update") && (
-              <button
-                onClick={() => navigate(`/trainers/update/${row._id}`)}
-                className="p-2 rounded-full bg-yellow-50 hover:bg-yellow-100 text-yellow-600 transition-colors duration-200"
-                title="Edit Trainer"
-              >
-                <FaPencilAlt />
-              </button>
-            )}
+          {canPerformAction(rolePermissions, "trainer", "delete") && (
+            <button
+              onClick={() => handleDelete(row._id)}
+              className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600"
+            >
+              🗑️
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ],
+  [navigate, rolePermissions]
+);
 
-            {canPerformAction(rolePermissions, "trainer", "delete") && (
-              <button
-                onClick={() => handleDelete(row._id)}
-                className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 transition-colors duration-200"
-                title="Delete Trainer"
-              >
-                🗑️
-              </button>
-            )}
-          </div>
-        ),
-      },
-    ],
-    [navigate]
-  );
 
   return (
     <div className="max-h-screen p-2 bg-gray-50">
-      <div className="max-w-7xl mx-auto overflow-hidden">
+      {/* <div className="max-w-7xl mx-auto overflow-hidden">
         <header className="px-6 py-5 bg-blue-50 border-b border-blue-200 flex items-center justify-between">
           <h1 className="text-3xl font-extrabold text-blue-900 tracking-tight">
             Trainer Management
           </h1>
-        </header>
+        </header> */}
+         <div className="max-w-7xl mx-auto overflow-hidden">
+      <header className="px-6 py-5 bg-blue-50 border-b border-blue-200 flex items-center justify-between">
+        <h1 className="text-3xl font-extrabold text-blue-900 tracking-tight">
+          Trainer Management
+        </h1>
+
+        {/* Register Trainer Button */}
+        <button
+          onClick={() => navigate("/trainer-register")}
+          className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition"
+        >
+          Register Trainer
+        </button>
+      </header>
+    
+  
 
         <div className="p-2">
           {loading ? (
@@ -273,18 +449,18 @@ const TrainerTable = () => {
         isOpen={isModalOpen}
         onClose={closeModal}
         header="Trainer Details"
-        primaryAction={
-          selectedTrainer &&
-          !(
-            selectedTrainer.isApproved ||
-            selectedTrainer.approvalStatus === "approved"
-          )
-            ? {
-                label: "Approve Trainer",
-                onClick: () => handleApprove(selectedTrainer._id),
-              }
-            : null
-        }
+        // primaryAction={
+        //   selectedTrainer &&
+        //   !(
+        //     selectedTrainer.isApproved ||
+        //     selectedTrainer.approvalStatus === "approved"
+        //   )
+        //     ? {
+        //         label: "Approve Trainer",
+        //         onClick: () => handleApprove(selectedTrainer._id),
+        //       }
+        //     : null
+        // }
       >
         {selectedTrainer ? (
           <div className="space-y-6">
@@ -304,7 +480,7 @@ const TrainerTable = () => {
                   {selectedTrainer.fullName}
                 </h3>
                 <p className="text-gray-600 text-sm">{selectedTrainer.title}</p>
-                {selectedTrainer.isApproved ||
+                {/* {selectedTrainer.isApproved ||
                 selectedTrainer.approvalStatus === "approved" ? (
                   <span className="inline-block mt-2 px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
                     ✅ Approved
@@ -313,13 +489,13 @@ const TrainerTable = () => {
                   <span className="inline-block mt-2 px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
                     ⏳ Pending Approval
                   </span>
-                )}
+                )} */}
               </div>
             </div>
 
             {/* Info */}
             <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm text-gray-800">
-              <p>
+              {/* <p>
                 <strong>Email:</strong>{" "}
                 <a
                   href={`mailto:${selectedTrainer.email}`}
@@ -327,37 +503,71 @@ const TrainerTable = () => {
                 >
                   {selectedTrainer.email}
                 </a>
-              </p>
+              </p> */}
+
               <p>
+  <strong>Email:</strong>{" "}
+  {selectedTrainer.email ? (
+    <a
+      href={`mailto:${selectedTrainer.email}`}
+      className="text-blue-600 hover:underline"
+    >
+      {selectedTrainer.email}
+    </a>
+  ) : (
+    "N/A"
+  )}
+</p>
+              {/* <p>
                 <strong>Mobile:</strong> {selectedTrainer.mobileNo || "N/A"}
-              </p>
+              </p> */}
+
               <p>
+  <strong>Mobile:</strong> {displayValue(selectedTrainer.mobileNo)}
+</p>
+              {/* <p>
                 <strong>Qualification:</strong>{" "}
                 {selectedTrainer.highestQualification || "N/A"}
-              </p>
+              </p> */}
+
               <p>
+  <strong>Qualification:</strong>{" "}
+  {displayValue(selectedTrainer.highestQualification)}
+</p>
+              {/* <p>
                 <strong>Experience:</strong>{" "}
                 {selectedTrainer.totalExperience
                   ? `${selectedTrainer.totalExperience} years`
                   : "N/A"}
-              </p>
+              </p> */}
+
+              <p>
+  <strong>Experience:</strong>{" "}
+  {selectedTrainer.totalExperience
+    ? `${selectedTrainer.totalExperience} years`
+    : "N/A"}
+</p>
             </div>
 
             {/* Resume */}
-            {selectedTrainer.resume && (
-              <div className="pt-4 border-t border-gray-200">
-                <strong>Resume:</strong>{" "}
-                <a
-                  href={`${DIR.TRAINER_RESUME}${selectedTrainer.resume}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
-                  download
-                >
-                  Download Resume
-                </a>
-              </div>
-            )}
+ <div className="pt-4 border-t border-gray-200">
+  <strong>Resume:</strong>{" "}
+  {isValidResume(selectedTrainer.resume) ? (
+    <a
+      href={`${DIR.TRAINER_RESUME}${selectedTrainer.resume}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
+      download
+    >
+      Download Resume
+    </a>
+  ) : (
+    <span className="text-gray-400 ml-2">N/A</span>
+  )}
+</div>
+
+
           </div>
         ) : (
           <p className="text-center text-gray-500 italic py-8">

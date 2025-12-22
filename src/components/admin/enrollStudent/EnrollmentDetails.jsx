@@ -18,6 +18,7 @@ import {
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
+import { COURSE_NAME } from "../../../utils/constants";
 
 const EnrollmentDetails = () => {
   const { id } = useParams();
@@ -66,7 +67,7 @@ const EnrollmentDetails = () => {
   // Tab navigation
   const tabs = [
     { id: "overview", label: "Overview", icon: FiBarChart2 },
-    { id: "courses", label: "Training Program", icon: FiBook },
+    { id: "courses",  label: COURSE_NAME, icon: FiBook },
     { id: "batches", label: "Batches", icon: FiCalendar },
     { id: "attendance", label: "Attendance", icon: FiCheckCircle },
     { id: "assignments", label: "Assignments", icon: FiFileText },
@@ -251,7 +252,7 @@ const EnrollmentDetails = () => {
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <FiUser className="text-blue-600" />
-                  Candidate Information
+                  Participate Information
                 </h2>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
@@ -364,7 +365,7 @@ const EnrollmentDetails = () => {
                     </div>
 
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Students</span>
+                      <span className="text-gray-500">Participates</span>
                       <div className="flex items-center gap-1">
                         <FiUsers className="text-gray-400" size={14} />
                         <span className="font-semibold text-gray-900">
@@ -436,7 +437,7 @@ const EnrollmentDetails = () => {
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                       <FiUsers className="text-orange-600" />
                       <div>
-                        <p className="text-sm text-gray-500">Students</p>
+                        <p className="text-sm text-gray-500">Participates</p>
                         <p className="font-semibold text-gray-900">
                           {batch.studentCount}
                         </p>
