@@ -32,6 +32,7 @@ import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import { setPermissions } from "../../features/permissionsSlice.js";
 import { canAccessModule, canPerformAction } from "../../utils/permissionUtils";
+import { COURSE_NAME } from "../../utils/constants.js";
 
 // ----------------------- MENU CONFIG ------------------------------
 const menuItems = [
@@ -81,19 +82,19 @@ const menuItems = [
     children: [
 
        {
-        label: "Training Program Management",
+       label: `${COURSE_NAME} Management`,
         icon: <FaFolderOpen />,
         module: "course",
         children: [
           {
-            label: "Add Training Program",
+            label: `Add ${COURSE_NAME}`,
             icon: <FaRegFileAlt />,
             path: "/add-courses",
             action: "create",
             module: "course",
           },
           {
-            label: "Manage Training Program",
+            label: `Manage ${COURSE_NAME}`,
             icon: <RiFolderSettingsLine />,
             path: "/manage-courses",
             action: "read",
@@ -271,19 +272,19 @@ const menuItems = [
 
       // STUDENTS
       {
-        label: "Enroll Candidate",
+        label: "Enroll Participate",
         icon: <FaClipboardList />,
         module: "enrollment",
         children: [
           {
-            label: "Enroll Candidate",
+            label: "Enroll Participate",
             icon: <FaRegFileAlt />,
             path: "/enroll-student",
             action: "create",
             module: "enrollment",
           },
           {
-            label: "Enrolled Candidate List",
+            label: "Enrolled Participate List",
             icon: <FaLayerGroup />,
             path: "/enrolled-student-list",
             action: "read",
@@ -460,6 +461,130 @@ useEffect(() => {
 };
 
 // ------------------ Sidebar Item (Recursive) -------------------
+// const SidebarItem = ({
+//   item,
+//   expandedMenus,
+//   toggleSubmenu,
+//   rolePermissions,
+//   level = 0,
+// }) => {
+//   const { currentUser } = useAuth();
+//   const userRole = currentUser?.user?.role;
+
+//   // ⛔ HARD-CODED ADMIN ONLY
+//   if (item.adminOnly && userRole !== "admin") {
+//     return null;
+//   }
+
+//   const isExpanded = expandedMenus.includes(item.label);
+//   const paddingLeft = `${level * 16 + 20}px`;
+
+//   if (item.children) {
+//     const hasAccessibleChild = item.children.some((child) => {
+//       if (child.children) {
+//         return child.children.some((nested) =>
+//           nested.action
+//             ? canPerformAction(rolePermissions, nested.module, nested.action)
+//             : true
+//         );
+//       }
+//       return child.action
+//         ? canPerformAction(rolePermissions, child.module, child.action)
+//         : true;
+//     });
+
+//     if (!hasAccessibleChild) return null;
+
+//     return (
+//       <div>
+//         {/* Parent Menu Button */}
+//         <button
+//           onClick={() => toggleSubmenu(item.label)}
+//           // style={{ paddingLeft }}
+//           style={{ paddingLeft: '12px' }} // minimal padding left
+//           className={`w-full flex items-center justify-between py-2.5 px-3 rounded-lg font-medium transition-all duration-200
+//             ${
+//               isExpanded
+//                 ? "text-indigo-600 bg-indigo-50"
+//                 : "text-gray-700 hover:bg-indigo-50"
+//             }`}
+//         >
+//           <div className="flex items-center gap-3">
+//             <span className="text-lg">{item.icon}</span>
+//             {item.label}
+//           </div>
+//           <span className="text-sm">
+//             {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+//           </span>
+//         </button>
+
+//         <div
+//           className={`overflow-hidden transition-all duration-300 ease-in-out ${
+//             isExpanded ? "max-h-fit mt-1" : "max-h-0"
+//           }`}
+//         >
+//           {item.children.map((child, idx) => (
+//             <SidebarItem
+//               key={idx}
+//               item={child}
+//               expandedMenus={expandedMenus}
+//               toggleSubmenu={toggleSubmenu}
+//               rolePermissions={rolePermissions}
+//               level={level + 1}
+//             />
+//           ))}
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   // Leaf menu item: check permissions
+//   if (!canAccessModule(rolePermissions, item.module)) return null;
+//   if (
+//     item.action &&
+//     !canPerformAction(rolePermissions, item.module, item.action)
+//   )
+//     return null;
+
+//   return (
+//     // <NavLink
+//     //   to={item.path}
+//     //   style={{ paddingLeft }}
+//     //   className={({ isActive }) =>
+//     //     `flex items-center gap-3 py-2.5 px-3 rounded-lg font-medium transition-all duration-200
+//     //       ${
+//     //         isActive
+//     //           ? "bg-indigo-600 text-white shadow-md"
+//     //           : "text-gray-700 hover:bg-indigo-50"
+//     //       }`
+//     //   }
+//     // >
+//     //   <span className="text-lg">{item.icon}</span>
+//     //   {item.label}
+//     // </NavLink>
+
+// <NavLink
+//   to={item.path}
+//   className={({ isActive }) =>
+//     `flex items-center justify-start gap-2 py-2.5 rounded-lg font-medium transition-all duration-200
+//       ${
+//         isActive
+//           ? "bg-indigo-600 text-white shadow-md"
+//           : "text-gray-700 hover:bg-indigo-50"
+//       }`
+//   }
+//   style={{ paddingLeft: '12px' }} // minimal left padding
+// >
+//   <span className="text-lg" style={{ minWidth: '24px' }}>
+//     {item.icon}
+//   </span>
+//   <span className="text-left">{item.label}</span>
+// </NavLink>
+
+//   );
+// };
+
+
 const SidebarItem = ({
   item,
   expandedMenus,
@@ -470,13 +595,12 @@ const SidebarItem = ({
   const { currentUser } = useAuth();
   const userRole = currentUser?.user?.role;
 
-  // ⛔ HARD-CODED ADMIN ONLY
+  // HARD-CODED ADMIN ONLY
   if (item.adminOnly && userRole !== "admin") {
     return null;
   }
 
   const isExpanded = expandedMenus.includes(item.label);
-  const paddingLeft = `${level * 16 + 20}px`;
 
   if (item.children) {
     const hasAccessibleChild = item.children.some((child) => {
@@ -499,7 +623,7 @@ const SidebarItem = ({
         {/* Parent Menu Button */}
         <button
           onClick={() => toggleSubmenu(item.label)}
-          style={{ paddingLeft }}
+          style={{ paddingLeft: '12px' }} // minimal left padding
           className={`w-full flex items-center justify-between py-2.5 px-3 rounded-lg font-medium transition-all duration-200
             ${
               isExpanded
@@ -508,8 +632,10 @@ const SidebarItem = ({
             }`}
         >
           <div className="flex items-center gap-3">
-            <span className="text-lg">{item.icon}</span>
-            {item.label}
+            <span className="text-lg" style={{ minWidth: '24px' }}>
+              {item.icon}
+            </span>
+            <span className="text-left">{item.label}</span>
           </div>
           <span className="text-sm">
             {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
@@ -545,22 +671,26 @@ const SidebarItem = ({
     return null;
 
   return (
-    <NavLink
-      to={item.path}
-      style={{ paddingLeft }}
-      className={({ isActive }) =>
-        `flex items-center gap-3 py-2.5 px-3 rounded-lg font-medium transition-all duration-200
-          ${
-            isActive
-              ? "bg-indigo-600 text-white shadow-md"
-              : "text-gray-700 hover:bg-indigo-50"
-          }`
-      }
-    >
-      <span className="text-lg">{item.icon}</span>
-      {item.label}
-    </NavLink>
+ <NavLink
+  to={item.path}
+  className={({ isActive }) =>
+    `flex items-center justify-start gap-2 py-2.5 rounded-lg font-medium transition-all duration-200
+      ${
+        isActive
+          ? "bg-indigo-600 text-white shadow-md"
+          : "text-gray-700 hover:bg-indigo-50"
+      }`
+  }
+  style={{ paddingLeft: '12px' }} // minimal left padding
+>
+  <span className="text-lg" style={{ minWidth: '24px' }}>
+    {item.icon}
+  </span>
+  <span className="text-left">{item.label}</span>
+</NavLink>
+
   );
 };
+
 
 export default AdminSidebar;

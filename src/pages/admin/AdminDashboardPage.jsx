@@ -22,14 +22,14 @@ const dashboardCards = [
     icon: <FaBook />,
   },
   {
-    title: "Training Program Management",
+   title: `${COURSE_NAME} Management`,
     desc: `Add new ${COURSE_NAME}, update existing ones, and manage curriculum structure.`,
     link: "/manage-courses",
     icon: <FaBook />,
   },
   {
     title: "Participant Management",
-    desc: "View all student enrollments, track progress, and manage student data.",
+    desc: "View all participate enrollments, track progress, and manage participate data.",
     link: "/enrolled-student-list",
     icon: <FaClipboardList />,
   },
@@ -59,7 +59,7 @@ const dashboardCards = [
   },
   {
     title: "Attendance Tracker",
-    desc: "Monitor and manage student attendance across all sessions.",
+    desc: "Monitor and manage participate attendance across all sessions.",
     link: "/manage-meeting",
     icon: <FaCalendarCheck />,
   },
@@ -77,7 +77,7 @@ const dashboardCards = [
   },
   {
     title: "Book Session - Upskilling",
-    desc: "Schedule and manage upskilling sessions for students or staff.",
+    desc: "Schedule and manage upskilling sessions for participates or staff.",
     link: "/book-session",
     icon: <FaChalkboardTeacher />,
   },
@@ -100,7 +100,7 @@ const AdminDashboardPage = () => {
               Admin Dashboard
             </h1>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Centralized platform to manage all aspects of your training programs
+              Centralized platform to manage all aspects of your {COURSE_NAME}
             </p>
           </div>
         </header>

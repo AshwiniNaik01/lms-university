@@ -15,6 +15,7 @@ import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
 import RadioButtonGroup from "../../form/RadioButtonGroup";
 import { useCourseParam } from "../../hooks/useCourseParam";
+import { COURSE_NAME } from "../../../utils/constants";
 
 const AddTest = ({ onClose, onTestAdded }) => {
   const formikRef = useRef(null);
@@ -60,7 +61,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
 
   const validationSchema = Yup.object({
     title: Yup.string().required("Test Title is required"),
-    courseId: Yup.string().required("Training Program is required"),
+    // courseId: Yup.string().required("Training Program is required"),
     // phaseId: Yup.string().required("Phase is required"),
     // weekId: Yup.string().required("Week is required"),
     //    chapterId: Yup.string()
@@ -88,10 +89,10 @@ const AddTest = ({ onClose, onTestAdded }) => {
 
         setCourses(data || []);
       } catch (error) {
-        console.error("Error fetching training program:", error);
+        console.error(`Error fetching ${COURSE_NAME}:`, error);
         Swal.fire({
           icon: "error",
-          title: handleApiError(error) || "Failed to load Training Program",
+          title: handleApiError(error) || `Failed to load ${COURSE_NAME}`,
           text: "Please try again later",
         });
       }
@@ -354,14 +355,14 @@ const AddTest = ({ onClose, onTestAdded }) => {
           {/* Test Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField
-              label="Test Title"
+              label="Test Title*"
               name="title"
               type="text"
               formik={formik}
             />
 
             <Dropdown
-              label="Test Level"
+              label="Test Level (optional)"
               name="testLevel"
               options={[
                 { _id: "Beginner", title: "Beginner" },
@@ -376,7 +377,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Course */}
             <Dropdown
-              label="Training Program"
+              label={`${COURSE_NAME}*`}
               name="courseId"
               options={courses}
               formik={formik}
@@ -385,7 +386,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
             />
 
             {/* Phase */}
-            <Dropdown
+            {/* <Dropdown
               label="Phase (optional)"
               name="phaseId"
               options={phases}
@@ -393,16 +394,16 @@ const AddTest = ({ onClose, onTestAdded }) => {
             />
 
             {/* Chapter */}
-            <Dropdown
+            {/* <Dropdown
               label="Chapter (optional)"
               name="chapterId"
               options={chapters}
               formik={formik}
-            />
+            /> */}
 
             {/* Batch */}
             <Dropdown
-              label="Batch (optional)"
+              label="Batch*"
               name="batchId"
               options={batches.map((b) => ({
                 _id: b._id,
@@ -415,25 +416,25 @@ const AddTest = ({ onClose, onTestAdded }) => {
           {/* Marks & Duration */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <InputField
-              label="Total Marks"
+              label="Total Marks*"
               name="totalMarks"
               type="number"
               formik={formik}
             />
             <InputField
-              label="Passing Marks"
+              label="Passing Marks*"
               name="passingMarks"
               type="number"
               formik={formik}
             />
             <InputField
-              label="Minutes"
+              label="Minutes*"
               name="minutes"
               type="number"
               formik={formik}
             />
             <InputField
-              label="Seconds"
+              label="Seconds (optional)"
               name="seconds"
               type="number"
               formik={formik}
@@ -443,7 +444,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
           {/* User Type & Report Type */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <RadioButtonGroup
-              label="Type"
+              label="Type (optional)"
               name="userType"
               formik={formik}
               options={[
@@ -452,7 +453,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
               ]}
             />
             <RadioButtonGroup
-              label="Report Type"
+              label="Report Type (optional)"
               name="reportType"
               formik={formik}
               options={[
@@ -465,7 +466,7 @@ const AddTest = ({ onClose, onTestAdded }) => {
           {/* Excel Upload Section */}
           <div className="bg-gray-50 border-2 border-dashed border-[rgba(14,85,200,0.3)] rounded-xl p-6 text-center hover:shadow-xl transition-all duration-300">
             <h3 className="text-lg font-semibold text-[rgba(14,85,200,0.83)] mb-4">
-              📘 Upload Excel File
+              📘 Upload Excel File*
             </h3>
 
             <div className="flex flex-col md:flex-row md:items-center justify-center gap-5">

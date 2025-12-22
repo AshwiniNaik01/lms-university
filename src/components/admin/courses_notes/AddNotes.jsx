@@ -8,7 +8,7 @@ import * as Yup from "yup";
 import apiClient from "../../../api/axiosConfig";
 import { getAllCourses } from "../../../api/courses";
 import { createNote, fetchNoteById, updateNote } from "../../../api/notes";
-import { DIR } from "../../../utils/constants";
+import { COURSE_NAME, DIR } from "../../../utils/constants";
 
 import handleApiError from "../../../utils/handleApiError";
 import { canPerformAction } from "../../../utils/permissionUtils";
@@ -17,6 +17,7 @@ import InputField from "../../form/InputField";
 import PDFUploadField from "../../form/PDFUploadField";
 import TextAreaField from "../../form/TextAreaField";
 import { useCourseParam } from "../../hooks/useCourseParam";
+import { FaUpload } from "react-icons/fa";
 
 export default function AddNotes() {
   const { noteId } = useParams();
@@ -40,7 +41,7 @@ export default function AddNotes() {
         const courses = await getAllCourses();
         setAvailableCourses(courses);
       } catch (err) {
-        console.error("Failed to load training program:", err);
+        console.error(`Failed to load ${COURSE_NAME}:`, err);
       }
     };
     fetchCourses();
@@ -123,7 +124,7 @@ export default function AddNotes() {
         const res = await apiClient.get(`/api/chapters/course/${courseId}`);
         setAvailableChapters(res.data?.data || []);
       } catch (err) {
-        console.error("Failed to load chapters for training program:", err);
+        console.error(`Failed to load chapters for ${COURSE_NAME}:`, err);
         setAvailableChapters([]);
       }
     };
@@ -154,56 +155,93 @@ export default function AddNotes() {
   }, [formik.values.course]);
 
   // ✅ Fetch existing note for editing
-  useEffect(() => {
-    const fetchNote = async () => {
-      if (!noteId) return;
+  // useEffect(() => {
+  //   const fetchNote = async () => {
+  //     if (!noteId) return;
 
-      setLoading(true);
-      try {
-        const res = await fetchNoteById(noteId);
-        const note = res?.data || res; // handles both raw and wrapped responses
+  //     setLoading(true);
+  //     try {
+  //       const res = await fetchNoteById(noteId);
+  //       const note = res?.data || res; // handles both raw and wrapped responses
 
-        if (note) {
-          // ✅ Extract correct course and chapter from nested structure
-          const courseId = note.chapter?.courseDetails?._id || "";
-          const chapterId = note.chapter?._id || "";
+  //       if (note) {
+  //         // ✅ Extract correct course and chapter from nested structure
+  //          const courseId = note.course || note.chapter?.courseDetails?._id || "";
+  //         // const chapterId = note.chapter?._id || "";
+  //          const batchId = note.batches?.[0] || "";
 
-          // First set course to trigger chapter loading
-          formik.setFieldValue("course", courseId);
+  //         // First set course to trigger chapter loading
+  //         formik.setFieldValue("course", courseId);
 
-          // Wait for chapters to load before setting chapter
-          setTimeout(() => {
-            formik.setValues({
-              course: courseId,
-              chapter: chapterId,
-              title: note.title || "",
-              content: note.content || "",
-              type: note.type || "",
-              batches: note.batches || "",
-              file: null,
-            });
-          }, 400);
+  //         // Wait for chapters to load before setting chapter
+  //         setTimeout(() => {
+  //           formik.setValues({
+  //             course: courseId,
+  //             chapter: chapterId,
+  //             title: note.title || "",
+  //             content: note.content || "",
+  //             type: note.type || "",
+  //             batches: note.batches || "",
+  //             file: null,
+  //           });
+  //         }, 400);
 
-          if (note.file) setExistingFile(note.file);
-        } else {
-          Swal.fire("Not Found", "Note not found.", "warning");
-          navigate("/manage-notes");
-        }
-      } catch (err) {
-        console.error(err);
-        Swal.fire(
-          "Error",
-          handleApiError(err) || "Failed to fetch note details.",
-          "error"
-        );
-        navigate("/manage-notes");
-      } finally {
-        setLoading(false);
-      }
-    };
+  //         if (note.file) setExistingFile(note.file);
+  //       } else {
+  //         Swal.fire("Not Found", "Note not found.", "warning");
+  //         navigate("/manage-notes");
+  //       }
+  //     } catch (err) {
+  //       console.error(err);
+  //       Swal.fire(
+  //         "Error",
+  //         handleApiError(err) || "Failed to fetch note details.",
+  //         "error"
+  //       );
+  //       navigate("/manage-notes");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchNote();
-  }, [noteId]);
+  //   fetchNote();
+  // }, [noteId]);
+
+  // Fetch note
+useEffect(() => {
+  if (!noteId || availableCourses.length === 0) return;
+
+  const fetchNote = async () => {
+    setLoading(true);
+    try {
+      const res = await fetchNoteById(noteId);
+      const note = res?.data || res;
+      if (!note) return;
+
+      const courseId = note.course || note.chapter?.courseDetails?._id || "";
+      const batchId = note.batches?.[0] || "";
+
+      setSelectedCourse(courseId); // local state
+      formik.setValues({
+        course: courseId,
+        batches: batchId,
+        title: note.title || "",
+        content: note.content || "",
+        type: note.type || "",
+        file: null,
+      });
+
+      if (note.file) setExistingFile(note.file);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchNote();
+}, [noteId, availableCourses]);
+
 
   if (loading)
     return (
@@ -226,10 +264,10 @@ export default function AddNotes() {
           {/* Course Dropdown */}
 
           {/* Title */}
-          <InputField label="Title" name="title" formik={formik} />
+          <InputField label="Title*" name="title" formik={formik} />
 
           <Dropdown
-            label="Training Program"
+            label={`${COURSE_NAME}*`}
             name="course"
             options={availableCourses}
             formik={formik}
@@ -243,14 +281,14 @@ export default function AddNotes() {
           />
 
           {/* Chapter Dropdown */}
-          <Dropdown
+          {/* <Dropdown
             label="Chapter"
             name="chapter"
             options={availableChapters}
             formik={formik}
-          />
+          /> */}
           <Dropdown
-            label="Batch (optional)"
+            label="Batch*"
             name="batches"
             options={availableBatches.map((b) => ({
               _id: b._id,
@@ -263,8 +301,8 @@ export default function AddNotes() {
           />
 
           {/* File Upload */}
-          <div className="md:col-span-2">
-            <PDFUploadField name="file" label="Upload File" formik={formik} />
+          {/* <div className="md:col-span-2">
+            <PDFUploadField name="file" label="Upload File*" formik={formik} />
 
             {existingFile && !formik.values.file && (
               <p className="mt-2 text-sm text-blue-700">
@@ -279,12 +317,73 @@ export default function AddNotes() {
                 </a>
               </p>
             )}
-          </div>
+          </div> */}
+
+<div className="md:col-span-2 mb-6">
+  <label className="block text-sm font-semibold text-gray-800 mb-2">
+    Upload File*
+  </label>
+
+  <div className="relative w-full">
+    {/* Invisible real input */}
+    <input
+      type="file"
+      name="file"
+      onChange={(e) => {
+        const file = e.target.files[0];
+        if (file) {
+          formik.setFieldValue("file", file);
+        }
+      }}
+      className="absolute inset-0 opacity-0 cursor-pointer z-20"
+    />
+
+    {/* Styled UI */}
+    <div className="flex items-center justify-between border-2 border-dashed border-gray-300 bg-white px-4 py-3 rounded-lg shadow-sm hover:border-blue-400 transition-all duration-300 z-10">
+      <div className="flex items-center space-x-3">
+        <FaUpload className="text-blue-600" />
+        <span className="text-gray-700 font-medium truncate max-w-[300px]">
+          {formik.values.file
+            ? formik.values.file.name
+            : "Choose a file..."}
+        </span>
+      </div>
+
+      <span className="text-sm text-gray-500 hidden md:block">
+        All file types allowed
+      </span>
+    </div>
+  </div>
+
+  {/* Existing file (edit mode) */}
+  {existingFile && !formik.values.file && (
+    <p className="mt-2 text-sm text-blue-700">
+      Existing file:{" "}
+      <a
+        href={`${DIR.COURSE_NOTES}${existingFile}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline font-medium"
+      >
+        {existingFile}
+      </a>
+    </p>
+  )}
+
+  {/* Formik error */}
+  {formik.touched.file && formik.errors.file && (
+    <div className="text-red-500 text-sm font-medium mt-1">
+      {formik.errors.file}
+    </div>
+  )}
+</div>
+
+
 
           {/* Content */}
           <div className="md:col-span-2">
             <TextAreaField
-              label="Content"
+              label="Description (optional)"
               name="content"
               formik={formik}
               rows={4}

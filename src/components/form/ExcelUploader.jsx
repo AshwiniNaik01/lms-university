@@ -60,7 +60,7 @@ const ExcelUploader = ({
 
       Swal.fire({
         icon: "success",
-        title: `${jsonData.length} Students Found`,
+        title: `${jsonData.length} Participates Found`,
         text: "Excel file is properly formatted.",
       });
 

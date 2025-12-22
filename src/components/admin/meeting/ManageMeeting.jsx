@@ -92,18 +92,32 @@ const ManageMeeting = () => {
   };
 
   // 🧩 Navigate to attendance marking
+  // const handleAttendance = (meeting) => {
+  //   if (meeting.attendanceStatus === "Attendance already marked") {
+  //     Swal.fire({
+  //       icon: "info",
+  //       title: "Attendance Already Done",
+  //       text: "You have already marked attendance for this session.",
+  //       confirmButtonText: "OK",
+  //     });
+  //   } else {
+  //     navigate(`/attendance/${meeting._id}`, { state: { meeting } });
+  //   }
+  // };
+
+
   const handleAttendance = (meeting) => {
-    if (meeting.attendanceStatus === "Attendance already marked") {
-      Swal.fire({
-        icon: "info",
-        title: "Attendance Already Done",
-        text: "You have already marked attendance for this session.",
-        confirmButtonText: "OK",
-      });
-    } else {
-      navigate(`/attendance/${meeting._id}`, { state: { meeting } });
-    }
-  };
+  if (meeting.attendanceDone) {
+    Swal.fire({
+      icon: "info",
+      title: "Attendance Already Done",
+      text: "You have already marked attendance for this session.",
+      confirmButtonText: "OK",
+    });
+  } else {
+    navigate(`/attendance/${meeting._id}`, { state: { meeting } });
+  }
+};
 
   // 🧩 View attendance data (popup modal)
   // 🧩 View attendance data (popup modal)
@@ -166,20 +180,45 @@ const ManageMeeting = () => {
 
   // 🧾 Columns for meetings table
   const columns = [
-    { header: "Title", accessor: "title" },
-    { header: "Platform", accessor: "platform" },
-    {
-      header: "Start Time",
-      accessor: (row) => new Date(row.startTime).toLocaleString(),
-    },
-    {
-      header: "End Time",
-      accessor: (row) => new Date(row.endTime).toLocaleString(),
-    },
-    {
-      header: "Trainer",
-      accessor: (row) => row.trainerDetails?.fullName || "-",
-    },
+  {
+    header: "Title",
+    accessor: "title",
+  },
+  {
+    header: "Platform",
+    accessor: "platform",
+  },
+  {
+    header: "Date",
+    accessor: (row) =>
+      row.startTime
+        ? new Date(row.startTime).toLocaleDateString()
+        : "-",
+  },
+  {
+    header: "Start Time",
+    accessor: (row) =>
+      row.startTime
+        ? new Date(row.startTime).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "-",
+  },
+  {
+    header: "End Time",
+    accessor: (row) =>
+      row.endTime
+        ? new Date(row.endTime).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "-",
+  },
+  {
+    header: "Trainer",
+    accessor: (row) => row.trainer?.fullName || "-",
+  },
     {
       header: "Actions",
       accessor: (row) => (
@@ -190,7 +229,14 @@ const ManageMeeting = () => {
           >
             View
           </button>
-               {canPerformAction(rolePermissions, "attendance", "create") && (
+
+            {/* Show Attendance button ONLY if not already marked */}
+      {canPerformAction(rolePermissions, "attendance", "create") &&
+  
+  !row.attendanceDone && (
+
+
+              //  {canPerformAction(rolePermissions, "attendance", "create") && (
           <button
             onClick={() => handleAttendance(row)}
             className="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-green-600 transition-all"
@@ -313,7 +359,7 @@ const ManageMeeting = () => {
               <table className="w-full text-sm">
                 <thead className="bg-indigo-50 text-indigo-900">
                   <tr>
-                    <th className="px-4 py-2 text-left">Student Name</th>
+                    <th className="px-4 py-2 text-left">Participate Name</th>
                     <th className="px-4 py-2 text-left">Email</th>
                     <th className="px-4 py-2 text-left">Status</th>
                   </tr>

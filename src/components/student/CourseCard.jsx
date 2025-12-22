@@ -33,7 +33,7 @@ const CourseCard = ({ course, onEnrollSuccess, isEnrolled }) => {
 
 const handleEnroll = async () => {
   if (!isAuthenticated || currentUser.user.role !== "student") {
-    alert("Please login as a student to enroll.");
+    alert("Please login as a participate to enroll.");
     return;
   }
 

@@ -75,6 +75,9 @@ export const DIR = {
 
   // 🧩 Prerequisite Materials
   PREREQUISITE_MATERIALS: BASE_URL + "/uploads/prerequisite/materials/",
+
+    // ☁️ Cloud Labs
+  CLOUD_LABS: BASE_URL + "/uploads/cloudLabs/",
 };
 
 // constant course name

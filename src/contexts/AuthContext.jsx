@@ -391,6 +391,8 @@ export const AuthProvider = ({ children }) => {
       Cookies.set('user', JSON.stringify(user), { expires: 1 });
       Cookies.set('role', user.role, { expires: 1 });
       Cookies.set('userId', user._id, { expires: 1 });
+      // ✅ ADD THIS
+  Cookies.set("email", user.email, { expires: 1 });
 
       // if (user.role === 'student') {
       //   Cookies.set('studentId', user.studentId, { expires: 1 });
@@ -431,7 +433,7 @@ export const AuthProvider = ({ children }) => {
     return { success: false, message: response.message };
   };
 
-const otpLogin = ({ studentId, mobileNo, courseId, role, token }) => {
+const otpLogin = ({ studentId, mobileNo, courseId, role, token, email }) => {
   // Save token and user info in cookies
   Cookies.set("token", token, { expires: 1 });
   Cookies.set("role", role, { expires: 1 });
@@ -439,8 +441,13 @@ const otpLogin = ({ studentId, mobileNo, courseId, role, token }) => {
   Cookies.set("studentId", studentId);
   Cookies.set("courseId", courseId);
 
+    // ✅ ADD THIS
+  if (email) {
+    Cookies.set("email", email, { expires: 1 });
+  }
+
   // Build user object
-  const user = { studentId, mobileNo, courseId, role };
+  const user = { studentId, mobileNo, courseId, role, email };
 
   Cookies.set("user", JSON.stringify(user), { expires: 1 });
 
@@ -462,6 +469,7 @@ const otpLogin = ({ studentId, mobileNo, courseId, role, token }) => {
     Cookies.remove('studentId');
     Cookies.remove('trainerId');
     Cookies.remove('userId');
+     Cookies.remove("email"); // ✅
 
     localStorage.removeItem("permissions");
 

@@ -102,7 +102,7 @@ const TrainerCourseDetailsPage = () => {
         </div>
         <div className="flex items-center gap-2 bg-white p-4 rounded-xl shadow text-gray-700 flex-1 justify-center">
           <FaUsers className="text-green-500" />{" "}
-          <span>{course.enrolledCount} Students</span>
+          <span>{course.enrolledCount} Participates</span>
         </div>
       </div>
 

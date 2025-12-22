@@ -144,7 +144,7 @@ const TrainerDashboardPage = () => {
             </span>
             <span className="flex items-center gap-1 bg-black/10 px-3 py-1 rounded-full">
               <FaUsers className="text-indigo-300" />
-              <span>250+ Students</span>
+              <span>250+ Participate</span>
             </span>
           </div>
         </div>
@@ -512,7 +512,7 @@ const TrainerDashboardPage = () => {
                 <FaUser className="w-6 h-6" />
               </div>
               <p className="text-2xl font-bold text-gray-800">250+</p>
-              <p className="text-sm text-gray-600 mt-1">Total Students</p>
+              <p className="text-sm text-gray-600 mt-1">Total Participates</p>
             </div>
           </div>
         </InfoCard>
@@ -581,7 +581,7 @@ const TrainerDashboardPage = () => {
               <FaUsers className="w-6 h-6" />
             </div>
             <p className="text-2xl font-bold text-gray-800">250+</p>
-            <p className="text-sm text-gray-600">Students</p>
+            <p className="text-sm text-gray-600">Participates</p>
           </div>
 
           <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center transition-all hover:shadow-md">

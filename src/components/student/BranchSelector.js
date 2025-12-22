@@ -74,7 +74,7 @@ const BranchSelector = () => {
     return <p>Please log in to select or change your branch.</p>;
   }
   if (currentUser.user?.role === "admin") {
-    return <p>Branch selection is for student accounts.</p>;
+    return <p>Branch selection is for participate accounts.</p>;
   }
 
   return (

@@ -147,7 +147,7 @@ export default function StudentEmailLogin({ redirectTestId }) {
         className="relative z-10 w-full max-w-lg bg-white/20 backdrop-blur-md p-8 rounded-lg shadow-2xl flex flex-col border border-white/30"
       >
         <h2 className="text-3xl font-bold mb-8 text-white text-center">
-          Student Login
+          Participate Login
         </h2>
 
         {/* Email Field */}

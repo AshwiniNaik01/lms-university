@@ -12,7 +12,7 @@ import {
 import { fetchBatchesByCourseId } from "../../../api/batch";
 import { getChaptersByCourse } from "../../../api/chapters";
 import { getAllCourses } from "../../../api/courses";
-import { DIR } from "../../../utils/constants";
+import { COURSE_NAME, DIR } from "../../../utils/constants";
 import { canPerformAction } from "../../../utils/permissionUtils";
 import Dropdown from "../../form/Dropdown";
 import InputField from "../../form/InputField";
@@ -49,7 +49,7 @@ export default function AddAssignment() {
         );
         setAvailableCourses(uniqueCourses);
       } catch (err) {
-        console.error("Error fetching training program:", err);
+        console.error(`Error fetching ${COURSE_NAME}:`, err);
       }
     };
     fetchCourses();
@@ -149,32 +149,21 @@ export default function AddAssignment() {
     },
   });
 
-  useEffect(() => {
-    const loadBatches = async () => {
-      const courseId = formik.values.course;
+useEffect(() => {
+  const loadBatches = async () => {
+    const courseId = formik.values.course;
 
-      if (!courseId) {
-        setAvailableBatches([]);
-        return;
-      }
+    if (!courseId) {
+      setAvailableBatches([]);
+      return;
+    }
 
-      try {
-        const batches = await fetchBatchesByCourseId(courseId);
+    const batches = await fetchBatchesByCourseId(courseId);
+    setAvailableBatches(batches);
+  };
 
-        // Remove duplicate batches by _id
-        const uniqueBatches = Array.from(
-          new Map(batches.map((b) => [b._id, b])).values()
-        );
-
-        setAvailableBatches(uniqueBatches);
-      } catch (err) {
-        console.error("Error loading batches:", err);
-        setAvailableBatches([]);
-      }
-    };
-
-    loadBatches();
-  }, [formik.values.course]);
+  loadBatches();
+}, [formik.values.course]);
 
   // Fetch chapters when course changes
   useEffect(() => {
@@ -195,7 +184,7 @@ export default function AddAssignment() {
         );
         setAvailableChapters(uniqueChapters);
       } catch (err) {
-        console.error("Error fetching chapters for training program:", err);
+        console.error(`Error fetching chapters for ${COURSE_NAME}:`, err);
         setAvailableChapters([]);
       }
     };
@@ -204,55 +193,62 @@ export default function AddAssignment() {
   }, [formik.values.course]);
 
   // Fetch assignment when editing
-  useEffect(() => {
-    if (!assignmentId) return;
+ useEffect(() => {
+  if (!assignmentId) return;
 
-    const fetchAssignment = async () => {
-      setLoading(true);
-      try {
-        const res = await getAssignmentById(assignmentId); // use API function
+  const fetchAssignment = async () => {
+    setLoading(true);
+    try {
+      const res = await getAssignmentById(assignmentId);
 
-        if (res.success && res.data) {
-          const assignment = res.data;
-          formik.setValues({
-            course: assignment.chapter?.course || assignment.course || "",
-            chapter: assignment.chapter?._id || "",
-            batches: assignment.batches?._id || "",
-            title: assignment.title || "",
-            description: assignment.description || "",
-            deadline: assignment.deadline?.split("T")[0] || "",
-            fileUrl: null,
-          });
+      if (res.success && res.data) {
+        const assignment = res.data;
 
-          if (assignment.fileUrl) {
-            setExistingFile(DIR.ASSIGNMENT_FILES + assignment.fileUrl);
-          }
-        } else {
-          Swal.fire({
-            icon: "warning",
-            title: "Oops...",
-            text: res.message || "Assignment not found",
-            confirmButtonColor: "#0E55C8",
-          });
+        formik.setValues({
+          course: assignment.chapter?.course?._id || assignment.course?._id || "",
+          chapter: assignment.chapter?._id || "",
+          batches: assignment.batches || [], // <-- fixed
+          title: assignment.title || "",
+          description: assignment.description || "",
+          deadline: assignment.deadline?.split("T")[0] || "",
+          fileUrl: null,
+        });
 
-          navigate("/manage-assignments");
+        if (assignment.fileUrl) {
+          setExistingFile(DIR.ASSIGNMENT_FILES + assignment.fileUrl);
         }
-      } catch (err) {
-        console.error(err);
+      } else {
         Swal.fire({
           icon: "warning",
-          title: "Warning!",
-          text: err.response?.data?.message || "Failed to fetch assignment",
+          title: "Oops...",
+          text: res.message || "Assignment not found",
           confirmButtonColor: "#0E55C8",
         });
         navigate("/manage-assignments");
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "warning",
+        title: "Warning!",
+        text: err.response?.data?.message || "Failed to fetch assignment",
+        confirmButtonColor: "#0E55C8",
+      });
+      navigate("/manage-assignments");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchAssignment();
-  }, [assignmentId]);
+  fetchAssignment();
+}, [assignmentId]);
+
+  // Inside AddAssignment component, after state declarations and useEffects
+const courseOptions = availableCourses.map((c) => ({
+  _id: c._id,
+  title: c.title,
+}));
+
 
   if (loading)
     return <p className="text-center mt-10">Loading assignment...</p>;
@@ -271,42 +267,42 @@ export default function AddAssignment() {
           {/* Course */}
 
           {/* Title */}
-          <InputField label="Title" name="title" type="text" formik={formik} />
+          <InputField label="Title*" name="title" type="text" formik={formik} />
 
           {/* Deadline */}
           <InputField
-            label="Deadline"
+            label="Deadline*"
             name="deadline"
             type="date"
             formik={formik}
           />
 
           <Dropdown
-            label="Training Program"
-            name="course"
-            options={availableCourses}
-            formik={formik}
-            value={selectedCourse} // Controlled value
-            onChange={(e) => {
-              const value = e.target.value;
-              setSelectedCourse(value); // Update local state
-              formik.setFieldValue("course", value); // Update Formik value
-            }}
-            disabled={isCoursePreselected} // Optional: disable if course comes from URL param
-          />
+  label={`${COURSE_NAME}*`}
+  name="course"
+  options={courseOptions}
+  formik={formik}
+  value={formik.values.course}
+  onChange={(value) => {
+    formik.setFieldValue("course", value); // value = courseId
+    setSelectedCourse(value);
+  }}
+  disabled={isCoursePreselected}
+/>
+
 
           {/* Chapter */}
-          <Dropdown
+          {/* <Dropdown
             label="Chapter"
             name="chapter"
             options={availableChapters}
             formik={formik}
             // Disable chapter dropdown if no course selected
             multiple={false}
-          />
+          /> */}
 
           <Dropdown
-            label="Batch (optional)"
+            label="Batch*"
             name="batches"
             formik={formik}
             options={availableBatches.map((b) => ({
@@ -320,7 +316,7 @@ export default function AddAssignment() {
 
           <div className="flex flex-col">
             <PDFUploadField
-              label="Assignment File (PDF)"
+              label="Assignment File (PDF)*"
               name="fileUrl"
               formik={formik}
             />
@@ -340,7 +336,7 @@ export default function AddAssignment() {
           {/* Description */}
           <div className="flex flex-col md:col-span-2">
             <TextAreaField
-              label="Description"
+              label="Description (optional)"
               name="description"
               formik={formik}
               rows={5} // optional, defaults to 4

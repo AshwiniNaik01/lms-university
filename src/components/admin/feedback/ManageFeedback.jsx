@@ -8,6 +8,7 @@ import { canPerformAction } from "../../../utils/permissionUtils";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
 import { useSearchParams } from "react-router-dom";
+import { COURSE_NAME } from "../../../utils/constants";
 
 const ManageFeedback = () => {
   const [feedbackList, setFeedbackList] = useState([]);
@@ -142,7 +143,7 @@ const ManageFeedback = () => {
     return (
       <div className="space-y-3">
         <p>
-          <strong>Training Program:</strong> {selectedFeedback.course.title}
+          <strong>{COURSE_NAME}:</strong> {selectedFeedback.course.title}
         </p>
         {/* <p><strong>Course:</strong> {selectedFeedback.course?._id}</p> */}
         <p>

@@ -73,7 +73,15 @@ const Dropdown = ({
         id={name}
         name={name}
         multiple={multiple}
-        value={formik.values[name]}
+        // value={formik.values[name]}
+        value={
+  multiple
+    ? formik.values[name] || []
+    : Array.isArray(formik.values[name])
+    ? formik.values[name][0] || ""  // use first element if array
+    : formik.values[name] || ""
+}
+
         onBlur={formik.handleBlur}
         onChange={(e) => {
           const selected = multiple

@@ -25,6 +25,7 @@ import MeetingsDropdown from "../../components/student-course/MeetingsDropdown";
 import PrerequisitesTab from "../../components/student-course/PrerequisitesTab";
 import TestsTab from "../../components/student-course/TestsTab";
 import { COURSE_NAME } from "../../utils/constants";
+import CloudLabTab from "../../components/student-course/CloudLabTab";
 
 const StudyCoursePage = () => {
   const { courseId } = useParams();
@@ -35,25 +36,42 @@ const StudyCoursePage = () => {
   const [expandedWeeks, setExpandedWeeks] = useState({});
   const [progress, setProgress] = useState(0);
   // inside component
-const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   // const [searchParams] = useSearchParams();
   const batchId = searchParams.get("batchId");
   const [batch, setBatch] = useState(null);
   const [showMeetings, setShowMeetings] = useState(false);
 
+  // Initialize activeTab from URL query param
 
-// Initialize activeTab from URL query param
-const [activeTab, setActiveTabState] = useState(
-  searchParams.get("activeTab") || "overview"
-);
+  const normalizeTab = (tab) =>
+    tab?.toLowerCase().replace(/\s+/g, "") || "overview";
 
-// Handler to change active tab and update query params
-const handleSetActiveTab = (tabName) => {
-  const params = Object.fromEntries([...searchParams]);
-  params.activeTab = tabName;
-  setActiveTabState(tabName);
-  setSearchParams(params);
-};
+  const [activeTab, setActiveTabState] = useState(
+    normalizeTab(searchParams.get("activeTab"))
+  );
+
+  // const [activeTab, setActiveTabState] = useState(
+  //   searchParams.get("activeTab") || "overview"
+  // );
+
+  // Handler to change active tab and update query params
+  // const handleSetActiveTab = (tabName) => {
+  //   const params = Object.fromEntries([...searchParams]);
+  //   params.activeTab = tabName;
+  //   setActiveTabState(tabName);
+  //   setSearchParams(params);
+  // };
+
+  const handleSetActiveTab = (tabName) => {
+    const params = Object.fromEntries([...searchParams]);
+
+    const normalizedTab = normalizeTab(tabName);
+
+    params.activeTab = normalizedTab;
+    setActiveTabState(normalizedTab);
+    setSearchParams(params);
+  };
 
   useEffect(() => {
     if (!courseId) return;
@@ -94,6 +112,16 @@ const handleSetActiveTab = (tabName) => {
 
     loadBatch();
   }, [batchId]);
+
+  // const hasCloudLab =
+  //   batch?.cloudLabs &&
+  //   (batch.cloudLabs.link || batch.cloudLabs.students?.length > 0);
+
+ const hasCloudLab =
+  Array.isArray(batch?.cloudLabs?.students) &&
+  batch.cloudLabs.students.length > 0;
+
+
 
   const calculateProgress = (courseData) => {
     // Simulate progress calculation based on completed items
@@ -187,7 +215,6 @@ const handleSetActiveTab = (tabName) => {
       <button
         // onClick={() => setActiveTab(name.toLowerCase())}
         onClick={() => handleSetActiveTab(name.toLowerCase())}
-
         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
           isActive
             ? `${colors.active} shadow-lg`
@@ -362,12 +389,11 @@ const handleSetActiveTab = (tabName) => {
                 )} */}
 
                 {showMeetings && (
-  <MeetingsDropdown
-    batch={batch}
-    onClose={() => setShowMeetings(false)}
-  />
-)}
-
+                  <MeetingsDropdown
+                    batch={batch}
+                    onClose={() => setShowMeetings(false)}
+                  />
+                )}
               </div>
 
               {/* Rating */}
@@ -377,10 +403,10 @@ const handleSetActiveTab = (tabName) => {
               </div>
 
               {/* Duration */}
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full shadow-sm">
+              {/* <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full shadow-sm">
                 <FaClock className="w-4 h-4" />
                 <span>{course.duration}</span>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -399,6 +425,23 @@ const handleSetActiveTab = (tabName) => {
                 isActive={activeTab === "overview"}
                 count={0}
                 color="blue"
+              />
+
+              {hasCloudLab && (
+                <TabButton
+                  name="Cloud Lab"
+                  icon={<FaVideo className="w-4 h-4" />}
+                  isActive={activeTab === "cloudlab"}
+                  color="blue"
+                />
+              )}
+
+              <TabButton
+                name="Outcomes"
+                icon={<FaCheckCircle className="w-4 h-4" />}
+                isActive={activeTab === "outcomes"}
+                count={getOutcomesCount(course)}
+                color="green"
               />
               <TabButton
                 name="Curriculum"
@@ -428,26 +471,11 @@ const handleSetActiveTab = (tabName) => {
               />
 
               <TabButton
-                name="Videos"
-                icon={<FaVideo className="w-4 h-4" />}
-                isActive={activeTab === "videos"}
-                count={getLectureCount(batch)}
-                color="green"
-              />
-
-              <TabButton
                 name="Assignments"
                 icon={<FaTasks className="w-4 h-4" />}
                 isActive={activeTab === "assignments"}
                 count={getAssignmentCount(batch)}
                 color="orange"
-              />
-              <TabButton
-                name="Notes"
-                icon={<FaFileAlt className="w-4 h-4" />}
-                isActive={activeTab === "notes"}
-                count={getNotesCount(batch)}
-                color="blue"
               />
 
               <TabButton
@@ -459,17 +487,26 @@ const handleSetActiveTab = (tabName) => {
               />
 
               <TabButton
+                name="Recording"
+                icon={<FaVideo className="w-4 h-4" />}
+                isActive={activeTab === "recording"}
+                count={getLectureCount(batch)}
+                color="green"
+              />
+
+              <TabButton
+                name="Notes"
+                icon={<FaFileAlt className="w-4 h-4" />}
+                isActive={activeTab === "notes"}
+                count={getNotesCount(batch)}
+                color="blue"
+              />
+
+              <TabButton
                 name="Feedback"
                 icon={<FaVideo className="w-4 h-4" />}
                 isActive={activeTab === "feedback"}
                 count={getFeedbackCount(batch)}
-                color="green"
-              />
-              <TabButton
-                name="Outcomes"
-                icon={<FaCheckCircle className="w-4 h-4" />}
-                isActive={activeTab === "outcomes"}
-                count={getOutcomesCount(course)}
                 color="green"
               />
             </nav>
@@ -506,8 +543,12 @@ const handleSetActiveTab = (tabName) => {
             )} */}
 
             {activeTab === "overview" && (
-  <OverviewTab course={course} setActiveTab={handleSetActiveTab} />
-)}
+              <OverviewTab course={course} setActiveTab={handleSetActiveTab} />
+            )}
+
+            {activeTab === "cloudlab" && hasCloudLab && (
+              <CloudLabTab cloudLabs={batch.cloudLabs} />
+            )}
 
             {activeTab === "curriculum" && (
               <CurriculumTab
@@ -522,7 +563,7 @@ const handleSetActiveTab = (tabName) => {
               <PrerequisitesTab batch={batch} />
             )}
 
-            {activeTab === "videos" && <VideosTab batch={batch} />}
+            {activeTab === "recording" && <VideosTab batch={batch} />}
             {activeTab === "assessment" && <TestsTab batch={batch} />}
 
             {activeTab === "assignments" && <AssignmentsTab batch={batch} />}

@@ -82,10 +82,10 @@ const ManageNotes = () => {
   // Table column configuration
   const columns = [
     { header: "Title", accessor: "title" },
-    {
-      header: "Chapter",
-      accessor: (row) => row.chapter?.title || row.chapter || "-",
-    },
+    // {
+    //   header: "Chapter",
+    //   accessor: (row) => row.chapter?.title || row.chapter || "-",
+    // },
     // { header: "Duration", accessor: (row) => row.duration || "-" },
     {
       header: "Actions",
@@ -126,7 +126,7 @@ const ManageNotes = () => {
       {/* Header */}
       <div className="flex justify-between items-center px-8 py-2 bg-white shadow-md z-10">
         <h2 className="text-2xl font-bold text-gray-700">
-          Manage Study Material
+          Manage Reference Material Repository
         </h2>
         {canPerformAction(rolePermissions, "note", "create") && (
           <button
@@ -165,12 +165,12 @@ const ManageNotes = () => {
                 <span className="text-gray-800">{selectedNote.title}</span>
               </div>
 
-              <div className="flex flex-col">
+              {/* <div className="flex flex-col">
                 <span className="text-gray-500 font-medium">Chapter</span>
                 <span className="text-gray-800">
                   {selectedNote.chapter?.title || selectedNote.chapter || "-"}
                 </span>
-              </div>
+              </div> */}
 
               {/* <div className="flex flex-col">
         <span className="text-gray-500 font-medium">Duration</span>
@@ -184,30 +184,22 @@ const ManageNotes = () => {
                 </span>
               </div>
             </div>
+{/* File Section */}
+{selectedNote.file && (
+  <div className="flex flex-col mt-4">
+    <span className="text-gray-500 font-medium">File</span>
 
-            {/* File Section */}
-            {selectedNote.file && (
-              <div className="flex flex-col mt-4">
-                <span className="text-gray-500 font-medium">File</span>
-                <div className="mt-2">
-                  <a
-                    href={DIR.COURSE_NOTES + selectedNote.file}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline font-medium"
-                  >
-                    View PDF
-                  </a>
+    <a
+      href={DIR.COURSE_NOTES + selectedNote.file}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 text-blue-600 hover:underline font-medium"
+    >
+      View File
+    </a>
+  </div>
+)}
 
-                  {/* Optional inline preview */}
-                  <iframe
-                    src={DIR.COURSE_NOTES + selectedNote.file}
-                    title="Training Note PDF"
-                    className="w-full h-64 mt-2 border rounded shadow-sm"
-                  ></iframe>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </Modal>

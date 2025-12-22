@@ -26,6 +26,7 @@ import { useSelector } from "react-redux";
 import Modal from "../../popupModal/Modal";
 import ScrollableTable from "../../table/ScrollableTable";
 import { canPerformAction } from "../../../utils/permissionUtils";
+import { COURSE_NAME } from "../../../utils/constants";
 
 const CourseTable = () => {
   const { token } = useAuth();
@@ -51,10 +52,10 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
       const data = await getAllCourses(); // API helper
       setCourses(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching training program:", error);
+      console.error(`Error fetching ${COURSE_NAME}:`, error);
       Swal.fire({
         icon: "error",
-        title: "Failed to load training program",
+        title: `Failed to load ${COURSE_NAME}`,
         text: "Please try again later",
       });
     } finally {
@@ -71,14 +72,14 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
       Swal.fire({
         icon: "error",
         title: "Permission Denied",
-        text: "You do not have permission to delete this Training Program.",
+        text: `You do not have permission to delete this ${COURSE_NAME}.`,
       });
       return;
     }
 
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "Do you really want to delete this Training Program?",
+      text: `Do you really want to delete this ${COURSE_NAME}?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -97,14 +98,14 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
       Swal.fire({
         icon: "success",
         title: "Deleted!",
-        text: "Training Program deleted successfully.",
+        text: `${COURSE_NAME} deleted successfully.`,
         confirmButtonColor: "#28a745",
       });
     } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Deletion Failed",
-        text: err.message || "Failed to delete training program.",
+        text: err.message || `Failed to delete ${COURSE_NAME}.`,
         confirmButtonColor: "#d33",
       });
     } finally {
@@ -126,7 +127,7 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: err.message || "Failed to fetch training program details",
+        text: err.message || `Failed to fetch ${COURSE_NAME} details`,
       });
     } finally {
       setModalLoading(false);
@@ -140,14 +141,14 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
       Swal.fire({
         icon: "error",
         title: "Permission Denied",
-        text: "You do not have permission to clone this Training Program.",
+        text: `You do not have permission to clone this ${COURSE_NAME}.`,
       });
       return;
     }
 
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "Do you want to clone this Training Program?",
+      text: `Do you want to clone this ${COURSE_NAME}?`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Yes, clone it!",
@@ -162,14 +163,14 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
           Swal.fire({
             icon: "success",
             title: "Cloned!",
-            text: data.message || "Training Program cloned successfully.",
+            text: data.message || `${COURSE_NAME} cloned successfully.`,
           });
           fetchCourses();
         } else {
           Swal.fire({
             icon: "error",
             title: "Failed",
-            text: data.message || "Failed to clone Training Program.",
+            text: data.message || `Failed to clone ${COURSE_NAME}.`,
           });
         }
       } catch (err) {
@@ -184,7 +185,7 @@ const [sortOrder, setSortOrder] = useState("newest"); // "newest" or "oldest"
 
   const columns = [
     { header: "Title", accessor: "title" },
-    { header: "Duration", accessor: "duration" },
+    // { header: "Duration", accessor: "duration" },
     {
       header: "Batches Assigned",
       accessor: (row) => {
@@ -524,7 +525,7 @@ return (
 
       {/* Title */}
       <h2 className="text-2xl font-bold text-gray-700 tracking-wide">
-        Manage Training Program
+        Manage {COURSE_NAME}
       </h2>
 
       {/* Right Controls */}
@@ -561,7 +562,7 @@ return (
           columns={columns}
           data={filteredAndSortedCourses}
           maxHeight="500px"
-          emptyMessage="No Training Program Found"
+          emptyMessage={`No ${COURSE_NAME} Found`}
         />
       </div>
     </div>

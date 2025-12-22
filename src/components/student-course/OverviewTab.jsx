@@ -12,12 +12,12 @@ import { COURSE_NAME } from "../../utils/constants";
 
 const OverviewTab = ({ course, setActiveTab }) => {
   const stats = [
-    {
-      icon: <FaClock className="w-5 h-5" />,
-      label: "Duration",
-      value: course.duration,
-      color: "from-blue-500 to-blue-600",
-    },
+    // {
+    //   icon: <FaClock className="w-5 h-5" />,
+    //   label: "Duration",
+    //   value: course.duration,
+    //   color: "from-blue-500 to-blue-600",
+    // },
     {
       icon: <FaUsers className="w-5 h-5" />,
       label: "Enrolled",
@@ -52,7 +52,7 @@ const OverviewTab = ({ course, setActiveTab }) => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {stats.map((stat, index) => (
           <div
             key={index}
@@ -105,7 +105,7 @@ const OverviewTab = ({ course, setActiveTab }) => {
             <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white shadow-lg">
               <FaLightbulb className="w-6 h-6" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">What You'll Get</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Prerequisite</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {course.keyFeatures.map((feature, index) => (

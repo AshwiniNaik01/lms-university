@@ -125,10 +125,10 @@ const Attendance = () => {
       <div className="flex flex-col items-center justify-center py-10 px-6 mt-50 bg-yellow-50 border border-yellow-300 rounded-lg text-yellow-800 space-y-2">
         <FiAlertTriangle className="w-8 h-8" />
         <h3 className="text-lg font-semibold">
-          No students found in this batch
+          No participates found in this batch
         </h3>
         <p className="text-sm text-yellow-700">
-          Please check the batch or add students to mark attendance.
+          Please check the batch or add participates to mark attendance.
         </p>
       </div>
     );
@@ -143,13 +143,13 @@ const Attendance = () => {
             <div>
               <h2 className="text-2xl font-bold mb-1">Attendance Records</h2>
               <p className="text-blue-100 text-sm">
-                Manage candidates attendance for this session
+                Manage Participate attendance for this session
               </p>
             </div>
 
             <div className="flex items-center space-x-6">
               <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
-                <div className="text-sm text-blue-100">Total Candidates</div>
+                <div className="text-sm text-blue-100">Total Participate</div>
                 <div className="text-2xl font-bold text-white">
                   {attendees.length}
                 </div>
@@ -180,7 +180,7 @@ const Attendance = () => {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700 text-sm uppercase">
-                      Student
+                      Participate
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700 text-sm uppercase">
                       Email

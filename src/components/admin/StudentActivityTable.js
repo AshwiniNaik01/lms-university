@@ -35,12 +35,12 @@ const StudentActivityTable = () => {
         loadUsers();
     }, [token]);
 
-    if (loading) return <p>Loading student activity...</p>;
+    if (loading) return <p>Loading participate activity...</p>;
     if (error) return <p className="error-message">{error}</p>;
 
     return (
         <div>
-            <h2>Student Activity Overview</h2>
+            <h2>Participate Activity Overview</h2>
             {users.length === 0 ? <p>No users found.</p> : (
                 <table>
                     <thead>

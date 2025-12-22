@@ -137,7 +137,7 @@ export default function ManageAssignments() {
 
   const columns = [
     { header: "Title", accessor: "title" },
-    { header: "Chapter", accessor: (row) => row.chapter?.title || "-" },
+    // { header: "Chapter", accessor: (row) => row.chapter?.title || "-" },
     {
       header: "Deadline",
       accessor: (row) => row.deadline?.split("T")[0] || "-",
@@ -241,14 +241,14 @@ export default function ManageAssignments() {
               </div>
 
               {/* Chapter */}
-              <div>
+              {/* <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase">
                   Chapter
                 </h3>
                 <p className="text-gray-800">
                   {selectedAssignment.chapter?.title || "N/A"}
                 </p>
-              </div>
+              </div> */}
 
               {/* Description */}
               {/* <div className="col-span-2">

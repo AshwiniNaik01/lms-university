@@ -59,11 +59,11 @@ const ManageBatch = () => {
         setNoBatchesMessage("");
       } else {
         setBatches([]);
-        setNoBatchesMessage("No batches found for this Training Program");
+        setNoBatchesMessage(`No batches found for this ${COURSE_NAME}`);
         Swal.fire({
           icon: "info",
           title: "No Batches Found",
-          text: "No batches found for this selected Training Program.",
+          text: `No batches found for this selected ${COURSE_NAME}.`,
           confirmButtonColor: "#3085d6",
         });
       }
@@ -106,7 +106,7 @@ const ManageBatch = () => {
       } catch (err) {
         Swal.fire({
           icon: "error",
-          title: "Error Fetching Training Programs",
+          title: `Error Fetching ${COURSE_NAME}`,
           text: err.response?.data?.message || err.message,
           confirmButtonColor: "#d33",
         });
@@ -201,7 +201,7 @@ const ManageBatch = () => {
     //   accessor: (row) =>
     //     row.trainersAssigned?.map((t) => t?.fullName).join(", ") || "-",
     // },
-    { header: "Status", accessor: (row) => row.status || "-" },
+    // { header: "Status", accessor: (row) => row.status || "-" },
 
 
     {
@@ -246,7 +246,7 @@ const ManageBatch = () => {
                 }
                 className="px-2 py-1 rounded-md bg-green-500 text-white hover:bg-green-600 text-sm"
               >
-                Add Candidate
+                Add Participate
               </button>
             )}
 
@@ -258,7 +258,7 @@ const ManageBatch = () => {
                 }
                 className="px-2 py-1 rounded-md bg-purple-500 text-white hover:bg-purple-600 text-sm"
               >
-                View Candidate
+                View Participate
               </button>
             )}
 
@@ -327,7 +327,7 @@ const ManageBatch = () => {
           {/* ---------- Filter Section ---------- */}
           <div className="flex items-center gap-3">
             <label className="font-semibold text-gray-700">
-              Filter by Training Program:
+              Filter by {COURSE_NAME}:
             </label>
 
             <select
@@ -335,7 +335,7 @@ const ManageBatch = () => {
               onChange={handleCourseFilterChange}
               className="p-2 border rounded-md border-gray-300"
             >
-              <option value="all">All Training Programs</option>
+              <option value="all">All {COURSE_NAME}</option>
               {courses.map((course) => (
                 <option key={course._id} value={course._id}>
                   {course.title}
@@ -392,7 +392,7 @@ const ManageBatch = () => {
 
             <div>
               <p className="text-gray-600">
-                <strong>Training Programs:</strong>{" "}
+                <strong>{COURSE_NAME}:</strong>{" "}
                 {selectedBatch.coursesAssigned
                   ?.map((c) => c?.title)
                   .join(", ") || "-"}
@@ -406,9 +406,9 @@ const ManageBatch = () => {
             </div>
 
             <div>
-              <p className="text-gray-600">
+              {/* <p className="text-gray-600">
                 <strong>Status:</strong> {selectedBatch.status || "-"}
-              </p>
+              </p> */}
               <p className="text-gray-600">
                 <strong>Notes:</strong>{" "}
                 {selectedBatch.additionalNotes || "No notes available"}

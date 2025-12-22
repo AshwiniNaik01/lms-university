@@ -170,7 +170,7 @@ const CourseDetailPage = () => {
           )
         ) : (
           <p className="text-gray-600 italic text-center">
-            Please log in as a student to start learning.
+            Please log in as a participate to start learning.
           </p>
         )}
       </section>

@@ -63,16 +63,13 @@ const handleShare = (testId) => {
 
   navigator.clipboard.writeText(url);
 
-  Swal.fire({
-    icon: "success",
-    title: "Test Link Copied!",
-    text: url,
-    confirmButtonText: "Open Test",
-  }).then((res) => {
-    if (res.isConfirmed) {
-      window.open(url, "_blank");
-    }
-  });
+Swal.fire({
+  icon: "success",
+  title: "Test Link Copied!",
+  text: url,
+  confirmButtonText: "OK"
+});
+
 };
 
 
