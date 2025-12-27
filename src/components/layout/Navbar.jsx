@@ -7,10 +7,14 @@ import apiClient from "../../api/axiosConfig.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { DIR, STUDENT_PORTAL_URL } from "../../utils/constants.js";
 
+
+
 const Navbar = () => {
   const { currentUser, logout, isAdmin, isTrainer } = useAuth();
   const navigate = useNavigate();
   const studentId = Cookies.get("studentId");
+  const trainerId = Cookies.get("trainerId");
+
   const isLocal = import.meta.env.VITE_ENV === "development";
   const courseUrl = `${STUDENT_PORTAL_URL}courses`;
   const [contactInfo, setContactInfo] = useState(null);
@@ -120,7 +124,7 @@ const Navbar = () => {
 )}
 
 
-        <Link className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5ec2f4] via-[#485DAC] to-[#E9577C]">
+        <Link className="text-2xl font-bold bg-clip-text text-transparent bg-indigo-900">
           {contactInfo?.companyName || ""}
         </Link>
       </div>
@@ -168,6 +172,16 @@ const Navbar = () => {
                 >
                   Trainer Profile
                 </Link> */}
+
+                {trainerId && (
+  <Link
+    to={`/trainers/update/${trainerId}`}
+    className="hover:underline text-white"
+  >
+    Trainer Profile
+  </Link>
+)}
+
               </>
             )}
 

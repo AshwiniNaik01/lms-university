@@ -102,9 +102,9 @@ const AddBatch = ({ onBatchSaved }) => {
   // This will hold data formatted for Dropdown
   const trainerOptions = trainers.map((t) => ({
     ...t,
-    name: t.fullName, // needed for Dropdown
+    title: t.fullName, // needed for Dropdown
   }));
-
+ 
   useEffect(() => {
     const init = async () => {
       const data = await fetchCoursesAndTrainers(); // make sure it returns the response

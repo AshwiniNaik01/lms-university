@@ -305,10 +305,10 @@ const ManageMeeting = () => {
                 <span className="font-medium text-gray-700">Platform:</span>{" "}
                 {selectedMeeting.platform || "-"}
               </div>
-              <div>
+              {/* <div>
                 <span className="font-medium text-gray-700">Trainer:</span>{" "}
                 {selectedMeeting.trainerDetails?.fullName || "-"}
-              </div>
+              </div> */}
               <div>
                 <span className="font-medium text-gray-700">Start Time:</span>{" "}
                 {new Date(selectedMeeting.startTime).toLocaleString()}
@@ -317,10 +317,10 @@ const ManageMeeting = () => {
                 <span className="font-medium text-gray-700">End Time:</span>{" "}
                 {new Date(selectedMeeting.endTime).toLocaleString()}
               </div>
-              <div>
+              {/* <div>
                 <span className="font-medium text-gray-700">Batch:</span>{" "}
                 {selectedMeeting.batchDetails?.batchName || "-"}
-              </div>
+              </div> */}
               <div>
                 <span className="font-medium text-gray-700">Session ID:</span>{" "}
                 {selectedMeeting.meetingId}

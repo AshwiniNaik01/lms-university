@@ -40,7 +40,7 @@ const CourseForm = () => {
   const initialValues = {
     title: "",
     description: "",
-    // duration: "",
+    duration: "",
     rating: 0,
     enrolledCount: 0,
     overview: "",
@@ -60,8 +60,8 @@ const CourseForm = () => {
       },
     ],
     fees: "",
-    // durationValue: "",
-    // durationUnit: "days",
+    durationValue: "",
+    durationUnit: "days",
     // trainer: "",
     // trainer: [],
     // startDate: "",
@@ -84,8 +84,8 @@ const CourseForm = () => {
     return {
       ...initialValues,
       ...editCourseData,
-      // durationValue,
-      // durationUnit,
+      durationValue,
+      durationUnit,
       rating: editCourseData.rating || 0,
       enrolledCount: editCourseData.enrolledCount || 0,
       overview: editCourseData.overview || "",
@@ -205,10 +205,10 @@ const cleanKeyFeatures = (features) =>
       // Basic fields
       formData.append("title", values.title);
       formData.append("description", values.description);
-      // formData.append(
-      //   "duration",
-      //   `${values.durationValue} ${values.durationUnit}`
-      // );
+      formData.append(
+        "duration",
+        `${values.durationValue} ${values.durationUnit}`
+      );
       formData.append("rating", values.rating);
       formData.append("enrolledCount", values.enrolledCount);
       formData.append("overview", values.overview);
@@ -439,22 +439,22 @@ resetForm();
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Title */}
 
-                <div className="col-span-2">
+                {/* <div className="col-span-2"> */}
                   <InputField label="Title*" name="title" formik={formik} />
-                </div>
+                {/* </div> */}
                 {/* <InputField label="Title*" name="title" formik={formik} /> */}
 
-                {/* <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {/* Duration Value */}
-                {/* <InputField
+                <InputField
                     label="Duration Value*"
                     name="durationValue"
                     type="number"
                     formik={formik}
-                  /> */}
+                  />
 
                 {/* Duration Unit */}
-                {/* <Dropdown
+                <Dropdown
                     label="Duration Unit*"
                     name="durationUnit"
                     options={[
@@ -465,7 +465,7 @@ resetForm();
                     ]}
                     formik={formik}
                   />
-                </div> */}
+                 </div> 
               </div>
 
               {/* Description */}

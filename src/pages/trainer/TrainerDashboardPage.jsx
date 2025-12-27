@@ -28,33 +28,115 @@ import { fetchTrainerById } from "../admin/trainer-management/trainerApi";
 // Trainer Dashboard Page Component
 // ===============================================
 
+
+
+const cleanValue = (value) => {
+  if (
+    value === "NA" ||
+    value === "" ||
+    value === "null" ||
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
+  return value;
+};
+
+const cleanArray = (arr) => {
+  if (!Array.isArray(arr)) return [];
+  return arr.filter(
+    (v) => v && v !== "NA" && v !== "null" && v !== ""
+  );
+};
+
+const normalizeTrainer = (data) => ({
+  ...data,
+
+  fullName: cleanValue(data.fullName),
+  title: cleanValue(data.title),
+  email: cleanValue(data.email),
+  mobileNo: cleanValue(data.mobileNo),
+  dob: cleanValue(data.dob),
+  gender: cleanValue(data.gender),
+  highestQualification: cleanValue(data.highestQualification),
+  totalExperience: cleanValue(data.totalExperience),
+  resume: cleanValue(data.resume),
+  availableTiming: cleanValue(data.availableTiming),
+  linkedinProfile: cleanValue(data.linkedinProfile),
+  summary: cleanValue(data.summary),
+  collegeName: cleanValue(data.collegeName),
+  profilePhotoTrainer: cleanValue(data.profilePhotoTrainer),
+  idProofTrainer: cleanValue(data.idProofTrainer),
+
+  address: {
+    add1: cleanValue(data.address?.add1),
+    add2: cleanValue(data.address?.add2),
+    taluka: cleanValue(data.address?.taluka),
+    dist: cleanValue(data.address?.dist),
+    state: cleanValue(data.address?.state),
+    pincode: cleanValue(data.address?.pincode),
+  },
+
+  certifications: cleanArray(data.certifications),
+  achievements: cleanArray(data.achievements),
+  skills: cleanArray(data.skills),
+  courses: cleanArray(data.courses),
+  batches: cleanArray(data.batches),
+});
+
+
 const TrainerDashboardPage = () => {
   const [trainer, setTrainer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch trainer data using ID from cookie
+  // useEffect(() => {
+  //   const fetchTrainer = async () => {
+  //     try {
+  //       const trainerId = Cookies.get("trainerId");
+  //       if (!trainerId) return;
+
+  //       // Use centralized API utility
+  //       const trainerData = await fetchTrainerById(trainerId);
+
+  //       // Set the fetched data into local state
+  //       setTrainer(trainerData);
+  //     } catch (error) {
+  //       console.error("❌ Failed to fetch trainer data:", error);
+  //     } finally {
+  //       // Ensure loading is disabled even if an error occurs
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchTrainer();
+  // }, []);
+
+
   useEffect(() => {
-    const fetchTrainer = async () => {
-      try {
-        const trainerId = Cookies.get("trainerId");
-        if (!trainerId) return;
+  const fetchTrainer = async () => {
+    try {
+      const trainerId = Cookies.get("trainerId");
+      if (!trainerId) return;
 
-        // Use centralized API utility
-        const trainerData = await fetchTrainerById(trainerId);
+      const response = await fetchTrainerById(trainerId);
 
-        // Set the fetched data into local state
-        setTrainer(trainerData);
-      } catch (error) {
-        console.error("❌ Failed to fetch trainer data:", error);
-      } finally {
-        // Ensure loading is disabled even if an error occurs
-        setLoading(false);
-      }
-    };
+      // 👇 normalize here
+      const normalizedTrainer = normalizeTrainer(response.data || response);
 
-    fetchTrainer();
-  }, []);
+      setTrainer(normalizedTrainer);
+    } catch (error) {
+      console.error("❌ Failed to fetch trainer data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTrainer();
+}, []);
+
 
   // Handle loader during async operations
   if (loading) {
@@ -252,7 +334,7 @@ const TrainerDashboardPage = () => {
             <DetailItem
               icon={<FaCalendarAlt className="w-3 h-3" />}
               label="Date of Birth"
-              value={trainer.dob}
+              value={trainer.dob || "Not provided"}
             />
             <DetailItem
               icon={<FaUser className="w-3 h-3" />}

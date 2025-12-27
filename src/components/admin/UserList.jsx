@@ -183,6 +183,8 @@ const handleResetPassword = async () => {
 
     Swal.fire("Success", "Password reset successfully", "success");
 
+    await loadUsers(selectedRole);
+
     // ✅ Cleanup
     setResetUser(null);
     setResetPassword("");
