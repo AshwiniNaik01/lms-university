@@ -1,0 +1,129 @@
+
+
+// import React from "react";
+
+// const GradedAssignments = ({ assignments, studentId, setViewModal }) => {
+//   // Filter assignments that have at least one submission with status "submitted" and score not null
+//   const gradedAssignments = assignments.filter((assignment) =>
+//     assignment.submissions?.some(
+//       (s) => s.status === "submitted" && s.score != null
+//     )
+//   );
+
+//   if (gradedAssignments.length === 0) {
+//     return <div className="text-gray-500">No graded assignments yet.</div>;
+//   }
+
+//   return (
+//     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//       {gradedAssignments.map((assignment) => {
+//         const submission = assignment.submissions.find(
+//           (s) => s.status === "submitted" && s.score != null
+//         );
+
+//         return (
+//           <div
+//             key={assignment._id}
+//             className="border p-4 rounded-lg shadow hover:shadow-lg cursor-pointer"
+//             onClick={() => setViewModal({ assignment, submission })}
+//           >
+//             <h3 className="font-bold text-lg">{assignment.title}</h3>
+//             <p className="text-gray-500 text-sm mb-2">{assignment.description}</p>
+//             <p className="text-green-600 font-semibold">
+//               Score: {submission.score ?? "N/A"}
+//             </p>
+//             <p className="text-gray-700">Remarks: {submission.remarks}</p>
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// };
+
+// export default GradedAssignments;
+
+import React, { useMemo } from "react";
+import { useSelector } from "react-redux";
+
+const GradedAssignments = ({ studentId, setViewModal }) => {
+  const { assignments } = useSelector((state) => state.assignments);
+
+  // Memoize filtered graded assignments for performance
+  const gradedAssignments = useMemo(() => {
+    return assignments.filter((assignment) =>
+      assignment.submissions?.some(
+        (s) => s.student === studentId && s.status === "submitted" && s.score != null
+      )
+    );
+  }, [assignments, studentId]);
+
+  if (gradedAssignments.length === 0) {
+    return <div className="text-gray-500">No graded assignments yet.</div>;
+  }
+
+  // return (
+  //   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  //     {gradedAssignments.map((assignment) => {
+  //       const submission = assignment.submissions.find(
+  //         (s) => s.student === studentId && s.status === "submitted" && s.score != null
+  //       );
+
+  //       return (
+  //         <div
+  //           key={assignment._id}
+  //           className="border p-4 rounded-lg shadow hover:shadow-lg cursor-pointer"
+  //           onClick={() => setViewModal({ assignment, submission })}
+  //         >
+  //           <h3 className="font-bold text-lg">{assignment.title}</h3>
+  //           <p className="text-gray-500 text-sm mb-2">{assignment.description}</p>
+  //           <p className="text-green-600 font-semibold">
+  //             Score: {submission.score ?? "N/A"}
+  //           </p>
+  //           <p className="text-gray-700">Remarks: {submission.remarks}</p>
+  //         </div>
+  //       );
+  //     })}
+  //   </div>
+  // );
+
+
+  return (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+    {gradedAssignments.map((assignment) => {
+      const submission = assignment.submissions.find(
+        (s) => s.student === studentId && s.status === "submitted" && s.score != null
+      );
+
+      return (
+        <div
+          key={assignment._id}
+          className="relative bg-white rounded-lg border-3 border-sky-800 shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
+          onClick={() => setViewModal({ assignment, submission })}
+        >
+          {/* Graded Tag */}
+          <span className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-lg uppercase shadow-md">
+            Graded
+          </span>
+
+          {/* Assignment Info */}
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">{assignment.title}</h3>
+          <p className="text-gray-600 mb-4 line-clamp-3">{assignment.description}</p>
+
+          {/* Score and Remarks */}
+          <div className="flex flex-col gap-2">
+            <p className="text-green-600 font-semibold text-lg">
+              Score: {submission?.score ?? "N/A"}
+            </p>
+            <p className="text-gray-700">
+              Remarks: {submission?.remarks ?? "No remarks provided"}
+            </p>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
+
+};
+
+export default GradedAssignments;
