@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-// import Cards from "../components/Cards";
 import { FaCheckCircle, FaClock } from "react-icons/fa";
 import { MdOutlineQuiz } from "react-icons/md";
 import { VscOrganization } from "react-icons/vsc";
+import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import apiClient from "../../../api/axiosConfig";
 

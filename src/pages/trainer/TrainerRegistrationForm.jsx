@@ -1,37 +1,24 @@
 import { useFormik } from "formik";
 import { useEffect, useState } from "react";
-import { FaPhone, FaTransgender, FaUpload } from "react-icons/fa";
+import { FaBriefcase, FaCalendar, FaCertificate, FaCode, FaFileAlt, FaGraduationCap, FaLinkedin, FaMapMarkerAlt, FaPhone, FaTransgender, FaTrophy, FaUpload, FaUser } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router";
 import * as Yup from "yup";
 import CustomDaysSelector from "../../components/form/CustomDaysSelector";
 import DynamicInputFields from "../../components/form/DynamicInputFields";
 import InputField from "../../components/form/InputField";
-import MultiSelectDropdown from "../../components/form/MultiSelectDropdown";
 import RadioButtonGroup from "../../components/form/RadioButtonGroup";
 import TextAreaField from "../../components/form/TextAreaField";
 import { fetchAllCourses } from "../../features/allCoursesSlice";
-import {
-  FaUser,
-  FaGraduationCap,
-  FaBriefcase,
-  FaMapMarkerAlt,
-  FaFileAlt,
-  FaCertificate,
-  FaTrophy,
-  FaCode,
-  FaLinkedin,
-  FaCalendar,
-} from "react-icons/fa";
 
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Swal from "sweetalert2";
 import { COURSE_NAME, DIR } from "../../utils/constants";
 import {
   fetchTrainerById,
   registerTrainer,
   updateTrainer,
 } from "../admin/trainer-management/trainerApi";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import Swal from "sweetalert2";
 
 // TrainerRegistrationForm
 // ==============================================================

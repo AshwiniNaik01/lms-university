@@ -1,5 +1,3 @@
-
-
 import { useMemo } from "react";
 import { FaTrash, FaUpload } from "react-icons/fa";
 

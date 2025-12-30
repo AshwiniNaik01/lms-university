@@ -54,13 +54,11 @@
 
 
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { VscDebugStart } from "react-icons/vsc";
-import ResultPopup from "./ResultPopup";
-import ViewQPPopup from "./ViewQPPopup";
 import ResultModal from "../../popupModal/ResultModal";
+import ViewQPPopup from "./ViewQPPopup";
 
 const TestList = ({ tests }) => {
   const navigate = useNavigate();

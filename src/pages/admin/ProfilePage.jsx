@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-// import { useAuth } from "../contexts/AuthContext.jsx";
-import { updateUserProfileApi } from "../../api/profile";
-// import { fetchBranches } from "../api/branches";
 import { FaEnvelope, FaKey, FaUser } from "react-icons/fa";
+import { updateUserProfileApi } from "../../api/profile";
 import { useAuth } from "../../contexts/AuthContext";
-// import { updateUserProfileApi } from "../../api/profile";
+
 
 const ProfilePage = () => {
   const { currentUser, updateUserContext } = useAuth();

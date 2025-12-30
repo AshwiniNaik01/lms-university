@@ -1,5 +1,3 @@
-
-
 import { useEffect, useState } from "react";
 import { FaUpload } from "react-icons/fa";
 

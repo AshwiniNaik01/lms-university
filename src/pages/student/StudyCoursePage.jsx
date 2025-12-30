@@ -11,21 +11,20 @@ import {
   FaVideo,
 } from "react-icons/fa";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { fetchCourseById } from "../../api/courses";
-// import AssignmentsTab from "../../components/student-course/AssignmentsTab";
 import { fetchActiveBatchById } from "../../api/batch";
+import { fetchCourseById } from "../../api/courses";
 import AssignmentsTab from "../../components/student-course/assignmentSection/AssignmentsTab";
+import CloudLabTab from "../../components/student-course/CloudLabTab";
 import CurriculumTab from "../../components/student-course/CurriculumTab";
 import FeedbackList from "../../components/student-course/FeedbackList";
+import MeetingsDropdown from "../../components/student-course/MeetingsDropdown";
 import NotesTab from "../../components/student-course/NotesTab";
 import OutcomesTab from "../../components/student-course/OutcomesTab";
 import OverviewTab from "../../components/student-course/OverviewTab";
-import VideosTab from "../../components/student-course/VideosTab";
-import MeetingsDropdown from "../../components/student-course/MeetingsDropdown";
 import PrerequisitesTab from "../../components/student-course/PrerequisitesTab";
 import TestsTab from "../../components/student-course/TestsTab";
+import VideosTab from "../../components/student-course/VideosTab";
 import { COURSE_NAME } from "../../utils/constants";
-import CloudLabTab from "../../components/student-course/CloudLabTab";
 
 const StudyCoursePage = () => {
   const { courseId } = useParams();

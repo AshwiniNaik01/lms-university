@@ -1,14 +1,12 @@
 import { ImageIcon, Mail, User } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getStudentById, updateStudentProfile } from "../../api/profile"; // your API calls
-// import { BASE_URL } from "../utils/constants";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getStudentById, updateStudentProfile } from "../../api/profile";
 import { BASE_URL } from "../../utils/constants";
 
 
 const StudentProfilePage = () => {
-  // const id = "68cbf5ea70a466f62e216a6c"; // hardcoded for now
   const { id } = useParams();
 
   const [student, setStudent] = useState(null);
