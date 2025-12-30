@@ -1,4 +1,3 @@
-
 import { VideoIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -8,11 +7,11 @@ import {
   FaFileVideo,
   FaPause,
   FaPlay,
+  FaStepBackward,
+  FaStepForward,
   FaVolumeMute,
   FaVolumeUp,
   FaYoutube,
-  FaStepBackward,
-  FaStepForward,
 } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";

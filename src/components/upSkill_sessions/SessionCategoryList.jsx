@@ -1,10 +1,10 @@
-// SessionCategoryList.jsx
-import { ArrowLeft, Calendar, CheckCircle, Info, XCircle } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 
+import Modal from "../popupModal/Modal";
 import {
   deleteEvent,
   deleteInternshipSession,
@@ -17,7 +17,6 @@ import {
   getAllWorkshops,
   getSessionCategories,
 } from "./upSkillsApi";
-import Modal from "../popupModal/Modal";
 
 const SessionCategoryList = () => {
   const { slug } = useParams();

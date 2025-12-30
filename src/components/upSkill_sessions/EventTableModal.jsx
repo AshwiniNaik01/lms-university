@@ -1,4 +1,3 @@
-// EventTableModal.jsx
 import { Calendar, CheckCircle, Eye, Info, Pencil, Trash2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";

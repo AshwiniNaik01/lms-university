@@ -1,28 +1,23 @@
-// SessionCategoryForm.jsx
 import { useFormik } from "formik";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import * as Yup from "yup";
-import { useSelector } from "react-redux";
-
 import {
   createSessionCategory,
   deleteSessionCategory,
   getSessionCategories,
   updateSessionCategory,
 } from "./upSkillsApi";
-
 import InputField from "../form/InputField";
 import TextAreaField from "../form/TextAreaField";
 import ScrollableTable from "../table/ScrollableTable";
-import EventTableModal from "./EventTableModal";
-
-import { ListCheckIcon, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ListCheckIcon, Pencil, Plus } from "lucide-react";
 import { Tooltip } from "react-tooltip";
-import Modal from "../popupModal/Modal";
-import Dropdown from "../form/Dropdown";
 import { canPerformAction } from "../../utils/permissionUtils";
+import Dropdown from "../form/Dropdown";
+import Modal from "../popupModal/Modal";
 
 // ----------------------
 // Validation Schema

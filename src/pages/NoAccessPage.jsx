@@ -1,5 +1,3 @@
-// src/pages/NoAccessPage.jsx
-import { Link } from "react-router-dom";
 import { FaLock } from "react-icons/fa";
 
 export default function NoAccessPage() {

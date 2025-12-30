@@ -2,23 +2,21 @@ import { useCallback, useEffect, useState } from "react";
 import {
   FaArrowRight,
   FaBookOpen,
-  FaClock,
   FaEdit,
   FaEnvelope,
   FaLightbulb,
   FaPhone,
   FaStar,
-  FaUser,
+  FaUser
 } from "react-icons/fa";
 import { RiDashboardFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
-import { fetchUserProfile as getUserProfile } from "../../api/profile";
-// import { BASE_URL } from "../utils/constants";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { fetchUserProfile as getUserProfile } from "../../api/profile";
 import BatchesComingSoon from "../../components/popupModal/BatchesComingSoon";
 import { BASE_URL, COURSE_NAME, STUDENT_PORTAL_URL } from "../../utils/constants";
-// import student_dashboard_img from "../../../public/images";
+
 
 // Single stat card
 const StatCard = ({ title, value, icon, bgColor, iconBg }) => (

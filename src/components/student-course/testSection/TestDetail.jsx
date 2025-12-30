@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
-import { FaArrowRight, FaArrowLeft, FaCheckCircle } from "react-icons/fa";
 import Cookies from "js-cookie";
-import TestClock from "./TestClock";
-import apiClient from "../../../api/axiosConfig";
+import { useEffect, useRef, useState } from "react";
+import { FaArrowLeft, FaArrowRight, FaCheckCircle } from "react-icons/fa";
 import { useParams } from "react-router-dom";
-import ResultPopup from "./ResultPopup";
 import Swal from "sweetalert2";
+import apiClient from "../../../api/axiosConfig";
+import ResultPopup from "./ResultPopup";
+import TestClock from "./TestClock";
 
 const OPTIONS = ["A", "B", "C", "D"];
 
