@@ -1,0 +1,1 @@
+import{r as c}from"./index-BlaCQYdb.js";const u=(a="")=>{const[o,r]=c.useState(a);return{password:o,setPassword:r,generate:(n=6)=>{const s="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";let t="";for(let e=0;e<n;e++)t+=s.charAt(Math.floor(Math.random()*s.length));return r(t),t}}};export{u};

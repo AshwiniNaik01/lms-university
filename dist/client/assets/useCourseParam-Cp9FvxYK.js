@@ -1,0 +1,1 @@
+import{L as l,r as s}from"./index-BlaCQYdb.js";const f=(t=[])=>{const r=l(),[c,a]=s.useState(""),[u,o]=s.useState(!1);return s.useEffect(()=>{const e=new URLSearchParams(r.search).get("courseId");e&&t.some(n=>n._id===e)?(a(e),o(!0)):o(!1)},[r.search,t]),[c,a,u]};export{f as u};
